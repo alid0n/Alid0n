@@ -434,9 +434,9 @@
     window.addEventListener('resize', () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
-      if (currentTheme === 'space') initInvaders();
-      if (currentTheme === 'pac') initPacGame();
-      if (currentTheme === 'synth') initSynthRacer();
+      if (currentTheme === 'space') initInvaders(false);
+      if (currentTheme === 'pac') initPacGame(false);
+      if (currentTheme === 'synth') initSynthRacer(false);
     });
 
     function checkRectCollision(r1, r2) {
@@ -463,7 +463,7 @@
       keys[e.code] = true;
 
       if (currentTheme === 'space' && e.code === 'Space') {
-        bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 10 });
+        firePlayerWeapon();
       }
 
       if (currentTheme === 'pac') {
@@ -481,7 +481,7 @@
     // ==========================================
     // UNIVERSAL HUD RENDERER
     // ==========================================
-    function drawHUD(score, startTime, lives = null, accentColor = '#00ffaa', wave = null) {
+    function drawHUD(score, startTime, lives = null, accentColor = '#00ffaa', wave = null, extraText = null) {
       const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
       const m = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
       const s = String(elapsedSec % 60).padStart(2, '0');
@@ -495,8 +495,10 @@
       ctx.fillText(`SCORE: ${score}`, 25, 35);
       ctx.fillText(`TIME: ${m}:${s}`, 25, 55);
 
+      let offsetY = 75;
       if (wave !== null) {
-        ctx.fillText(`LEVEL: ${wave}`, 25, 75);
+        ctx.fillText(`LEVEL: ${wave}`, 25, offsetY);
+        offsetY += 20;
       }
 
       if (lives !== null) {
@@ -504,7 +506,14 @@
         for (let i = 0; i < lives; i++) heartStr += '♥ ';
         ctx.fillStyle = '#ff0055';
         ctx.shadowColor = '#ff0055';
-        ctx.fillText(`LIVES: ${heartStr}`, 25, wave !== null ? 95 : 75);
+        ctx.fillText(`LIVES: ${heartStr}`, 25, offsetY);
+        offsetY += 20;
+      }
+
+      if (extraText) {
+        ctx.fillStyle = '#ffeb3b';
+        ctx.shadowColor = '#ffeb3b';
+        ctx.fillText(extraText, 25, offsetY);
       }
       ctx.restore();
     }
@@ -512,10 +521,21 @@
     // ==========================================
     // 1. SPACE INVADERS ENGINE
     // ==========================================
-    const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7.5, invuln: 0 };
+    const player = {
+      x: width / 2,
+      y: height - 60,
+      w: 36,
+      h: 20,
+      speed: 7.5,
+      invuln: 0,
+      weapon: 'standard',
+      weaponTimer: 0
+    };
+
     let bullets = [];
     let enemyLasers = [];
     let invaders = [];
+    let powerups = [];
     let invaderDir = 1;
     let spaceScore = 0;
     let spaceLives = 3;
@@ -523,8 +543,8 @@
     let spaceStartTime = Date.now();
     let animTick = 0;
 
-    const invaderRows = 4;
-    const invaderCols = 10;
+    let invaderRows = 2;
+    let invaderCols = 5;
     const invaderSize = 28;
 
     function initInvaders(fullReset = true) {
@@ -533,13 +553,34 @@
         spaceLives = 3;
         spaceLevel = 1;
         spaceStartTime = Date.now();
+        player.weapon = 'standard';
+        player.weaponTimer = 0;
+        player.invuln = 0;
       }
+
       bullets = [];
       enemyLasers = [];
       invaders = [];
+      powerups = [];
       invaderDir = 1;
+      player.x = width / 2 - player.w / 2;
+      player.y = height - 60;
 
-      const spacingX = Math.min(65, width / (invaderCols + 2));
+      if (spaceLevel === 1) {
+        invaderRows = 2;
+        invaderCols = 5;
+      } else if (spaceLevel === 2) {
+        invaderRows = 3;
+        invaderCols = 6;
+      } else if (spaceLevel === 3) {
+        invaderRows = 3;
+        invaderCols = 7;
+      } else {
+        invaderRows = Math.min(4, 3 + Math.floor(spaceLevel / 3));
+        invaderCols = Math.min(9, 6 + Math.floor(spaceLevel / 2));
+      }
+
+      const spacingX = Math.min(75, width / (invaderCols + 2));
       const startX = (width - invaderCols * spacingX) / 2;
 
       for (let r = 0; r < invaderRows; r++) {
@@ -547,32 +588,96 @@
           let type = 'scout';
           let hp = 1;
 
-          if (r === 2) {
-            type = 'cruiser';
-            hp = spaceLevel >= 2 ? 2 : 1;
-          } else if (r <= 1) {
-            type = 'dreadnought';
-            hp = spaceLevel >= 3 ? 3 : (spaceLevel >= 2 ? 2 : 1);
+          if (spaceLevel === 1) {
+            type = 'scout';
+            hp = 1;
+          } else if (spaceLevel === 2) {
+            if (r === 0) { type = 'cruiser'; hp = 2; }
+            else { type = 'scout'; hp = 1; }
+          } else {
+            if (r === 0) { type = 'dreadnought'; hp = 3; }
+            else if (r === 1) { type = 'cruiser'; hp = 2; }
+            else { type = 'scout'; hp = 1; }
+          }
+
+          let initialCooldown = 0;
+          if (spaceLevel === 1) {
+            initialCooldown = 550 + Math.floor(Math.random() * 200);
+          } else if (spaceLevel === 2) {
+            initialCooldown = 350 + Math.floor(Math.random() * 150);
+          } else {
+            initialCooldown = 150 + Math.floor(Math.random() * 100);
           }
 
           invaders.push({
             x: startX + c * spacingX,
-            y: 90 + r * 48,
+            y: 90 + r * 50,
             w: invaderSize,
             h: invaderSize,
             type: type,
             hp: hp,
-            maxHp: hp,
             alive: true,
-            cooldown: Math.floor(Math.random() * 200) + 50
+            cooldown: initialCooldown
           });
         }
       }
     }
 
+    function firePlayerWeapon() {
+      const cx = player.x + player.w / 2;
+
+      if (player.weapon === 'standard') {
+        bullets.push({ x: cx - 2, y: player.y, w: 4, h: 10, vx: 0, vy: -10, damage: 1, color: '#38bdf8' });
+      } else if (player.weapon === 'spread') {
+        bullets.push({ x: cx - 2, y: player.y, w: 5, h: 10, vx: 0, vy: -10, damage: 1, color: '#00ffff' });
+        bullets.push({ x: cx - 6, y: player.y, w: 5, h: 10, vx: -2.5, vy: -9.5, damage: 1, color: '#00ffff' });
+        bullets.push({ x: cx + 2, y: player.y, w: 5, h: 10, vx: 2.5, vy: -9.5, damage: 1, color: '#00ffff' });
+      } else if (player.weapon === 'laser') {
+        bullets.push({ x: player.x + 4, y: player.y - 4, w: 3, h: 18, vx: 0, vy: -15, damage: 1, color: '#ffee00', pierce: true });
+        bullets.push({ x: player.x + player.w - 7, y: player.y - 4, w: 3, h: 18, vx: 0, vy: -15, damage: 1, color: '#ffee00', pierce: true });
+      } else if (player.weapon === 'plasma') {
+        bullets.push({ x: cx - 5, y: player.y - 4, w: 10, h: 14, vx: 0, vy: -8, damage: 2, color: '#ff00ff' });
+      }
+    }
+
+    function spawnPowerup(x, y) {
+      if (Math.random() > 0.35) return;
+
+      const roll = Math.random();
+      let kind = 'weapon';
+      let label = 'W';
+      let color = '#00ffff';
+
+      if (roll < 0.20) {
+        kind = 'life';
+        label = '+';
+        color = '#ff0055';
+      } else if (roll < 0.45) {
+        kind = 'score';
+        label = '$';
+        color = '#ffeb3b';
+      }
+
+      powerups.push({
+        x: x,
+        y: y,
+        w: 20,
+        h: 20,
+        vy: 2.2,
+        kind: kind,
+        label: label,
+        color: color
+      });
+    }
+
     function updateSpace() {
       animTick++;
       if (player.invuln > 0) player.invuln--;
+
+      if (player.weaponTimer > 0) {
+        player.weaponTimer--;
+        if (player.weaponTimer <= 0) player.weapon = 'standard';
+      }
 
       if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
       if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
@@ -580,38 +685,80 @@
       player.y = height - 60;
 
       for (let i = bullets.length - 1; i >= 0; i--) {
-        bullets[i].y -= 10;
-        if (bullets[i].y < 0) bullets.splice(i, 1);
+        const b = bullets[i];
+        b.x += b.vx || 0;
+        b.y += b.vy;
+        if (b.y < -20 || b.x < 0 || b.x > width) bullets.splice(i, 1);
+      }
+
+      for (let i = powerups.length - 1; i >= 0; i--) {
+        const p = powerups[i];
+        p.y += p.vy;
+
+        if (checkRectCollision(player, p)) {
+          if (p.kind === 'life') {
+            if (spaceLives < 5) spaceLives++;
+            spaceScore += 100;
+          } else if (p.kind === 'score') {
+            spaceScore += 500;
+          } else if (p.kind === 'weapon') {
+            const weapons = ['spread', 'laser', 'plasma'];
+            player.weapon = weapons[Math.floor(Math.random() * weapons.length)];
+            player.weaponTimer = 720;
+            spaceScore += 150;
+          }
+          powerups.splice(i, 1);
+          continue;
+        }
+
+        if (p.y > height) powerups.splice(i, 1);
       }
 
       const aliveCount = invaders.filter(inv => inv.alive).length;
-      const speedModifier = 1 + (1 - aliveCount / (invaderRows * invaderCols)) * 1.5 + (spaceLevel - 1) * 0.35;
+      const baseSpeed = spaceLevel === 1 ? 0.75 : 0.95;
+      const speedModifier = baseSpeed + (1 - aliveCount / (invaderRows * invaderCols)) * 1.3 + (spaceLevel - 1) * 0.25;
 
       let edgeReached = false;
       invaders.forEach((inv) => {
         if (!inv.alive) return;
-        inv.x += invaderDir * 0.9 * speedModifier;
+        inv.x += invaderDir * speedModifier;
         if (inv.x + inv.w > width - 20 || inv.x < 20) edgeReached = true;
 
         inv.cooldown--;
         if (inv.cooldown <= 0) {
-          if (inv.type === 'scout' && Math.random() < 0.3) {
-            enemyLasers.push({ x: inv.x + inv.w / 2 - 2, y: inv.y + inv.h, w: 4, h: 10, vy: 4.5, color: '#38bdf8' });
-            inv.cooldown = 180 + Math.floor(Math.random() * 140);
-          } else if (inv.type === 'cruiser' && Math.random() < 0.4) {
-            enemyLasers.push({ x: inv.x + inv.w / 2 - 3, y: inv.y + inv.h, w: 6, h: 14, vy: 6.0, color: '#ff0055' });
-            inv.cooldown = 150 + Math.floor(Math.random() * 120);
-          } else if (inv.type === 'dreadnought' && Math.random() < 0.5) {
-            enemyLasers.push({ x: inv.x + 4, y: inv.y + inv.h, w: 5, h: 12, vy: 5.0, color: '#b537f2' });
-            enemyLasers.push({ x: inv.x + inv.w - 9, y: inv.y + inv.h, w: 5, h: 12, vy: 5.0, color: '#b537f2' });
-            inv.cooldown = 130 + Math.floor(Math.random() * 100);
+          if (spaceLevel === 1) {
+            enemyLasers.push({ x: inv.x + inv.w / 2 - 2, y: inv.y + inv.h, w: 4, h: 10, vy: 3.6, color: '#38bdf8' });
+            inv.cooldown = 550 + Math.floor(Math.random() * 200);
+          } else if (spaceLevel === 2) {
+            if (inv.type === 'scout') {
+              enemyLasers.push({ x: inv.x + inv.w / 2 - 2, y: inv.y + inv.h, w: 4, h: 10, vy: 4.2, color: '#38bdf8' });
+              inv.cooldown = 320 + Math.floor(Math.random() * 160);
+            } else if (inv.type === 'cruiser') {
+              enemyLasers.push({ x: inv.x + inv.w / 2 - 3, y: inv.y + inv.h, w: 5, h: 12, vy: 5.0, color: '#ff0055' });
+              inv.cooldown = 240 + Math.floor(Math.random() * 120);
+            }
+          } else {
+            if (inv.type === 'scout') {
+              enemyLasers.push({ x: inv.x + inv.w / 2 - 2, y: inv.y + inv.h, w: 4, h: 10, vy: 4.8, color: '#38bdf8' });
+              inv.cooldown = 180 + Math.floor(Math.random() * 100);
+            } else if (inv.type === 'cruiser') {
+              enemyLasers.push({ x: inv.x + inv.w / 2 - 3, y: inv.y + inv.h, w: 6, h: 14, vy: 6.0, color: '#ff0055' });
+              inv.cooldown = 140 + Math.floor(Math.random() * 90);
+            } else if (inv.type === 'dreadnought') {
+              enemyLasers.push({ x: inv.x + 4, y: inv.y + inv.h, w: 5, h: 12, vy: 5.2, color: '#b537f2' });
+              enemyLasers.push({ x: inv.x + inv.w - 9, y: inv.y + inv.h, w: 5, h: 12, vy: 5.2, color: '#b537f2' });
+              inv.cooldown = 110 + Math.floor(Math.random() * 80);
+            }
           }
         }
 
         if (checkRectCollision(player, inv) && player.invuln <= 0) {
           spaceLives--;
           player.invuln = 60;
-          if (spaceLives <= 0) initInvaders(true);
+          if (spaceLives <= 0) {
+            initInvaders(true); // Restart from Level 1
+            return;
+          }
         }
       });
 
@@ -619,7 +766,9 @@
         invaderDir *= -1;
         invaders.forEach((inv) => {
           inv.y += 14;
-          if (inv.y > height - 100) initInvaders(true);
+          if (inv.y > height - 100) {
+            initInvaders(true); // Reached base: restart from Level 1
+          }
         });
       }
 
@@ -631,30 +780,43 @@
           spaceLives--;
           player.invuln = 60;
           enemyLasers.splice(i, 1);
-          if (spaceLives <= 0) initInvaders(true);
+          if (spaceLives <= 0) {
+            initInvaders(true); // Restart from Level 1
+            return;
+          }
           continue;
         }
 
         if (l.y > height) enemyLasers.splice(i, 1);
       }
 
-      bullets.forEach((b, bIdx) => {
-        invaders.forEach((inv) => {
+      for (let bIdx = bullets.length - 1; bIdx >= 0; bIdx--) {
+        const b = bullets[bIdx];
+        let bulletRemoved = false;
+
+        for (let inv of invaders) {
           if (inv.alive && checkRectCollision(b, inv)) {
-            inv.hp--;
-            bullets.splice(bIdx, 1);
+            inv.hp -= b.damage || 1;
+
+            if (!b.pierce && !bulletRemoved) {
+              bullets.splice(bIdx, 1);
+              bulletRemoved = true;
+            }
 
             if (inv.hp <= 0) {
               inv.alive = false;
+              spawnPowerup(inv.x + inv.w / 2 - 10, inv.y);
+
               if (inv.type === 'scout') spaceScore += 100;
               if (inv.type === 'cruiser') spaceScore += 250;
               if (inv.type === 'dreadnought') spaceScore += 500;
             } else {
               spaceScore += 25;
             }
+            if (bulletRemoved) break;
           }
-        });
-      });
+        }
+      }
 
       if (invaders.length > 0 && invaders.every((inv) => !inv.alive)) {
         spaceLevel++;
@@ -686,7 +848,6 @@
 
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(cx - 2, inv.y + 3, 4, 3);
-
         ctx.fillStyle = '#38bdf8';
         ctx.fillRect(inv.x - 2, inv.y + 1, 3, 5);
         ctx.fillRect(inv.x + inv.w - 1, inv.y + 1, 3, 5);
@@ -697,7 +858,6 @@
         ctx.shadowColor = '#ff0055';
 
         ctx.fillRect(inv.x + 4, inv.y + 4, inv.w - 8, inv.h - 10);
-
         ctx.fillStyle = inv.hp > 1 ? '#ff3377' : '#881133';
         ctx.fillRect(inv.x, inv.y + 2, 5, inv.h - 4);
         ctx.fillRect(inv.x + inv.w - 5, inv.y + 2, 5, inv.h - 4);
@@ -750,17 +910,35 @@
 
     function drawSpace() {
       if (player.invuln % 6 < 3) {
-        ctx.fillStyle = '#00ffaa';
+        ctx.fillStyle = player.weapon !== 'standard' ? '#00ffff' : '#00ffaa';
         ctx.beginPath();
         ctx.moveTo(player.x + player.w / 2, player.y);
         ctx.lineTo(player.x + player.w, player.y + player.h);
         ctx.lineTo(player.x, player.y + player.h);
         ctx.closePath();
         ctx.fill();
+
+        if (player.weapon === 'spread') {
+          ctx.fillStyle = '#00ffff';
+          ctx.fillRect(player.x - 4, player.y + 10, 4, 8);
+          ctx.fillRect(player.x + player.w, player.y + 10, 4, 8);
+        } else if (player.weapon === 'laser') {
+          ctx.fillStyle = '#ffee00';
+          ctx.fillRect(player.x + 2, player.y - 2, 4, 6);
+          ctx.fillRect(player.x + player.w - 6, player.y - 2, 4, 6);
+        } else if (player.weapon === 'plasma') {
+          ctx.fillStyle = '#ff00ff';
+          ctx.fillRect(player.x + player.w / 2 - 4, player.y - 4, 8, 6);
+        }
       }
 
-      ctx.fillStyle = '#38bdf8';
-      bullets.forEach((b) => ctx.fillRect(b.x, b.y, b.w, b.h));
+      bullets.forEach((b) => {
+        ctx.fillStyle = b.color || '#38bdf8';
+        ctx.shadowColor = b.color || '#38bdf8';
+        ctx.shadowBlur = 8;
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+      });
+      ctx.shadowBlur = 0;
 
       enemyLasers.forEach((l) => {
         ctx.fillStyle = l.color;
@@ -770,15 +948,37 @@
       });
       ctx.shadowBlur = 0;
 
+      powerups.forEach((p) => {
+        ctx.save();
+        ctx.fillStyle = '#07090e';
+        ctx.strokeStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(p.x, p.y, p.w, p.h);
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+
+        ctx.fillStyle = p.color;
+        ctx.font = '10px "Press Start 2P", monospace';
+        ctx.fillText(p.label, p.x + 5, p.y + 15);
+        ctx.restore();
+      });
+
       invaders.forEach((inv) => {
         if (inv.alive) drawEnemy(inv);
       });
 
-      drawHUD(spaceScore, spaceStartTime, spaceLives, '#00ffaa', spaceLevel);
+      let extraText = null;
+      if (player.weapon !== 'standard') {
+        const remaining = Math.ceil(player.weaponTimer / 60);
+        extraText = `WEAPON: ${player.weapon.toUpperCase()} (${remaining}s)`;
+      }
+
+      drawHUD(spaceScore, spaceStartTime, spaceLives, '#00ffaa', spaceLevel, extraText);
     }
 
     // ==========================================
-    // 2. RETRO MAZE ENGINE (Bound-Corrected Teleports)
+    // 2. RETRO MAZE ENGINE
     // ==========================================
     const pac = {
       x: 60,
@@ -804,6 +1004,7 @@
     let mazeBounds = { left: 0, right: 0, tileSize: 20 };
     let pacScore = 0;
     let pacLives = 3;
+    let pacLevel = 1;
     let pacStartTime = Date.now();
     const ghostColors = ['#ff0000', '#00ffff', '#ffb8de', '#ffb852'];
 
@@ -841,14 +1042,49 @@
       "############################"
     ];
 
-    function initPacGame() {
+    function resetPacEntities() {
+      const rows = pacMapBlueprint.length;
+      const cols = pacMapBlueprint[0].length;
+      const tileSize = mazeBounds.tileSize || Math.min(Math.floor(width / cols), Math.floor((height - 20) / rows));
+      const offsetX = mazeBounds.left;
+      const offsetY = Math.floor((height - rows * tileSize) / 2);
+
+      pac.x = offsetX + 13.5 * tileSize - pac.w / 2;
+      pac.y = offsetY + 23 * tileSize + (tileSize - pac.h) / 2;
+      pac.dirX = -1;
+      pac.dirY = 0;
+      pac.nextDirX = -1;
+      pac.nextDirY = 0;
+      pac.invuln = 90;
+
+      ghosts = [];
+      for (let i = 0; i < 4; i++) {
+        ghosts.push({
+          x: offsetX + (12.5 + (i % 2)) * tileSize,
+          y: offsetY + 14 * tileSize,
+          w: pac.w,
+          h: pac.h,
+          color: ghostColors[i],
+          dirX: 0,
+          dirY: -1,
+          speed: 2.2 + (pacLevel - 1) * 0.25,
+          state: 'in_pen',
+          releaseTimer: i * 80
+        });
+      }
+    }
+
+    function initPacGame(fullReset = true) {
+      if (fullReset) {
+        pacScore = 0;
+        pacLives = 3;
+        pacLevel = 1;
+        pacStartTime = Date.now();
+      }
+
       walls = [];
       pellets = [];
       powerPellets = [];
-      ghosts = [];
-      pacScore = 0;
-      pacLives = 3;
-      pacStartTime = Date.now();
 
       const rows = pacMapBlueprint.length;
       const cols = pacMapBlueprint[0].length;
@@ -856,7 +1092,6 @@
       const offsetX = Math.floor((width - cols * tileSize) / 2);
       const offsetY = Math.floor((height - rows * tileSize) / 2);
 
-      // Track exact maze side boundaries
       mazeBounds = {
         left: offsetX,
         right: offsetX + cols * tileSize,
@@ -884,28 +1119,7 @@
 
       pac.w = Math.max(16, tileSize - 4);
       pac.h = Math.max(16, tileSize - 4);
-      pac.x = offsetX + 13.5 * tileSize - pac.w / 2;
-      pac.y = offsetY + 23 * tileSize + (tileSize - pac.h) / 2;
-      pac.dirX = -1;
-      pac.dirY = 0;
-      pac.nextDirX = -1;
-      pac.nextDirY = 0;
-      pac.invuln = 60;
-
-      for (let i = 0; i < 4; i++) {
-        ghosts.push({
-          x: offsetX + (12.5 + (i % 2)) * tileSize,
-          y: offsetY + 14 * tileSize,
-          w: pac.w,
-          h: pac.h,
-          color: ghostColors[i],
-          dirX: 0,
-          dirY: -1,
-          speed: 2.2,
-          state: 'in_pen',
-          releaseTimer: i * 80
-        });
-      }
+      resetPacEntities();
     }
 
     function updatePac() {
@@ -936,7 +1150,6 @@
         pac.y += pac.dirY * pac.speed;
       }
 
-      // SIDE TUNNEL WRAP: Wrap instantly across maze edges
       if (pac.x < mazeBounds.left - pac.w) {
         pac.x = mazeBounds.right - 2;
       } else if (pac.x > mazeBounds.right) {
@@ -969,8 +1182,9 @@
       });
 
       if (pellets.length > 0 && pellets.every((p) => p.eaten)) {
-        pellets.forEach((p) => (p.eaten = false));
-        powerPellets.forEach((p) => (p.eaten = false));
+        pacLevel++;
+        pacScore += 1000;
+        initPacGame(false); // Advance level with preserved score/lives
       }
 
       const cardinalDirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
@@ -1008,7 +1222,6 @@
             g.y += g.dirY * g.speed;
           }
 
-          // Ghost Maze Tunnel Wrap
           if (g.x < mazeBounds.left - g.w) {
             g.x = mazeBounds.right - 2;
           } else if (g.x > mazeBounds.right) {
@@ -1018,8 +1231,11 @@
 
         if (checkRectCollision(pac, g) && pac.invuln <= 0) {
           pacLives--;
-          pac.invuln = 60;
-          if (pacLives <= 0) initPacGame();
+          if (pacLives <= 0) {
+            initPacGame(true); // Restart from Level 1
+          } else {
+            resetPacEntities(); // Keep pellets and progress, reset positions
+          }
         }
       });
     }
@@ -1100,7 +1316,7 @@
         ctx.fillRect(g.x + 13, g.y + 5, 2, 2);
       });
 
-      drawHUD(pacScore, pacStartTime, pacLives, '#0044ff');
+      drawHUD(pacScore, pacStartTime, pacLives, '#0044ff', pacLevel);
     }
 
     // ==========================================
@@ -1118,13 +1334,15 @@
     let racerScore = 0;
     let racerStartTime = Date.now();
 
-    function initSynthRacer() {
+    function initSynthRacer(fullReset = true) {
+      if (fullReset) {
+        racerScore = 0;
+        racerStartTime = Date.now();
+      }
       racer.playerX = 0;
       racer.speed = 1.0;
       racer.roadOffset = 0;
       racer.steerAngle = 0;
-      racerScore = 0;
-      racerStartTime = Date.now();
       trafficCars = [];
       meteors = [];
 
@@ -1376,7 +1594,7 @@
     }
 
     // ==========================================
-    // THEME SWITCHER CONTROLLER
+    // THEME SWITCHER CONTROLLER (CLEAN RESETS)
     // ==========================================
     themeToggleBtn.addEventListener('click', () => {
       document.body.classList.remove('theme-pac-cube', 'theme-synthwave');
@@ -1386,18 +1604,18 @@
         document.body.classList.add('theme-pac-cube');
         themeNameLabel.textContent = 'RETRO MAZE';
         gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE • ESCAPE GHOSTS ]';
-        initPacGame();
+        initPacGame(true); // Fresh clean start from Level 1
       } else if (currentTheme === 'pac') {
         currentTheme = 'synth';
         document.body.classList.add('theme-synthwave');
         themeNameLabel.textContent = 'SUNSET CHASER';
         gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT TO STEER • UP TO BOOST ]';
-        initSynthRacer();
+        initSynthRacer(true); // Fresh clean start
       } else {
         currentTheme = 'space';
         themeNameLabel.textContent = 'SPACE INVASION';
         gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]';
-        initInvaders(true);
+        initInvaders(true); // Fresh clean start from Level 1
       }
     });
 
