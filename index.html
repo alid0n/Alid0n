@@ -18,7 +18,7 @@
       --muted: #94a3b8;
     }
 
-    /* Pac-Cube Theme - Classic Arcade Dark Blue */
+    /* Retro Maze Theme */
     body.theme-pac-cube {
       --bg: #02030a;
       --card-bg: rgba(6, 9, 24, 0.94);
@@ -29,7 +29,7 @@
       --muted: #8ca3d4;
     }
 
-    /* Synthwave Racer Theme - Hot Pink & Electric Sunset */
+    /* Sunset Chaser Theme */
     body.theme-synthwave {
       --bg: #090214;
       --card-bg: rgba(22, 7, 34, 0.92);
@@ -70,14 +70,14 @@
     }
 
     body.theme-pac-cube #bgCanvas {
-      opacity: 0.72;
+      opacity: 0.85;
     }
 
     body.theme-synthwave #bgCanvas {
-      opacity: 0.8;
+      opacity: 0.9;
     }
 
-    /* Content Overlay */
+    /* Content Overlay with Smooth Fade on Activity */
     .content-wrapper {
       position: relative;
       z-index: 10;
@@ -87,6 +87,12 @@
       display: flex;
       flex-direction: column;
       gap: 28px;
+      transition: opacity 0.8s ease;
+    }
+
+    .content-wrapper.dimmed {
+      opacity: 0.2;
+      transition: opacity 0.25s ease;
     }
 
     /* Header */
@@ -304,7 +310,7 @@
   <!-- Background Game Engine Canvas -->
   <canvas id="bgCanvas"></canvas>
 
-  <div class="content-wrapper">
+  <div class="content-wrapper" id="contentWrapper">
     
     <!-- Hero / Header -->
     <header class="header-card">
@@ -402,10 +408,11 @@
 
   </div>
 
-  <!-- Unified Arcade Game Engines -->
+  <!-- Unified Game Engines & HUD Logic -->
   <script>
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
+    const contentWrapper = document.getElementById('contentWrapper');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const themeNameLabel = document.getElementById('themeName');
     const gameHint = document.getElementById('gameHint');
@@ -414,6 +421,16 @@
     let currentTheme = 'space';
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
+
+    // Active Input Dimmer Tracker
+    let userActiveTimer = null;
+    function registerUserActivity() {
+      contentWrapper.classList.add('dimmed');
+      clearTimeout(userActiveTimer);
+      userActiveTimer = setTimeout(() => {
+        contentWrapper.classList.remove('dimmed');
+      }, 2500); // Fades back smoothly after 2.5s of no key presses
+    }
 
     window.addEventListener('resize', () => {
       width = canvas.width = window.innerWidth;
@@ -437,6 +454,10 @@
     // ==========================================
     const keys = {};
     window.addEventListener('keydown', (e) => {
+      if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
+        registerUserActivity();
+      }
+
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
         e.preventDefault();
       }
@@ -459,17 +480,51 @@
     });
 
     // ==========================================
+    // UNIVERSAL HUD RENDERER
+    // ==========================================
+    function drawHUD(score, startTime, lives = null, accentColor = '#00ffaa') {
+      const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
+      const m = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+      const s = String(elapsedSec % 60).padStart(2, '0');
+
+      ctx.save();
+      ctx.font = '10px "Press Start 2P", monospace';
+      ctx.fillStyle = accentColor;
+      ctx.shadowColor = accentColor;
+      ctx.shadowBlur = 6;
+
+      ctx.fillText(`SCORE: ${score}`, 25, 35);
+      ctx.fillText(`TIME: ${m}:${s}`, 25, 55);
+
+      if (lives !== null) {
+        let heartStr = '';
+        for (let i = 0; i < lives; i++) heartStr += '♥ ';
+        ctx.fillStyle = '#ff0055';
+        ctx.shadowColor = '#ff0055';
+        ctx.fillText(`LIVES: ${heartStr}`, 25, 75);
+      }
+      ctx.restore();
+    }
+
+    // ==========================================
     // 1. SPACE INVADERS ENGINE
     // ==========================================
-    const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7 };
+    const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7, invuln: 0 };
     let bullets = [];
     let invaders = [];
     let invaderDir = 1;
+    let spaceScore = 0;
+    let spaceLives = 3;
+    let spaceStartTime = Date.now();
     const invaderRows = 4;
     const invaderCols = 10;
     const invaderSize = 22;
 
     function initInvaders() {
+      spaceScore = 0;
+      spaceLives = 3;
+      spaceStartTime = Date.now();
+      bullets = [];
       invaders = [];
       const spacingX = Math.min(60, width / (invaderCols + 2));
       const startX = (width - invaderCols * spacingX) / 2;
@@ -477,7 +532,7 @@
         for (let c = 0; c < invaderCols; c++) {
           invaders.push({
             x: startX + c * spacingX,
-            y: 80 + r * 45,
+            y: 90 + r * 45,
             w: invaderSize,
             h: invaderSize,
             alive: true
@@ -487,6 +542,8 @@
     }
 
     function updateSpace() {
+      if (player.invuln > 0) player.invuln--;
+
       if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
       if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
       player.x = Math.max(10, Math.min(width - player.w - 10, player.x));
@@ -502,13 +559,20 @@
         if (!inv.alive) return;
         inv.x += invaderDir * 0.8;
         if (inv.x + inv.w > width - 20 || inv.x < 20) edgeReached = true;
+
+        // Check alien hitting player
+        if (checkRectCollision(player, inv) && player.invuln <= 0) {
+          spaceLives--;
+          player.invuln = 60;
+          if (spaceLives <= 0) initInvaders();
+        }
       });
 
       if (edgeReached) {
         invaderDir *= -1;
         invaders.forEach((inv) => {
           inv.y += 15;
-          if (inv.y > height - 120) initInvaders();
+          if (inv.y > height - 100) initInvaders();
         });
       }
 
@@ -517,23 +581,35 @@
           if (inv.alive && b.x < inv.x + inv.w && b.x + b.w > inv.x && b.y < inv.y + inv.h && b.y + b.h > inv.y) {
             inv.alive = false;
             bullets.splice(bIdx, 1);
+            spaceScore += 100;
           }
         });
       });
 
       if (invaders.length > 0 && invaders.every((inv) => !inv.alive)) {
-        setTimeout(initInvaders, 1000);
+        const spacingX = Math.min(60, width / (invaderCols + 2));
+        const startX = (width - invaderCols * spacingX) / 2;
+        invaders.forEach((inv, idx) => {
+          const r = Math.floor(idx / invaderCols);
+          const c = idx % invaderCols;
+          inv.x = startX + c * spacingX;
+          inv.y = 90 + r * 45;
+          inv.alive = true;
+        });
       }
     }
 
     function drawSpace() {
-      ctx.fillStyle = '#00ffaa';
-      ctx.beginPath();
-      ctx.moveTo(player.x + player.w / 2, player.y);
-      ctx.lineTo(player.x + player.w, player.y + player.h);
-      ctx.lineTo(player.x, player.y + player.h);
-      ctx.closePath();
-      ctx.fill();
+      // Ship (blink when damaged)
+      if (player.invuln % 6 < 3) {
+        ctx.fillStyle = '#00ffaa';
+        ctx.beginPath();
+        ctx.moveTo(player.x + player.w / 2, player.y);
+        ctx.lineTo(player.x + player.w, player.y + player.h);
+        ctx.lineTo(player.x, player.y + player.h);
+        ctx.closePath();
+        ctx.fill();
+      }
 
       ctx.fillStyle = '#38bdf8';
       bullets.forEach((b) => ctx.fillRect(b.x, b.y, b.w, b.h));
@@ -546,10 +622,12 @@
         ctx.fillRect(inv.x + 3, inv.y + 4, 4, 4);
         ctx.fillRect(inv.x + inv.w - 7, inv.y + 4, 4, 4);
       });
+
+      drawHUD(spaceScore, spaceStartTime, spaceLives, '#00ffaa');
     }
 
     // ==========================================
-    // 2. PAC-CUBE ENGINE (Classic Arcade Maze)
+    // 2. RETRO MAZE ENGINE (Accurate Pen Exit & Lives)
     // ==========================================
     const pac = {
       x: 60,
@@ -562,7 +640,8 @@
       nextDirX: 1,
       nextDirY: 0,
       mouth: 0,
-      mouthSpeed: 0.18
+      mouthSpeed: 0.18,
+      invuln: 0
     };
 
     let walls = [];
@@ -570,9 +649,12 @@
     let powerPellets = [];
     let ghosts = [];
     let ghostPenGate = null;
+    let penExitTile = { x: 0, y: 0 };
+    let pacScore = 0;
+    let pacLives = 3;
+    let pacStartTime = Date.now();
     const ghostColors = ['#ff0000', '#00ffff', '#ffb8de', '#ffb852'];
 
-    // Original Arcade blueprint represented by a 28x31 tile matrix
     const pacMapBlueprint = [
       "############################",
       "#............##............#",
@@ -612,6 +694,9 @@
       pellets = [];
       powerPellets = [];
       ghosts = [];
+      pacScore = 0;
+      pacLives = 3;
+      pacStartTime = Date.now();
 
       const rows = pacMapBlueprint.length;
       const cols = pacMapBlueprint[0].length;
@@ -629,6 +714,7 @@
             walls.push({ x, y, w: tileSize, h: tileSize });
           } else if (char === '-') {
             ghostPenGate = { x, y: y + tileSize / 2 - 2, w: tileSize, h: 4 };
+            penExitTile = { x: x, y: y - tileSize }; // Spot right outside the gate
           } else if (char === '.') {
             pellets.push({ x: x + tileSize / 2, y: y + tileSize / 2, eaten: false });
           } else if (char === 'O') {
@@ -637,33 +723,41 @@
         }
       }
 
-      // Initial Pacman starting position (lower corridor)
       pac.w = Math.max(16, tileSize - 4);
       pac.h = Math.max(16, tileSize - 4);
+      resetPacmanPos(offsetX, offsetY, tileSize);
+
+      // Ghosts initialized inside pen with release timers
+      for (let i = 0; i < 4; i++) {
+        ghosts.push({
+          x: offsetX + (12.5 + (i % 2)) * tileSize,
+          y: offsetY + 14 * tileSize,
+          w: pac.w,
+          h: pac.h,
+          color: ghostColors[i],
+          dirX: 0,
+          dirY: -1,
+          speed: 2.2,
+          state: 'in_pen', // 'in_pen', 'exiting', 'free'
+          releaseTimer: i * 80 // Staggered release: 0s, ~1.5s, ~3s, ~4.5s
+        });
+      }
+    }
+
+    function resetPacmanPos(offsetX, offsetY, tileSize) {
       pac.x = offsetX + 13.5 * tileSize - pac.w / 2;
       pac.y = offsetY + 23 * tileSize + (tileSize - pac.h) / 2;
       pac.dirX = -1;
       pac.dirY = 0;
       pac.nextDirX = -1;
       pac.nextDirY = 0;
-
-      // Ghosts positioned around the pen
-      for (let i = 0; i < 4; i++) {
-        ghosts.push({
-          x: offsetX + (12 + i) * tileSize,
-          y: offsetY + 14 * tileSize,
-          w: pac.w,
-          h: pac.h,
-          color: ghostColors[i],
-          dirX: i % 2 === 0 ? 1 : -1,
-          dirY: 0,
-          speed: 2.2
-        });
-      }
+      pac.invuln = 60;
     }
 
     function updatePac() {
-      // 1. Pivot turning
+      if (pac.invuln > 0) pac.invuln--;
+
+      // Pacman Turns
       if (pac.nextDirX !== pac.dirX || pac.nextDirY !== pac.dirY) {
         const testBox = {
           x: pac.x + pac.nextDirX * pac.speed,
@@ -677,7 +771,6 @@
         }
       }
 
-      // 2. Active movement
       const moveBox = {
         x: pac.x + pac.dirX * pac.speed,
         y: pac.y + pac.dirY * pac.speed,
@@ -690,11 +783,9 @@
         pac.y += pac.dirY * pac.speed;
       }
 
-      // 3. Side Tunnel wrap-around
       if (pac.x < -pac.w) pac.x = width;
       if (pac.x > width) pac.x = -pac.w;
 
-      // Chomp
       pac.mouth += pac.mouthSpeed;
       if (pac.mouth > 1 || pac.mouth < 0) pac.mouthSpeed *= -1;
 
@@ -703,7 +794,10 @@
         if (!p.eaten) {
           const dx = (pac.x + pac.w / 2) - p.x;
           const dy = (pac.y + pac.h / 2) - p.y;
-          if (Math.hypot(dx, dy) < pac.w / 1.3) p.eaten = true;
+          if (Math.hypot(dx, dy) < pac.w / 1.3) {
+            p.eaten = true;
+            pacScore += 10;
+          }
         }
       });
 
@@ -711,7 +805,10 @@
         if (!p.eaten) {
           const dx = (pac.x + pac.w / 2) - p.x;
           const dy = (pac.y + pac.h / 2) - p.y;
-          if (Math.hypot(dx, dy) < pac.w) p.eaten = true;
+          if (Math.hypot(dx, dy) < pac.w) {
+            p.eaten = true;
+            pacScore += 50;
+          }
         }
       });
 
@@ -720,51 +817,62 @@
         powerPellets.forEach((p) => (p.eaten = false));
       }
 
-      // Ghosts AI
-      const cardinalDirs = [
-        { x: 1, y: 0 },
-        { x: -1, y: 0 },
-        { x: 0, y: 1 },
-        { x: 0, y: -1 }
-      ];
+      // Ghosts AI (Pen Exit Logic & Navigation)
+      const cardinalDirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
 
       ghosts.forEach((g) => {
-        const nextBox = {
-          x: g.x + g.dirX * g.speed,
-          y: g.y + g.dirY * g.speed,
-          w: g.w,
-          h: g.h
-        };
-
-        const blocked = walls.some((w) => checkRectCollision(nextBox, w));
-
-        if (blocked || Math.random() < 0.03) {
-          const shuffled = [...cardinalDirs].sort(() => 0.5 - Math.random());
-          for (let d of shuffled) {
-            const probe = { x: g.x + d.x * (g.speed + 2), y: g.y + d.y * (g.speed + 2), w: g.w, h: g.h };
-            if (!walls.some((w) => checkRectCollision(probe, w))) {
-              g.dirX = d.x;
-              g.dirY = d.y;
-              break;
-            }
+        if (g.state === 'in_pen') {
+          g.releaseTimer--;
+          if (g.releaseTimer <= 0) g.state = 'exiting';
+        } else if (g.state === 'exiting') {
+          // Guide ghost out through pen gate
+          if (Math.abs(g.x - penExitTile.x) > 2) {
+            g.x += (penExitTile.x > g.x ? 1 : -1) * 1.5;
+          } else if (g.y > penExitTile.y) {
+            g.y -= 1.5;
+          } else {
+            g.state = 'free';
+            g.dirX = Math.random() > 0.5 ? 1 : -1;
+            g.dirY = 0;
           }
         } else {
-          g.x += g.dirX * g.speed;
-          g.y += g.dirY * g.speed;
+          // Free maze roaming
+          const nextBox = { x: g.x + g.dirX * g.speed, y: g.y + g.dirY * g.speed, w: g.w, h: g.h };
+          const blocked = walls.some((w) => checkRectCollision(nextBox, w));
+
+          if (blocked || Math.random() < 0.03) {
+            const shuffled = [...cardinalDirs].sort(() => 0.5 - Math.random());
+            for (let d of shuffled) {
+              const probe = { x: g.x + d.x * (g.speed + 2), y: g.y + d.y * (g.speed + 2), w: g.w, h: g.h };
+              if (!walls.some((w) => checkRectCollision(probe, w))) {
+                g.dirX = d.x;
+                g.dirY = d.y;
+                break;
+              }
+            }
+          } else {
+            g.x += g.dirX * g.speed;
+            g.y += g.dirY * g.speed;
+          }
+
+          if (g.x < -g.w) g.x = width;
+          if (g.x > width) g.x = -g.w;
         }
 
-        if (g.x < -g.w) g.x = width;
-        if (g.x > width) g.x = -g.w;
+        // Ghost & Pacman collision
+        if (checkRectCollision(pac, g) && pac.invuln <= 0) {
+          pacLives--;
+          pac.invuln = 60;
+          if (pacLives <= 0) initPacGame();
+        }
       });
     }
 
     function drawPac() {
-      // 1. Draw Maze Walls in Iconic Arcade Blue
       ctx.lineWidth = 2;
       walls.forEach((w) => {
         ctx.fillStyle = '#02030a';
         ctx.fillRect(w.x, w.y, w.w, w.h);
-
         ctx.strokeStyle = '#0022ff';
         ctx.shadowColor = 'rgba(0, 34, 255, 0.9)';
         ctx.shadowBlur = 4;
@@ -772,13 +880,11 @@
       });
       ctx.shadowBlur = 0;
 
-      // Draw Pen Pink Gate
       if (ghostPenGate) {
         ctx.fillStyle = '#ffb8de';
         ctx.fillRect(ghostPenGate.x, ghostPenGate.y, ghostPenGate.w, ghostPenGate.h);
       }
 
-      // 2. Standard Pellets (Yellow)
       ctx.fillStyle = '#ffe066';
       pellets.forEach((p) => {
         if (!p.eaten) {
@@ -788,7 +894,6 @@
         }
       });
 
-      // 3. Power Pellets (Glowing Yellow/White)
       powerPellets.forEach((p) => {
         if (!p.eaten) {
           ctx.beginPath();
@@ -798,27 +903,29 @@
         }
       });
 
-      // 4. Draw Classic Pacman (Yellow Chomp)
-      ctx.fillStyle = '#ffee00';
-      ctx.save();
-      ctx.translate(pac.x + pac.w / 2, pac.y + pac.h / 2);
+      // Draw Pacman (blink when damaged)
+      if (pac.invuln % 6 < 3) {
+        ctx.fillStyle = '#ffee00';
+        ctx.save();
+        ctx.translate(pac.x + pac.w / 2, pac.y + pac.h / 2);
 
-      let angle = 0;
-      if (pac.dirX === 1) angle = 0;
-      if (pac.dirX === -1) angle = Math.PI;
-      if (pac.dirY === 1) angle = Math.PI / 2;
-      if (pac.dirY === -1) angle = -Math.PI / 2;
-      ctx.rotate(angle);
+        let angle = 0;
+        if (pac.dirX === 1) angle = 0;
+        if (pac.dirX === -1) angle = Math.PI;
+        if (pac.dirY === 1) angle = Math.PI / 2;
+        if (pac.dirY === -1) angle = -Math.PI / 2;
+        ctx.rotate(angle);
 
-      const mouthCut = 0.35 * pac.mouth;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, pac.w / 2, mouthCut * Math.PI, (2 - mouthCut) * Math.PI);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+        const mouthCut = 0.35 * pac.mouth;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, pac.w / 2, mouthCut * Math.PI, (2 - mouthCut) * Math.PI);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
 
-      // 5. Draw Ghosts
+      // Draw Ghosts
       ghosts.forEach((g) => {
         ctx.fillStyle = g.color;
         ctx.beginPath();
@@ -838,25 +945,34 @@
         ctx.fillRect(g.x + 5, g.y + 5, 2, 2);
         ctx.fillRect(g.x + 13, g.y + 5, 2, 2);
       });
+
+      drawHUD(pacScore, pacStartTime, pacLives, '#0044ff');
     }
 
     // ==========================================
-    // 3. SYNTHWAVE RACER ENGINE (First-Person 3D)
+    // 3. SUNSET CHASER ENGINE (Detailed Cockpit, Wheel, Meteors)
     // ==========================================
     const racer = {
-      playerX: 0, // -1 to 1 across lanes
+      playerX: 0,
       speed: 1.0,
       roadOffset: 0,
-      steer: 0
+      steerAngle: 0
     };
 
     let trafficCars = [];
+    let meteors = [];
+    let racerScore = 0;
+    let racerStartTime = Date.now();
 
     function initSynthRacer() {
       racer.playerX = 0;
       racer.speed = 1.0;
       racer.roadOffset = 0;
+      racer.steerAngle = 0;
+      racerScore = 0;
+      racerStartTime = Date.now();
       trafficCars = [];
+      meteors = [];
 
       for (let i = 0; i < 4; i++) {
         trafficCars.push({
@@ -869,25 +985,51 @@
     }
 
     function updateSynthRacer() {
-      // Steering & Acceleration
-      if (keys['ArrowLeft'] || keys['KeyA']) racer.playerX = Math.max(-0.9, racer.playerX - 0.025);
-      if (keys['ArrowRight'] || keys['KeyD']) racer.playerX = Math.min(0.9, racer.playerX + 0.025);
+      // Steer smooth angle interpolation
+      let targetSteer = 0;
+      if (keys['ArrowLeft'] || keys['KeyA']) {
+        racer.playerX = Math.max(-0.9, racer.playerX - 0.025);
+        targetSteer = -0.45;
+      }
+      if (keys['ArrowRight'] || keys['KeyD']) {
+        racer.playerX = Math.min(0.9, racer.playerX + 0.025);
+        targetSteer = 0.45;
+      }
+      racer.steerAngle += (targetSteer - racer.steerAngle) * 0.15;
 
-      if (keys['ArrowUp'] || keys['KeyW']) racer.speed = Math.min(2.2, racer.speed + 0.04);
+      if (keys['ArrowUp'] || keys['KeyW']) racer.speed = Math.min(2.4, racer.speed + 0.04);
       else racer.speed = Math.max(1.0, racer.speed - 0.02);
 
       racer.roadOffset = (racer.roadOffset + racer.speed * 8) % 60;
+      racerScore += Math.floor(racer.speed * 2);
 
-      // Update Inbound Traffic
+      // Random Cyan Shooting Stars / Meteors
+      if (Math.random() < 0.035 && meteors.length < 3) {
+        meteors.push({
+          x: Math.random() * width,
+          y: Math.random() * (height * 0.3),
+          len: 60 + Math.random() * 50,
+          speed: 12 + Math.random() * 8,
+          alpha: 1.0
+        });
+      }
+
+      for (let i = meteors.length - 1; i >= 0; i--) {
+        const m = meteors[i];
+        m.x -= m.speed * 1.4;
+        m.y += m.speed * 0.7;
+        m.alpha -= 0.025;
+        if (m.alpha <= 0) meteors.splice(i, 1);
+      }
+
+      // Traffic updates
       trafficCars.forEach((car) => {
         car.z -= (racer.speed * 6 + car.speed * 2);
-
         if (car.z < 20) {
-          // Check collision with player car cockpit
           if (Math.abs(car.x - racer.playerX) < 0.28) {
-            racer.speed = 0.5; // crash penalty
+            racer.speed = 0.5; // Crash penalty
+            racerScore = Math.max(0, racerScore - 250);
           }
-          // Respawn in horizon
           car.z = 800 + Math.random() * 200;
           car.x = (Math.random() * 1.6) - 0.8;
         }
@@ -897,7 +1039,7 @@
     function drawSynthRacer() {
       const horizonY = height * 0.46;
 
-      // 1. Sky & Giant Retro Sun
+      // 1. Sky & Sun
       const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
       skyGrad.addColorStop(0, '#090214');
       skyGrad.addColorStop(0.7, '#240738');
@@ -905,7 +1047,21 @@
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, width, horizonY);
 
-      // Sunset Orb
+      // Cyan Meteors
+      meteors.forEach((m) => {
+        ctx.save();
+        ctx.strokeStyle = `rgba(0, 255, 255, ${m.alpha})`;
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(m.x + m.len, m.y - m.len * 0.5);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // Sunset Sun
       const sunRadius = Math.min(width, height) * 0.18;
       const sunX = width / 2;
       const sunY = horizonY - 20;
@@ -920,38 +1076,50 @@
       ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Retro horizon scanlines slicing through the sun
       ctx.fillStyle = '#090214';
       for (let i = 0; i < 7; i++) {
         const sliceY = sunY + (i * 12);
-        if (sliceY < horizonY) {
-          ctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
-        }
+        if (sliceY < horizonY) ctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
       }
 
-      // Mountain Silhouettes
-      ctx.fillStyle = '#160424';
+      // Detailed Multi-Ridge Mountains
+      // Background Range
+      ctx.fillStyle = '#170529';
       ctx.beginPath();
       ctx.moveTo(0, horizonY);
-      for (let mx = 0; mx <= width; mx += 60) {
-        const peak = Math.sin(mx * 0.015) * 45 + Math.cos(mx * 0.04) * 20;
+      for (let mx = 0; mx <= width; mx += 30) {
+        const peak = Math.sin(mx * 0.008) * 60 + Math.cos(mx * 0.02) * 30;
         ctx.lineTo(mx, horizonY - Math.abs(peak));
       }
       ctx.lineTo(width, horizonY);
       ctx.closePath();
       ctx.fill();
 
-      // 2. First-Person 3D Perspective Road Grid
+      // Foreground Jagged Range with glowing edge
+      ctx.fillStyle = '#0d0218';
+      ctx.strokeStyle = 'rgba(255, 0, 128, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, horizonY);
+      for (let mx = 0; mx <= width; mx += 40) {
+        const peak = Math.sin(mx * 0.02) * 45 + Math.cos(mx * 0.05) * 20;
+        ctx.lineTo(mx, horizonY - Math.abs(peak));
+      }
+      ctx.lineTo(width, horizonY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // 2. 3D Perspective Road
       const groundGrad = ctx.createLinearGradient(0, horizonY, 0, height);
       groundGrad.addColorStop(0, '#10021c');
       groundGrad.addColorStop(1, '#05000a');
       ctx.fillStyle = groundGrad;
       ctx.fillRect(0, horizonY, width, height - horizonY);
 
-      // Horizontal depth lines
+      // Depth Lines
       ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)';
       ctx.lineWidth = 1.5;
-
       for (let z = 10; z < 600; z += 30) {
         const effectiveZ = (z - racer.roadOffset + 600) % 600;
         if (effectiveZ <= 5) continue;
@@ -964,42 +1132,36 @@
         }
       }
 
-      // Perspective Highway Lanes
+      // Rails
       const roadCenterHorizon = width / 2 - (racer.playerX * 80);
       const roadBottomCenter = width / 2 - (racer.playerX * (width * 0.5));
       const roadBottomWidth = width * 1.1;
 
-      // Road boundary neon rails
       ctx.strokeStyle = '#00ffff';
       ctx.lineWidth = 3;
       ctx.shadowColor = '#00ffff';
       ctx.shadowBlur = 10;
 
-      // Left edge
       ctx.beginPath();
       ctx.moveTo(roadCenterHorizon - 30, horizonY);
       ctx.lineTo(roadBottomCenter - roadBottomWidth / 2, height);
       ctx.stroke();
 
-      // Right edge
       ctx.beginPath();
       ctx.moveTo(roadCenterHorizon + 30, horizonY);
       ctx.lineTo(roadBottomCenter + roadBottomWidth / 2, height);
       ctx.stroke();
 
-      // Center dashed lanes
       ctx.strokeStyle = '#ff007f';
       ctx.shadowColor = '#ff007f';
-      ctx.shadowBlur = 8;
       ctx.lineWidth = 2;
-
       ctx.beginPath();
       ctx.moveTo(roadCenterHorizon, horizonY);
       ctx.lineTo(roadBottomCenter, height);
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // 3. Render 3D Traffic Cars
+      // Traffic
       trafficCars.forEach((c) => {
         if (c.z > 20 && c.z < 750) {
           const depthScale = 60 / c.z;
@@ -1008,13 +1170,11 @@
           const carW = 120 * depthScale;
           const carH = 50 * depthScale;
 
-          if (carY > horizonY && carY < height - 30) {
+          if (carY > horizonY && carY < height - 40) {
             ctx.fillStyle = c.color;
             ctx.shadowColor = c.color;
             ctx.shadowBlur = 10;
             ctx.fillRect(carScreenX - carW / 2, carY - carH, carW, carH);
-
-            // Car neon taillights
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(carScreenX - carW * 0.38, carY - carH * 0.4, carW * 0.2, carH * 0.3);
             ctx.fillRect(carScreenX + carW * 0.18, carY - carH * 0.4, carW * 0.2, carH * 0.3);
@@ -1023,31 +1183,62 @@
       });
       ctx.shadowBlur = 0;
 
-      // 4. First-Person Cockpit Dashboard / Hood View
-      ctx.fillStyle = '#0d0417';
+      // 3. First-Person Cockpit & Turning Steering Wheel
+      // Dash
+      ctx.fillStyle = '#0a0314';
       ctx.strokeStyle = '#ff007f';
       ctx.lineWidth = 2;
-
-      // Lower Dash
       ctx.beginPath();
       ctx.moveTo(0, height);
-      ctx.lineTo(width * 0.25, height - 65);
-      ctx.lineTo(width * 0.75, height - 65);
+      ctx.lineTo(width * 0.2, height - 75);
+      ctx.lineTo(width * 0.8, height - 75);
       ctx.lineTo(width, height);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      // Retro Wireframe Steering Frame
+      // Digital Neon Gauge
+      ctx.fillStyle = '#00ffff';
+      ctx.font = '9px "Press Start 2P", monospace';
+      ctx.fillText(`SPEED: ${Math.round(racer.speed * 92)} MPH`, width * 0.22, height - 85);
+
+      // Rotating Sports Steering Wheel
+      ctx.save();
       const wheelX = width / 2;
-      const wheelY = height - 10;
+      const wheelY = height + 10;
+      ctx.translate(wheelX, wheelY);
+      ctx.rotate(racer.steerAngle);
+
+      // Wheel Rim
       ctx.strokeStyle = '#00ffff';
-      ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
-      ctx.shadowBlur = 8;
+      ctx.shadowColor = 'rgba(0, 255, 255, 0.9)';
+      ctx.shadowBlur = 10;
+      ctx.lineWidth = 14;
       ctx.beginPath();
-      ctx.arc(wheelX, wheelY, 90, Math.PI, Math.PI * 2);
+      ctx.arc(0, 0, 110, Math.PI * 0.85, Math.PI * 2.15);
       ctx.stroke();
-      ctx.shadowBlur = 0;
+
+      // Center Hub & Spokes
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#ff007f';
+      ctx.beginPath();
+      ctx.moveTo(-110, 0);
+      ctx.lineTo(0, 0);
+      ctx.moveTo(110, 0);
+      ctx.lineTo(0, 0);
+      ctx.moveTo(0, 110);
+      ctx.lineTo(0, 0);
+      ctx.stroke();
+
+      // Center Hub Badge
+      ctx.fillStyle = '#0d0218';
+      ctx.beginPath();
+      ctx.arc(0, 0, 28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      drawHUD(racerScore, racerStartTime, null, '#ff007f');
     }
 
     // ==========================================
@@ -1059,14 +1250,14 @@
       if (currentTheme === 'space') {
         currentTheme = 'pac';
         document.body.classList.add('theme-pac-cube');
-        themeNameLabel.textContent = 'PAC-CUBE';
-        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE ORIGINAL ARCADE BLUEPRINT ]';
+        themeNameLabel.textContent = 'RETRO MAZE';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE • ESCAPE GHOSTS ]';
         initPacGame();
       } else if (currentTheme === 'pac') {
         currentTheme = 'synth';
         document.body.classList.add('theme-synthwave');
-        themeNameLabel.textContent = 'SYNTHWAVE RACER';
-        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT OR A/D TO STEER • UP / W TO BOOST ]';
+        themeNameLabel.textContent = 'SUNSET CHASER';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT TO STEER • UP TO BOOST ]';
         initSynthRacer();
       } else {
         currentTheme = 'space';
@@ -1079,7 +1270,7 @@
     // Initialize Default Theme
     initInvaders();
 
-    // Master Render Loop
+    // Master Game Loop
     function loop() {
       ctx.clearRect(0, 0, width, height);
 
