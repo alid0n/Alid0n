@@ -18,7 +18,6 @@
       --muted: #94a3b8;
     }
 
-    /* Retro Maze Theme */
     body.theme-pac-cube {
       --bg: #02030a;
       --card-bg: rgba(6, 9, 24, 0.94);
@@ -29,7 +28,6 @@
       --muted: #8ca3d4;
     }
 
-    /* Sunset Chaser Theme */
     body.theme-synthwave {
       --bg: #090214;
       --card-bg: rgba(22, 7, 34, 0.92);
@@ -40,7 +38,6 @@
       --muted: #d094b8;
     }
 
-    /* Fantasy Quest Theme */
     body.theme-rpg {
       --bg: #080c08;
       --card-bg: rgba(16, 22, 16, 0.94);
@@ -80,7 +77,7 @@
     }
 
     body.theme-pac-cube #bgCanvas { opacity: 0.85; }
-    body.theme-synthwave #bgCanvas { opacity: 0.9; }
+    body.theme-synthwave #bgCanvas { opacity: 0.92; }
     body.theme-rpg #bgCanvas { opacity: 0.95; }
 
     .content-wrapper {
@@ -505,7 +502,7 @@
     }
 
     // ==========================================
-    // 1. SPACE INVADERS ENGINE
+    // 1. SPACE INVADERS ENGINE (Detailed Vectors Restored)
     // ==========================================
     const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7.5, invuln: 0, weapon: 'standard', weaponTimer: 0 };
     let bullets = [], enemyLasers = [], invaders = [], powerups = [];
@@ -669,6 +666,89 @@
       }
     }
 
+    function drawEnemy(inv) {
+      const cx = inv.x + inv.w / 2;
+      const cy = inv.y + inv.h / 2;
+      const pulse = Math.sin(animTick * 0.1) * 2;
+
+      ctx.save();
+      ctx.shadowBlur = 8;
+
+      if (inv.type === 'scout') {
+        ctx.fillStyle = '#00ffaa';
+        ctx.strokeStyle = '#00ffaa';
+        ctx.shadowColor = '#00ffaa';
+
+        ctx.beginPath();
+        ctx.moveTo(cx, inv.y + inv.h);
+        ctx.lineTo(inv.x + inv.w + 2, inv.y + 4);
+        ctx.lineTo(cx, inv.y + 8);
+        ctx.lineTo(inv.x - 2, inv.y + 4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx - 2, inv.y + 3, 4, 3);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(inv.x - 2, inv.y + 1, 3, 5);
+        ctx.fillRect(inv.x + inv.w - 1, inv.y + 1, 3, 5);
+
+      } else if (inv.type === 'cruiser') {
+        ctx.fillStyle = '#ff0055';
+        ctx.strokeStyle = '#ff0055';
+        ctx.shadowColor = '#ff0055';
+
+        ctx.fillRect(inv.x + 4, inv.y + 4, inv.w - 8, inv.h - 10);
+        ctx.fillStyle = inv.hp > 1 ? '#ff3377' : '#881133';
+        ctx.fillRect(inv.x, inv.y + 2, 5, inv.h - 4);
+        ctx.fillRect(inv.x + inv.w - 5, inv.y + 2, 5, inv.h - 4);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(inv.x + 7, inv.y + inv.h - 5, 3, 5);
+        ctx.fillRect(inv.x + inv.w - 10, inv.y + inv.h - 5, 3, 5);
+
+        ctx.fillStyle = '#ffeb3b';
+        ctx.beginPath();
+        ctx.arc(cx, cy - 2, 3 + pulse * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+
+      } else if (inv.type === 'dreadnought') {
+        ctx.fillStyle = '#b537f2';
+        ctx.strokeStyle = '#b537f2';
+        ctx.shadowColor = '#b537f2';
+
+        ctx.beginPath();
+        ctx.moveTo(inv.x + 6, inv.y);
+        ctx.lineTo(inv.x + inv.w - 6, inv.y);
+        ctx.lineTo(inv.x + inv.w, inv.y + 10);
+        ctx.lineTo(inv.x + inv.w - 4, inv.y + inv.h);
+        ctx.lineTo(cx, inv.y + inv.h - 4);
+        ctx.lineTo(inv.x + 4, inv.y + inv.h);
+        ctx.lineTo(inv.x, inv.y + 10);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#120422';
+        ctx.fillRect(inv.x + 5, inv.y + 6, inv.w - 10, inv.h - 14);
+
+        ctx.fillStyle = inv.hp === 3 ? '#00ffff' : (inv.hp === 2 ? '#ff007f' : '#ffffff');
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(inv.x + 2, inv.y);
+        ctx.lineTo(inv.x + 2, inv.y - 4);
+        ctx.moveTo(inv.x + inv.w - 2, inv.y);
+        ctx.lineTo(inv.x + inv.w - 2, inv.y - 4);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
     function drawSpace() {
       if (player.invuln % 6 < 3) {
         ctx.fillStyle = player.weapon !== 'standard' ? '#00ffff' : '#00ffaa';
@@ -694,8 +774,7 @@
 
       invaders.forEach(inv => {
         if (!inv.alive) return;
-        ctx.fillStyle = inv.type === 'dreadnought' ? '#b537f2' : (inv.type === 'cruiser' ? '#ff0055' : '#00ffaa');
-        ctx.fillRect(inv.x, inv.y, inv.w, inv.h);
+        drawEnemy(inv);
       });
 
       let extraText = player.weapon !== 'standard' ? `WEAPON: ${player.weapon.toUpperCase()} (${Math.ceil(player.weaponTimer / 60)}s)` : null;
@@ -703,7 +782,7 @@
     }
 
     // ==========================================
-    // 2. RETRO MAZE ENGINE
+    // 2. RETRO MAZE ENGINE (Detailed Ghosts & Eyes Restored)
     // ==========================================
     const pac = { x: 60, y: 60, w: 22, h: 22, speed: 3.2, dirX: 1, dirY: 0, nextDirX: 1, nextDirY: 0, mouth: 0, mouthSpeed: 0.18, invuln: 0 };
     let walls = [], pellets = [], powerPellets = [], ghosts = [], ghostPenGate = null, penExitTile = { x: 0, y: 0 }, mazeBounds = { left: 0, right: 0, tileSize: 20 };
@@ -843,21 +922,65 @@
     }
 
     function drawPac() {
-      walls.forEach(w => { ctx.fillStyle = '#02030a'; ctx.strokeStyle = '#0022ff'; ctx.fillRect(w.x, w.y, w.w, w.h); ctx.strokeRect(w.x + 1, w.y + 1, w.w - 2, w.h - 2); });
+      ctx.lineWidth = 2;
+      walls.forEach(w => {
+        ctx.fillStyle = '#02030a';
+        ctx.fillRect(w.x, w.y, w.w, w.h);
+        ctx.strokeStyle = '#0022ff';
+        ctx.shadowColor = 'rgba(0, 34, 255, 0.9)';
+        ctx.shadowBlur = 4;
+        ctx.strokeRect(w.x + 1, w.y + 1, w.w - 2, w.h - 2);
+      });
+      ctx.shadowBlur = 0;
+
       if (ghostPenGate) { ctx.fillStyle = '#ffb8de'; ctx.fillRect(ghostPenGate.x, ghostPenGate.y, ghostPenGate.w, ghostPenGate.h); }
       ctx.fillStyle = '#ffe066';
       pellets.forEach(p => { if (!p.eaten) { ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2); ctx.fill(); } });
       powerPellets.forEach(p => { if (!p.eaten) { ctx.beginPath(); ctx.arc(p.x, p.y, 6.5, 0, Math.PI * 2); ctx.fill(); } });
 
       if (pac.invuln % 6 < 3) {
-        ctx.fillStyle = '#ffee00'; ctx.beginPath(); ctx.arc(pac.x + pac.w / 2, pac.y + pac.h / 2, pac.w / 2, 0.2 * Math.PI, 1.8 * Math.PI); ctx.lineTo(pac.x + pac.w / 2, pac.y + pac.h / 2); ctx.fill();
+        ctx.fillStyle = '#ffee00';
+        ctx.save();
+        ctx.translate(pac.x + pac.w / 2, pac.y + pac.h / 2);
+        let angle = 0;
+        if (pac.dirX === 1) angle = 0;
+        if (pac.dirX === -1) angle = Math.PI;
+        if (pac.dirY === 1) angle = Math.PI / 2;
+        if (pac.dirY === -1) angle = -Math.PI / 2;
+        ctx.rotate(angle);
+        const mouthCut = 0.35 * pac.mouth;
+        ctx.beginPath();
+        ctx.arc(0, 0, pac.w / 2, mouthCut * Math.PI, (2 - mouthCut) * Math.PI);
+        ctx.lineTo(0, 0);
+        ctx.fill();
+        ctx.restore();
       }
-      ghosts.forEach(g => { ctx.fillStyle = g.color; ctx.fillRect(g.x, g.y, g.w, g.h); });
+
+      ghosts.forEach(g => {
+        ctx.fillStyle = g.color;
+        ctx.beginPath();
+        ctx.arc(g.x + g.w / 2, g.y + g.h / 3, g.w / 2, Math.PI, 0, false);
+        ctx.lineTo(g.x + g.w, g.y + g.h);
+        ctx.lineTo(g.x + (g.w * 3) / 4, g.y + g.h - 4);
+        ctx.lineTo(g.x + g.w / 2, g.y + g.h);
+        ctx.lineTo(g.x + g.w / 4, g.y + g.h - 4);
+        ctx.lineTo(g.x, g.y + g.h);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(g.x + 3, g.y + 4, 4, 4);
+        ctx.fillRect(g.x + 11, g.y + 4, 4, 4);
+        ctx.fillStyle = '#0a0a20';
+        ctx.fillRect(g.x + 5, g.y + 5, 2, 2);
+        ctx.fillRect(g.x + 13, g.y + 5, 2, 2);
+      });
+
       drawHUD(pacScore, pacStartTime, pacLives, '#0044ff', pacLevel);
     }
 
     // ==========================================
-    // 3. SUNSET CHASER ENGINE
+    // 3. SUNSET CHASER ENGINE (Full 3D Horizon, Mountains & Cockpit Restored)
     // ==========================================
     const racer = { playerX: 0, speed: 1.0, roadOffset: 0, steerAngle: 0 };
     let trafficCars = [], meteors = [], racerScore = 0, racerStartTime = Date.now();
@@ -880,6 +1003,24 @@
       racer.roadOffset = (racer.roadOffset + racer.speed * 8) % 60;
       racerScore += Math.floor(racer.speed * 2);
 
+      if (Math.random() < 0.035 && meteors.length < 3) {
+        meteors.push({
+          x: Math.random() * width,
+          y: Math.random() * (height * 0.3),
+          len: 60 + Math.random() * 50,
+          speed: 12 + Math.random() * 8,
+          alpha: 1.0
+        });
+      }
+
+      for (let i = meteors.length - 1; i >= 0; i--) {
+        const m = meteors[i];
+        m.x -= m.speed * 1.4;
+        m.y += m.speed * 0.7;
+        m.alpha -= 0.025;
+        if (m.alpha <= 0) meteors.splice(i, 1);
+      }
+
       trafficCars.forEach(car => {
         car.z -= (racer.speed * 6 + car.speed * 2);
         if (car.z < 20) {
@@ -891,20 +1032,189 @@
 
     function drawSynthRacer() {
       const horizonY = height * 0.46;
-      ctx.fillStyle = '#090214'; ctx.fillRect(0, 0, width, horizonY);
-      ctx.fillStyle = '#ff007f'; ctx.beginPath(); ctx.arc(width / 2, horizonY - 20, 70, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#10021c'; ctx.fillRect(0, horizonY, width, height - horizonY);
 
-      trafficCars.forEach(c => {
-        if (c.z > 20 && c.z < 750) {
-          const depth = 60 / c.z;
-          const cy = horizonY + (height - horizonY) * depth;
-          const cx = width / 2 + (c.x * width * 0.45 * depth);
-          ctx.fillStyle = c.color; ctx.fillRect(cx - (120 * depth) / 2, cy - (50 * depth), 120 * depth, 50 * depth);
-        }
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+      skyGrad.addColorStop(0, '#090214');
+      skyGrad.addColorStop(0.7, '#240738');
+      skyGrad.addColorStop(1, '#ff007f');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, horizonY);
+
+      meteors.forEach((m) => {
+        ctx.save();
+        ctx.strokeStyle = `rgba(0, 255, 255, ${m.alpha})`;
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(m.x + m.len, m.y - m.len * 0.5);
+        ctx.stroke();
+        ctx.restore();
       });
 
-      ctx.fillStyle = '#0a0314'; ctx.fillRect(0, height - 70, width, 70);
+      const sunRadius = Math.min(width, height) * 0.18;
+      const sunX = width / 2;
+      const sunY = horizonY - 20;
+
+      const sunGrad = ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
+      sunGrad.addColorStop(0, '#ffee55');
+      sunGrad.addColorStop(0.6, '#ff007f');
+      sunGrad.addColorStop(1, '#7900ff');
+
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#090214';
+      for (let i = 0; i < 7; i++) {
+        const sliceY = sunY + (i * 12);
+        if (sliceY < horizonY) ctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
+      }
+
+      ctx.fillStyle = '#170529';
+      ctx.beginPath();
+      ctx.moveTo(0, horizonY);
+      for (let mx = 0; mx <= width; mx += 30) {
+        const peak = Math.sin(mx * 0.008) * 60 + Math.cos(mx * 0.02) * 30;
+        ctx.lineTo(mx, horizonY - Math.abs(peak));
+      }
+      ctx.lineTo(width, horizonY);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#0d0218';
+      ctx.strokeStyle = 'rgba(255, 0, 128, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, horizonY);
+      for (let mx = 0; mx <= width; mx += 40) {
+        const peak = Math.sin(mx * 0.02) * 45 + Math.cos(mx * 0.05) * 20;
+        ctx.lineTo(mx, horizonY - Math.abs(peak));
+      }
+      ctx.lineTo(width, horizonY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      const groundGrad = ctx.createLinearGradient(0, horizonY, 0, height);
+      groundGrad.addColorStop(0, '#10021c');
+      groundGrad.addColorStop(1, '#05000a');
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, horizonY, width, height - horizonY);
+
+      ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)';
+      ctx.lineWidth = 1.5;
+      for (let z = 10; z < 600; z += 30) {
+        const effectiveZ = (z - racer.roadOffset + 600) % 600;
+        if (effectiveZ <= 5) continue;
+        const lineY = horizonY + (height - horizonY) * (40 / effectiveZ);
+        if (lineY > horizonY && lineY < height) {
+          ctx.beginPath();
+          ctx.moveTo(0, lineY);
+          ctx.lineTo(width, lineY);
+          ctx.stroke();
+        }
+      }
+
+      const roadCenterHorizon = width / 2 - (racer.playerX * 80);
+      const roadBottomCenter = width / 2 - (racer.playerX * (width * 0.5));
+      const roadBottomWidth = width * 1.1;
+
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00ffff';
+      ctx.shadowBlur = 10;
+
+      ctx.beginPath();
+      ctx.moveTo(roadCenterHorizon - 30, horizonY);
+      ctx.lineTo(roadBottomCenter - roadBottomWidth / 2, height);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(roadCenterHorizon + 30, horizonY);
+      ctx.lineTo(roadBottomCenter + roadBottomWidth / 2, height);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ff007f';
+      ctx.shadowColor = '#ff007f';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(roadCenterHorizon, horizonY);
+      ctx.lineTo(roadBottomCenter, height);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      trafficCars.forEach((c) => {
+        if (c.z > 20 && c.z < 750) {
+          const depthScale = 60 / c.z;
+          const carY = horizonY + (height - horizonY) * depthScale;
+          const carScreenX = roadCenterHorizon + (c.x * width * 0.45 * depthScale);
+          const carW = 120 * depthScale;
+          const carH = 50 * depthScale;
+
+          if (carY > horizonY && carY < height - 40) {
+            ctx.fillStyle = c.color;
+            ctx.shadowColor = c.color;
+            ctx.shadowBlur = 10;
+            ctx.fillRect(carScreenX - carW / 2, carY - carH, carW, carH);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(carScreenX - carW * 0.38, carY - carH * 0.4, carW * 0.2, carH * 0.3);
+            ctx.fillRect(carScreenX + carW * 0.18, carY - carH * 0.4, carW * 0.2, carH * 0.3);
+          }
+        }
+      });
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#0a0314';
+      ctx.strokeStyle = '#ff007f';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      ctx.lineTo(width * 0.2, height - 75);
+      ctx.lineTo(width * 0.8, height - 75);
+      ctx.lineTo(width, height);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#00ffff';
+      ctx.font = '9px "Press Start 2P", monospace';
+      ctx.fillText(`SPEED: ${Math.round(racer.speed * 92)} MPH`, width * 0.22, height - 85);
+
+      ctx.save();
+      const wheelX = width / 2;
+      const wheelY = height + 10;
+      ctx.translate(wheelX, wheelY);
+      ctx.rotate(racer.steerAngle);
+
+      ctx.strokeStyle = '#00ffff';
+      ctx.shadowColor = 'rgba(0, 255, 255, 0.9)';
+      ctx.shadowBlur = 10;
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.arc(0, 0, 110, Math.PI * 0.85, Math.PI * 2.15);
+      ctx.stroke();
+
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#ff007f';
+      ctx.beginPath();
+      ctx.moveTo(-110, 0);
+      ctx.lineTo(0, 0);
+      ctx.moveTo(110, 0);
+      ctx.lineTo(0, 0);
+      ctx.moveTo(0, 110);
+      ctx.lineTo(0, 0);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0d0218';
+      ctx.beginPath();
+      ctx.arc(0, 0, 28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
       drawHUD(racerScore, racerStartTime, null, '#ff007f');
     }
 
@@ -953,7 +1263,6 @@
       obstacles.push({ type: 'river', x: riverX, y: 0, w: riverW, h: bridge.y });
       obstacles.push({ type: 'river', x: riverX, y: bridge.y + bridge.h, w: riverW, h: height - (bridge.y + bridge.h) });
 
-      // Natural Dense Forest Trees
       for (let i = 0; i < 7; i++) {
         obstacles.push({
           type: 'tree',
@@ -963,7 +1272,6 @@
         });
       }
 
-      // Layered Mossy Boulders
       for (let i = 0; i < 6; i++) {
         obstacles.push({
           type: 'rock',
@@ -973,7 +1281,6 @@
         });
       }
 
-      // Field Details (Tufts of grass & wild flowers)
       for (let i = 0; i < 35; i++) {
         groundDetails.push({
           x: 20 + Math.random() * (width - 40),
@@ -987,9 +1294,6 @@
     function spawnWaveNPCs() {
       npcs = [];
 
-      // Wave 1: 2 Skeletons, 1 Orc
-      // Wave 2: 4 Skeletons, 2 Orcs
-      // Wave 3+: Skeletons, Orcs, AND the flying Dragon Boss
       const skelCount = rpgWave === 1 ? 2 : (2 + rpgWave);
       const orcCount = rpgWave === 1 ? 1 : Math.min(5, Math.floor(rpgWave / 2) + 1);
 
@@ -1013,7 +1317,6 @@
         });
       }
 
-      // Dragon spawns on LEVEL 3 or higher
       if (rpgWave >= 3) {
         npcs.push({
           type: 'dragon', x: width * 0.74, y: height * 0.42,
@@ -1227,26 +1530,21 @@
     }
 
     function drawRPG() {
-      // 1. Lush Grassy Meadow with Dirt Path Tone
       ctx.fillStyle = '#101d14';
       ctx.fillRect(0, 0, width, height);
 
-      // Grass tufts & flowers
       groundDetails.forEach(gd => {
         ctx.fillStyle = gd.color;
         ctx.fillRect(gd.x, gd.y, gd.size, gd.size * 1.5);
       });
 
-      // 2. Obstacles
       obstacles.forEach(ob => {
         if (ob.type === 'river') {
-          // River Water with Flowing Currents
           ctx.fillStyle = '#0369a1';
           ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
           ctx.fillStyle = '#0284c7';
           ctx.fillRect(ob.x + 3, ob.y, ob.w - 6, ob.h);
 
-          // Flow Highlights
           ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
           const waveShift = (rpgTicks * 0.8) % 30;
           for (let wy = ob.y + waveShift; wy < ob.y + ob.h; wy += 35) {
@@ -1254,17 +1552,14 @@
             ctx.fillRect(ob.x + 28, wy + 14, 18, 2);
           }
 
-          // Sandy Banks
           ctx.fillStyle = '#78716c';
           ctx.fillRect(ob.x - 2, ob.y, 2, ob.h);
           ctx.fillRect(ob.x + ob.w, ob.y, 2, ob.h);
 
         } else if (ob.type === 'tree') {
-          // Pine Tree Trunk
           ctx.fillStyle = '#451a03';
           ctx.fillRect(ob.x + ob.w / 2 - 4, ob.y + ob.h - 14, 8, 14);
 
-          // 3-Tier Pine Needle Canopy
           ctx.fillStyle = '#064e3b';
           ctx.beginPath();
           ctx.moveTo(ob.x + ob.w / 2, ob.y);
@@ -1287,7 +1582,6 @@
           ctx.fill();
 
         } else if (ob.type === 'rock') {
-          // Detailed Mossy Boulder
           ctx.fillStyle = '#475569';
           ctx.beginPath();
           ctx.ellipse(ob.x + ob.w / 2, ob.y + ob.h / 2, ob.w / 2, ob.h / 2, 0, 0, Math.PI * 2);
@@ -1298,14 +1592,12 @@
           ctx.ellipse(ob.x + ob.w / 2 - 2, ob.y + ob.h / 2 - 3, ob.w / 3, ob.h / 3, 0, 0, Math.PI * 2);
           ctx.fill();
 
-          // Green Moss Patch
           ctx.fillStyle = '#15803d';
           ctx.fillRect(ob.x + 4, ob.y + 4, 8, 5);
           ctx.fillRect(ob.x + 16, ob.y + 3, 6, 4);
         }
       });
 
-      // Wooden Bridge with Planks
       if (bridge) {
         ctx.fillStyle = '#92400e';
         ctx.fillRect(bridge.x, bridge.y, bridge.w, bridge.h);
@@ -1313,7 +1605,6 @@
         ctx.lineWidth = 2;
         ctx.strokeRect(bridge.x, bridge.y, bridge.w, bridge.h);
 
-        // Bridge Planks
         ctx.strokeStyle = '#78350f';
         for (let bx = bridge.x + 8; bx < bridge.x + bridge.w; bx += 8) {
           ctx.beginPath();
@@ -1323,7 +1614,6 @@
         }
       }
 
-      // 3. Loot Drops (Shining Icons)
       lootDrops.forEach(l => {
         ctx.save();
         ctx.fillStyle = '#1e1b4b';
@@ -1340,7 +1630,6 @@
         ctx.restore();
       });
 
-      // 4. Projectiles
       heroProjectiles.forEach(p => {
         ctx.save();
         if (p.type === 'fireball') {
@@ -1355,14 +1644,12 @@
           ctx.arc(p.x, p.y, p.w / 4, 0, Math.PI * 2);
           ctx.fill();
         } else {
-          // Arrow
           ctx.fillStyle = '#f8fafc';
           ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
         }
         ctx.restore();
       });
 
-      // Dragon Fire
       dragonProjectiles.forEach(df => {
         ctx.save();
         ctx.fillStyle = '#ea580c';
@@ -1378,7 +1665,6 @@
         ctx.restore();
       });
 
-      // Melee Slash Arc
       if (meleeSlash) {
         ctx.save();
         ctx.strokeStyle = meleeSlash.type === 'axe' ? '#ef4444' : '#38bdf8';
@@ -1389,15 +1675,11 @@
         ctx.restore();
       }
 
-      // 5. Detailed NPCs
       npcs.forEach(m => {
         ctx.save();
         if (m.type === 'skeleton') {
-          // Detailed Ivory Skeleton
           ctx.fillStyle = '#f1f5f9';
-          // Skull
           ctx.fillRect(m.x + 5, m.y + 2, 14, 10);
-          // Dark Eye Sockets with Red Glow
           ctx.fillStyle = '#0f172a';
           ctx.fillRect(m.x + 7, m.y + 5, 3, 3);
           ctx.fillRect(m.x + 14, m.y + 5, 3, 3);
@@ -1405,18 +1687,15 @@
           ctx.fillRect(m.x + 8, m.y + 6, 1, 1);
           ctx.fillRect(m.x + 15, m.y + 6, 1, 1);
 
-          // Ribcage & Pelvis
           ctx.fillStyle = '#e2e8f0';
           ctx.fillRect(m.x + 10, m.y + 12, 4, 8);
           ctx.fillRect(m.x + 6, m.y + 13, 12, 2);
           ctx.fillRect(m.x + 7, m.y + 16, 10, 2);
           ctx.fillRect(m.x + 8, m.y + 20, 8, 3);
 
-          // Bone Limbs
           ctx.fillRect(m.x + 7, m.y + 23, 3, 7);
           ctx.fillRect(m.x + 14, m.y + 23, 3, 7);
 
-          // Bow in Hand
           ctx.strokeStyle = '#78350f';
           ctx.lineWidth = 1.5;
           ctx.beginPath();
@@ -1424,44 +1703,37 @@
           ctx.stroke();
 
         } else if (m.type === 'orc') {
-          // Muscular Green Orc with Horned Armor
           ctx.fillStyle = '#166534';
-          ctx.fillRect(m.x + 5, m.y + 4, 22, 12); // Head
+          ctx.fillRect(m.x + 5, m.y + 4, 22, 12);
 
-          // Horned Iron Helmet
           ctx.fillStyle = '#475569';
           ctx.fillRect(m.x + 4, m.y + 1, 24, 6);
           ctx.fillStyle = '#e2e8f0';
-          ctx.fillRect(m.x + 2, m.y - 3, 3, 5); // Horn L
-          ctx.fillRect(m.x + 27, m.y - 3, 3, 5); // Horn R
+          ctx.fillRect(m.x + 2, m.y - 3, 3, 5);
+          ctx.fillRect(m.x + 27, m.y - 3, 3, 5);
 
-          // Piercing Yellow Eyes & White Tusks
           ctx.fillStyle = '#facc15';
           ctx.fillRect(m.x + 9, m.y + 7, 3, 2);
           ctx.fillRect(m.x + 20, m.y + 7, 3, 2);
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(m.x + 8, m.y + 13, 3, 4); // Tusk L
-          ctx.fillRect(m.x + 21, m.y + 13, 3, 4); // Tusk R
+          ctx.fillRect(m.x + 8, m.y + 13, 3, 4);
+          ctx.fillRect(m.x + 21, m.y + 13, 3, 4);
 
-          // Studded Armor & Belt
           ctx.fillStyle = '#334155';
           ctx.fillRect(m.x + 3, m.y + 16, 26, 10);
           ctx.fillStyle = '#b45309';
           ctx.fillRect(m.x + 5, m.y + 26, 22, 4);
 
-          // Sturdy Legs
           ctx.fillStyle = '#166534';
           ctx.fillRect(m.x + 6, m.y + 30, 6, 4);
           ctx.fillRect(m.x + 20, m.y + 30, 6, 4);
 
-          // War Axe Weapon
           ctx.fillStyle = '#78350f';
           ctx.fillRect(m.x + 28, m.y + 8, 3, 22);
           ctx.fillStyle = '#94a3b8';
           ctx.fillRect(m.x + 26, m.y + 6, 7, 8);
 
         } else if (m.type === 'dragon') {
-          // Dragon Shadow when Flying
           if (m.isFlying) {
             ctx.fillStyle = 'rgba(0,0,0,0.4)';
             ctx.beginPath();
@@ -1469,7 +1741,6 @@
             ctx.fill();
           }
 
-          // Dragon Wings & Membrane
           const wingFlap = Math.sin(rpgTicks * 0.15) * 8;
           ctx.fillStyle = '#991b1b';
           ctx.beginPath();
@@ -1484,27 +1755,22 @@
           ctx.lineTo(m.x + m.w - 8, m.y + 30);
           ctx.fill();
 
-          // Dragon Armored Body & Head
           ctx.fillStyle = m.isFlying ? '#dc2626' : '#b91c1c';
-          ctx.fillRect(m.x + 16, m.y + 12, m.w - 32, m.h - 20); // Torso
+          ctx.fillRect(m.x + 16, m.y + 12, m.w - 32, m.h - 20);
 
-          // Head & Snout
           ctx.fillRect(m.x + 20, m.y, 24, 16);
           ctx.fillStyle = '#f59e0b';
-          ctx.fillRect(m.x + 24, m.y + 4, 3, 3); // Eye L
-          ctx.fillRect(m.x + 37, m.y + 4, 3, 3); // Eye R
+          ctx.fillRect(m.x + 24, m.y + 4, 3, 3);
+          ctx.fillRect(m.x + 37, m.y + 4, 3, 3);
 
-          // Horn Ridges
           ctx.fillStyle = '#451a03';
           ctx.fillRect(m.x + 18, m.y - 6, 4, 8);
           ctx.fillRect(m.x + 42, m.y - 6, 4, 8);
 
-          // Dragon Tail
           ctx.fillStyle = '#991b1b';
           ctx.fillRect(m.x + m.w / 2 - 3, m.y + m.h - 8, 6, 12);
         }
 
-        // Aggro Warning Mark
         if (m.state === 'aggro') {
           ctx.fillStyle = '#ef4444';
           ctx.font = '9px "Press Start 2P", monospace';
@@ -1513,39 +1779,33 @@
         ctx.restore();
       });
 
-      // 6. Detailed Hero Mage (Robe Folds, Hat Buckle, Equippable Gear)
       if (hero.invuln % 6 < 3) {
         ctx.save();
-        // Robe & Trim
         ctx.fillStyle = '#312e81';
         ctx.fillRect(hero.x + 4, hero.y + 14, 18, 16);
         ctx.fillStyle = '#4338ca';
         ctx.fillRect(hero.x + 6, hero.y + 16, 14, 12);
 
-        // Face & Hair
         ctx.fillStyle = '#fed7aa';
         ctx.fillRect(hero.x + 8, hero.y + 9, 10, 6);
         ctx.fillStyle = '#451a03';
         ctx.fillRect(hero.x + 7, hero.y + 10, 2, 4);
 
-        // Floppy Blue Wizard Hat with Gold Buckle
         ctx.fillStyle = '#1d4ed8';
         ctx.beginPath();
         ctx.moveTo(hero.x + 2, hero.y + 9);
         ctx.lineTo(hero.x + 24, hero.y + 9);
         ctx.lineTo(hero.x + 18, hero.y + 1);
-        ctx.lineTo(hero.x + 8, hero.y - 7); // Floppy Tip
+        ctx.lineTo(hero.x + 8, hero.y - 7);
         ctx.lineTo(hero.x + 7, hero.y + 1);
         ctx.closePath();
         ctx.fill();
 
-        // Hat Gold Band & Gem
         ctx.fillStyle = '#f59e0b';
         ctx.fillRect(hero.x + 5, hero.y + 7, 16, 2);
         ctx.fillStyle = '#06b6d4';
         ctx.fillRect(hero.x + 12, hero.y + 6, 2, 3);
 
-        // Detailed Handheld Weapon
         const wx = hero.x + (hero.facingX >= 0 ? 20 : 1);
         const wy = hero.y + 13;
 
