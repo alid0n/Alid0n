@@ -18,6 +18,17 @@
       --muted: #94a3b8;
     }
 
+    /* Pac-Cube Theme Overrides */
+    body.theme-pac-cube {
+      --bg: #080511;
+      --card-bg: rgba(17, 12, 28, 0.85);
+      --card-border: rgba(181, 55, 242, 0.35);
+      --accent: #b537f2;
+      --accent-glow: rgba(181, 55, 242, 0.45);
+      --text: #f5f0fa;
+      --muted: #a698b8;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -31,6 +42,7 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
+      transition: background-color 0.3s ease;
     }
 
     /* Interactive Game Canvas */
@@ -65,6 +77,14 @@
       border-radius: 12px;
       padding: 32px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+
+    .header-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
     .pixel-tag {
@@ -72,8 +92,35 @@
       font-size: 11px;
       color: var(--accent);
       letter-spacing: 1px;
-      margin-bottom: 12px;
       display: block;
+      transition: color 0.3s;
+    }
+
+    /* Theme Switcher Toggle */
+    .theme-toggle-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--accent);
+      color: #05100c;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    body.theme-pac-cube .theme-toggle-btn:hover {
+      color: #ffffff;
     }
 
     h1 {
@@ -106,6 +153,7 @@
 
     .badge strong {
       color: var(--accent);
+      transition: color 0.3s;
     }
 
     /* Interactive Hint */
@@ -116,6 +164,7 @@
       text-align: center;
       opacity: 0.8;
       padding: 6px;
+      transition: color 0.3s;
     }
 
     /* Project Cards Grid */
@@ -181,7 +230,7 @@
       font-size: 0.85rem;
       font-weight: 600;
       text-decoration: none;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }
 
     .btn-primary {
@@ -189,8 +238,13 @@
       color: #05100c;
     }
 
+    body.theme-pac-cube .btn-primary {
+      color: #ffffff;
+    }
+
     .btn-primary:hover {
-      background: #33ffbb;
+      filter: brightness(1.15);
+      box-shadow: 0 0 12px var(--accent-glow);
     }
 
     .btn-secondary {
@@ -201,6 +255,7 @@
 
     .btn-secondary:hover {
       background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent);
     }
 
     /* Links Bar */
@@ -215,14 +270,20 @@
 </head>
 <body>
 
-  <!-- Space Invaders Canvas -->
+  <!-- Game Canvas -->
   <canvas id="bgCanvas"></canvas>
 
   <div class="content-wrapper">
     
     <!-- Hero / Header -->
     <header class="header-card">
-      <span class="pixel-tag">&gt; DIGITAL_PORTFOLIO // ALID0N</span>
+      <div class="header-top-row">
+        <span class="pixel-tag" id="pixelTag">&gt; DIGITAL_PORTFOLIO // ALID0N</span>
+        <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Switch Theme">
+          THEME: <span id="themeName">SPACE INVASION</span>
+        </button>
+      </div>
+
       <h1>Addison Warner</h1>
       <p class="subtitle">Technical Artist &amp; Unreal Engine Systems Specialist</p>
       
@@ -239,7 +300,7 @@
       </div>
     </header>
 
-    <div class="game-hint">
+    <div class="game-hint" id="gameHint">
       [ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE &bull; SPACEBAR TO SHOOT ]
     </div>
 
@@ -310,29 +371,55 @@
 
   </div>
 
-  <!-- Interactive Space Invaders Engine -->
+  <!-- Game Engines & Theme Controller -->
   <script>
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeNameLabel = document.getElementById('themeName');
+    const gameHint = document.getElementById('gameHint');
 
+    let currentTheme = 'space'; // 'space' or 'pac'
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
     window.addEventListener('resize', () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
-      initInvaders();
+      if (currentTheme === 'space') initInvaders();
+      if (currentTheme === 'pac') initPacGame();
     });
 
-    // Player Ship
-    const player = {
-      x: width / 2,
-      y: height - 60,
-      w: 36,
-      h: 20,
-      speed: 7
-    };
+    // ==========================================
+    // CONTROLS HANDLER
+    // ==========================================
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
+        e.preventDefault();
+      }
+      keys[e.code] = true;
 
+      if (currentTheme === 'space' && e.code === 'Space') {
+        bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 10 });
+      }
+
+      if (currentTheme === 'pac') {
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') { pac.dirX = -1; pac.dirY = 0; }
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') { pac.dirX = 1; pac.dirY = 0; }
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') { pac.dirX = 0; pac.dirY = -1; }
+        if (e.code === 'ArrowDown' || e.code === 'KeyS') { pac.dirX = 0; pac.dirY = 1; }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+    });
+
+    // ==========================================
+    // SPACE INVADERS ENGINE
+    // ==========================================
+    const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7 };
     let bullets = [];
     let invaders = [];
     let invaderDir = 1;
@@ -357,39 +444,17 @@
       }
     }
 
-    initInvaders();
-
-    // Controls
-    const keys = {};
-    window.addEventListener('keydown', (e) => {
-      // Prevent browser viewport from scrolling when playing
-      if (['Space', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
-        e.preventDefault();
-      }
-      keys[e.code] = true;
-      if (e.code === 'Space') {
-        bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 10 });
-      }
-    });
-
-    window.addEventListener('keyup', (e) => {
-      keys[e.code] = false;
-    });
-
-    function update() {
-      // Move Player
+    function updateSpace() {
       if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
       if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
       player.x = Math.max(10, Math.min(width - player.w - 10, player.x));
       player.y = height - 60;
 
-      // Update Bullets
       for (let i = bullets.length - 1; i >= 0; i--) {
         bullets[i].y -= 9;
         if (bullets[i].y < 0) bullets.splice(i, 1);
       }
 
-      // Update Invaders
       let edgeReached = false;
       invaders.forEach((inv) => {
         if (!inv.alive) return;
@@ -405,7 +470,6 @@
         });
       }
 
-      // Bullet / Invader Collision
       bullets.forEach((b, bIdx) => {
         invaders.forEach((inv) => {
           if (inv.alive && b.x < inv.x + inv.w && b.x + b.w > inv.x && b.y < inv.y + inv.h && b.y + b.h > inv.y) {
@@ -415,16 +479,12 @@
         });
       });
 
-      // Respawn if all dead
       if (invaders.length > 0 && invaders.every((inv) => !inv.alive)) {
         setTimeout(initInvaders, 1000);
       }
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-
-      // Draw Player Ship (Retro Polygon)
+    function drawSpace() {
       ctx.fillStyle = '#00ffaa';
       ctx.beginPath();
       ctx.moveTo(player.x + player.w / 2, player.y);
@@ -433,27 +493,216 @@
       ctx.closePath();
       ctx.fill();
 
-      // Draw Bullets
       ctx.fillStyle = '#38bdf8';
-      bullets.forEach((b) => {
-        ctx.fillRect(b.x, b.y, b.w, b.h);
-      });
+      bullets.forEach((b) => ctx.fillRect(b.x, b.y, b.w, b.h));
 
-      // Draw Invaders
       invaders.forEach((inv) => {
         if (!inv.alive) return;
         ctx.fillStyle = '#ff0055';
         ctx.fillRect(inv.x, inv.y, inv.w, inv.h);
-        // Retro invader pixel eyes
         ctx.fillStyle = '#07090e';
         ctx.fillRect(inv.x + 3, inv.y + 4, 4, 4);
         ctx.fillRect(inv.x + inv.w - 7, inv.y + 4, 4, 4);
       });
     }
 
+    // ==========================================
+    // PAC-CUBE ENGINE
+    // ==========================================
+    const pac = {
+      x: 100,
+      y: 150,
+      size: 26,
+      speed: 4.2,
+      dirX: 1,
+      dirY: 0,
+      mouth: 0,
+      mouthSpeed: 0.15
+    };
+
+    let pellets = [];
+    let ghosts = [];
+    const ghostColors = ['#ff0044', '#ffb8de', '#00e5ff', '#ffb847'];
+
+    function initPacGame() {
+      pac.x = 80;
+      pac.y = 120;
+      pac.dirX = 1;
+      pac.dirY = 0;
+
+      // Spawn Pellets across background grid
+      pellets = [];
+      const cols = Math.floor(width / 65);
+      const rows = Math.floor(height / 65);
+      for (let r = 1; r < rows; r++) {
+        for (let c = 1; c < cols; c++) {
+          pellets.push({
+            x: c * 65 + (Math.random() * 8 - 4),
+            y: r * 65 + (Math.random() * 8 - 4),
+            eaten: false
+          });
+        }
+      }
+
+      // Spawn Roaming Ghosts
+      ghosts = [];
+      for (let i = 0; i < 4; i++) {
+        ghosts.push({
+          x: width * 0.3 + i * 80,
+          y: height * 0.4,
+          w: 24,
+          h: 24,
+          color: ghostColors[i],
+          dirX: Math.random() > 0.5 ? 1 : -1,
+          dirY: Math.random() > 0.5 ? 1 : -1,
+          speed: 2 + Math.random() * 1.5,
+          changeTimer: Math.floor(Math.random() * 100)
+        });
+      }
+    }
+
+    function updatePac() {
+      // Move Pac-Cube
+      pac.x += pac.dirX * pac.speed;
+      pac.y += pac.dirY * pac.speed;
+
+      // Screen wrapping
+      if (pac.x < -pac.size) pac.x = width;
+      if (pac.x > width) pac.x = -pac.size;
+      if (pac.y < -pac.size) pac.y = height;
+      if (pac.y > height) pac.y = -pac.size;
+
+      // Chomp animation
+      pac.mouth += pac.mouthSpeed;
+      if (pac.mouth > 1 || pac.mouth < 0) pac.mouthSpeed *= -1;
+
+      // Eat Pellets
+      pellets.forEach((p) => {
+        if (!p.eaten) {
+          const dx = (pac.x + pac.size / 2) - p.x;
+          const dy = (pac.y + pac.size / 2) - p.y;
+          if (Math.hypot(dx, dy) < pac.size / 1.5) {
+            p.eaten = true;
+          }
+        }
+      });
+
+      // Respawn pellets if all cleared
+      if (pellets.length > 0 && pellets.every((p) => p.eaten)) {
+        pellets.forEach((p) => (p.eaten = false));
+      }
+
+      // Update Ghosts
+      ghosts.forEach((g) => {
+        g.x += g.dirX * g.speed;
+        g.y += g.dirY * g.speed;
+        g.changeTimer--;
+
+        // Random direction shifts or bounce off screen edges
+        if (g.changeTimer <= 0 || g.x < 10 || g.x > width - 30 || g.y < 10 || g.y > height - 30) {
+          g.dirX = (Math.random() - 0.5) * 2;
+          g.dirY = (Math.random() - 0.5) * 2;
+          g.changeTimer = 80 + Math.floor(Math.random() * 100);
+        }
+      });
+    }
+
+    function drawPac() {
+      // Draw Pellets
+      ctx.fillStyle = '#fce4ec';
+      pellets.forEach((p) => {
+        if (!p.eaten) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // Draw Pac-Cube (Isometric/Chomping voxel cube)
+      const cx = pac.x;
+      const cy = pac.y;
+      const s = pac.size;
+      ctx.fillStyle = '#b537f2';
+
+      ctx.save();
+      ctx.translate(cx + s / 2, cy + s / 2);
+      let angle = 0;
+      if (pac.dirX === 1) angle = 0;
+      if (pac.dirX === -1) angle = Math.PI;
+      if (pac.dirY === 1) angle = Math.PI / 2;
+      if (pac.dirY === -1) angle = -Math.PI / 2;
+      ctx.rotate(angle);
+
+      // Body with chomping wedge
+      const mouthCut = 0.35 * pac.mouth;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, s / 2, mouthCut * Math.PI, (2 - mouthCut) * Math.PI);
+      ctx.closePath();
+      ctx.fill();
+
+      // Pixel eye
+      ctx.fillStyle = '#080511';
+      ctx.fillRect(1, -s / 3.5, 4, 4);
+      ctx.restore();
+
+      // Draw Ghosts
+      ghosts.forEach((g) => {
+        ctx.fillStyle = g.color;
+        // Pixel ghost head/body
+        ctx.beginPath();
+        ctx.arc(g.x + g.w / 2, g.y + g.h / 3, g.w / 2, Math.PI, 0, false);
+        ctx.lineTo(g.x + g.w, g.y + g.h);
+        // Ghost tentacle skirt
+        ctx.lineTo(g.x + (g.w * 3) / 4, g.y + g.h - 5);
+        ctx.lineTo(g.x + g.w / 2, g.y + g.h);
+        ctx.lineTo(g.x + g.w / 4, g.y + g.h - 5);
+        ctx.lineTo(g.x, g.y + g.h);
+        ctx.closePath();
+        ctx.fill();
+
+        // Ghost Eyes
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(g.x + 4, g.y + 5, 5, 6);
+        ctx.fillRect(g.x + 13, g.y + 5, 5, 6);
+        ctx.fillStyle = '#0a0a20';
+        ctx.fillRect(g.x + 6, g.y + 7, 3, 3);
+        ctx.fillRect(g.x + 15, g.y + 7, 3, 3);
+      });
+    }
+
+    // ==========================================
+    // THEME SWITCHER LOGIC
+    // ==========================================
+    themeToggleBtn.addEventListener('click', () => {
+      if (currentTheme === 'space') {
+        currentTheme = 'pac';
+        document.body.classList.add('theme-pac-cube');
+        themeNameLabel.textContent = 'PAC-CUBE';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: USE ARROW KEYS / WASD TO CHOMP PELLETS ]';
+        initPacGame();
+      } else {
+        currentTheme = 'space';
+        document.body.classList.remove('theme-pac-cube');
+        themeNameLabel.textContent = 'SPACE INVASION';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]';
+        initInvaders();
+      }
+    });
+
+    // Initialize Default
+    initInvaders();
+
+    // Main Engine Loop
     function loop() {
-      update();
-      draw();
+      ctx.clearRect(0, 0, width, height);
+      if (currentTheme === 'space') {
+        updateSpace();
+        drawSpace();
+      } else {
+        updatePac();
+        drawPac();
+      }
       requestAnimationFrame(loop);
     }
 
