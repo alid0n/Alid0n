@@ -10,7 +10,7 @@
   <style>
     :root {
       --bg: #07090e;
-      --card-bg: rgba(13, 17, 27, 0.85);
+      --card-bg: rgba(13, 17, 27, 0.88);
       --card-border: rgba(0, 255, 170, 0.25);
       --accent: #00ffaa;
       --accent-glow: rgba(0, 255, 170, 0.4);
@@ -18,15 +18,15 @@
       --muted: #94a3b8;
     }
 
-    /* Pac-Cube Theme Overrides */
+    /* Pac-Cube Theme Overrides - High readability / non-distracting canvas */
     body.theme-pac-cube {
-      --bg: #080511;
-      --card-bg: rgba(17, 12, 28, 0.85);
-      --card-border: rgba(181, 55, 242, 0.35);
+      --bg: #05030a;
+      --card-bg: rgba(13, 10, 24, 0.94);
+      --card-border: rgba(181, 55, 242, 0.4);
       --accent: #b537f2;
       --accent-glow: rgba(181, 55, 242, 0.45);
-      --text: #f5f0fa;
-      --muted: #a698b8;
+      --text: #f8f6fc;
+      --muted: #a39bb5;
     }
 
     * {
@@ -55,6 +55,11 @@
       z-index: 0;
       display: block;
       pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    body.theme-pac-cube #bgCanvas {
+      opacity: 0.65; /* Prevents arcade brights from fighting the foreground content */
     }
 
     /* Content Overlay */
@@ -73,10 +78,11 @@
     .header-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-radius: 12px;
       padding: 32px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75);
       transition: border-color 0.3s, background-color 0.3s;
     }
 
@@ -128,6 +134,7 @@
       font-weight: 700;
       letter-spacing: -0.5px;
       margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
 
     .subtitle {
@@ -144,8 +151,8 @@
     }
 
     .badge {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       padding: 6px 12px;
       border-radius: 6px;
       color: var(--text);
@@ -162,9 +169,10 @@
       font-size: 10px;
       color: var(--accent);
       text-align: center;
-      opacity: 0.8;
+      opacity: 0.85;
       padding: 6px;
       transition: color 0.3s;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     }
 
     /* Project Cards Grid */
@@ -176,6 +184,7 @@
       align-items: center;
       gap: 8px;
       color: #fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
     }
 
     .grid {
@@ -186,20 +195,22 @@
 
     .card {
       background: var(--card-bg);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-radius: 10px;
       padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       transition: all 0.2s ease-in-out;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
     }
 
     .card:hover {
       border-color: var(--accent);
       transform: translateY(-3px);
-      box-shadow: 0 10px 24px var(--accent-glow);
+      box-shadow: 0 12px 30px var(--accent-glow);
     }
 
     .card h3 {
@@ -211,7 +222,7 @@
     .card p {
       font-size: 0.9rem;
       color: var(--muted);
-      line-height: 1.45;
+      line-height: 1.5;
       margin-bottom: 18px;
       flex-grow: 1;
     }
@@ -390,13 +401,12 @@
       if (currentTheme === 'pac') initPacGame();
     });
 
-    // Helper: AABB Collision detection
-    function checkRectCollision(rect1, rect2) {
+    function checkRectCollision(r1, r2) {
       return (
-        rect1.x < rect2.x + rect2.w &&
-        rect1.x + rect1.w > rect2.x &&
-        rect1.y < rect2.y + rect2.h &&
-        rect1.y + rect1.h > rect2.y
+        r1.x < r2.x + r2.w &&
+        r1.x + r1.w > r2.x &&
+        r1.y < r2.y + r2.h &&
+        r1.y + r1.h > r2.y
       );
     }
 
@@ -415,16 +425,10 @@
       }
 
       if (currentTheme === 'pac') {
-        let nX = 0, nY = 0;
-        if (e.code === 'ArrowLeft' || e.code === 'KeyA') { nX = -1; nY = 0; }
-        if (e.code === 'ArrowRight' || e.code === 'KeyD') { nX = 1; nY = 0; }
-        if (e.code === 'ArrowUp' || e.code === 'KeyW') { nX = 0; nY = -1; }
-        if (e.code === 'ArrowDown' || e.code === 'KeyS') { nX = 0; nY = 1; }
-
-        if (nX !== 0 || nY !== 0) {
-          pac.nextDirX = nX;
-          pac.nextDirY = nY;
-        }
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') { pac.nextDirX = -1; pac.nextDirY = 0; }
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') { pac.nextDirX = 1; pac.nextDirY = 0; }
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') { pac.nextDirX = 0; pac.nextDirY = -1; }
+        if (e.code === 'ArrowDown' || e.code === 'KeyS') { pac.nextDirX = 0; pac.nextDirY = 1; }
       }
     });
 
@@ -523,80 +527,85 @@
     }
 
     // ==========================================
-    // PAC-CUBE ENGINE WITH MAZE WALLS
+    // TIGHT-GRID PAC-CUBE ENGINE
     // ==========================================
+    const GRID_SIZE = 40; // Strict tight 40px grid
+
     const pac = {
-      x: 60,
-      y: 60,
-      w: 24,
-      h: 24,
-      speed: 3.5,
+      x: GRID_SIZE,
+      y: GRID_SIZE,
+      w: 22,
+      h: 22,
+      speed: 3,
       dirX: 1,
       dirY: 0,
       nextDirX: 1,
       nextDirY: 0,
       mouth: 0,
-      mouthSpeed: 0.15
+      mouthSpeed: 0.18
     };
 
     let walls = [];
     let pellets = [];
     let ghosts = [];
-    const ghostColors = ['#ff0044', '#ffb8de', '#00e5ff', '#ffb847'];
+    const ghostColors = ['#ff0055', '#ffb8de', '#00e5ff', '#ffb847'];
 
     function initPacGame() {
       walls = [];
       pellets = [];
       ghosts = [];
 
-      // Generate grid-based arcade maze walls
-      const cellW = 120;
-      const cellH = 120;
-      const cols = Math.floor(width / cellW);
-      const rows = Math.floor(height / cellH);
+      const cols = Math.floor(width / GRID_SIZE);
+      const rows = Math.floor(height / GRID_SIZE);
 
-      // Outer boundary frame
-      walls.push({ x: 15, y: 15, w: width - 30, h: 10 });
-      walls.push({ x: 15, y: height - 25, w: width - 30, h: 10 });
-      walls.push({ x: 15, y: 15, w: 10, h: height - 30 });
-      walls.push({ x: width - 25, y: 15, w: 10, h: height - 30 });
+      // 1. Outer perimeter walls
+      walls.push({ x: 0, y: 0, w: cols * GRID_SIZE, h: 8 });
+      walls.push({ x: 0, y: (rows - 1) * GRID_SIZE + (GRID_SIZE - 8), w: cols * GRID_SIZE, h: 8 });
+      walls.push({ x: 0, y: 0, w: 8, h: rows * GRID_SIZE });
+      walls.push({ x: (cols - 1) * GRID_SIZE + (GRID_SIZE - 8), y: 0, w: 8, h: rows * GRID_SIZE });
 
-      // Inner maze partitions
-      for (let r = 1; r < rows; r++) {
-        for (let c = 1; c < cols; c++) {
-          const wx = c * cellW;
-          const wy = r * cellH;
+      // 2. Structured internal labyrinth walls
+      for (let r = 2; r < rows - 2; r += 2) {
+        for (let c = 2; c < cols - 2; c += 2) {
+          const wx = c * GRID_SIZE;
+          const wy = r * GRID_SIZE;
 
-          // Alternate between horizontal and vertical walls
-          if ((r + c) % 2 === 0) {
-            walls.push({ x: wx - 40, y: wy, w: 70, h: 12 });
-          } else {
-            walls.push({ x: wx, y: wy - 40, w: 12, h: 70 });
+          if ((r + c) % 4 === 0) {
+            // Horizontal bar
+            walls.push({ x: wx, y: wy + 16, w: GRID_SIZE * 1.5, h: 8 });
+          } else if ((r + c) % 4 === 2) {
+            // Vertical bar
+            walls.push({ x: wx + 16, y: wy, w: 8, h: GRID_SIZE * 1.5 });
           }
         }
       }
 
-      // Safe spawn point for Pac-Cube
-      pac.x = 40;
-      pac.y = 40;
+      // 3. Spawn Pellets exactly centered on the 40px grid corridors
+      for (let c = 1; c < cols - 1; c++) {
+        for (let r = 1; r < rows - 1; r++) {
+          const centerX = c * GRID_SIZE + GRID_SIZE / 2;
+          const centerY = r * GRID_SIZE + GRID_SIZE / 2;
+          
+          const pelletBox = { x: centerX - 6, y: centerY - 6, w: 12, h: 12 };
+          const hitsWall = walls.some((w) => checkRectCollision(pelletBox, w));
+
+          if (!hitsWall) {
+            pellets.push({ x: centerX, y: centerY, eaten: false });
+          }
+        }
+      }
+
+      // Position Pac-Cube squarely on the first open pellet
+      if (pellets.length > 0) {
+        pac.x = pellets[0].x - pac.w / 2;
+        pac.y = pellets[0].y - pac.h / 2;
+      }
       pac.dirX = 1;
       pac.dirY = 0;
       pac.nextDirX = 1;
       pac.nextDirY = 0;
 
-      // Spawn Pellets in open spaces
-      const pSpacing = 50;
-      for (let px = 45; px < width - 45; px += pSpacing) {
-        for (let py = 45; py < height - 45; py += pSpacing) {
-          const pelletBox = { x: px - 4, y: py - 4, w: 8, h: 8 };
-          const hitsWall = walls.some((w) => checkRectCollision(pelletBox, w));
-          if (!hitsWall) {
-            pellets.push({ x: px, y: py, eaten: false });
-          }
-        }
-      }
-
-      // Spawn Ghosts
+      // 4. Spawn Ghosts
       const directions = [
         { x: 1, y: 0 },
         { x: -1, y: 0 },
@@ -605,22 +614,22 @@
       ];
 
       for (let i = 0; i < 4; i++) {
-        const d = directions[i % directions.length];
+        const d = directions[i];
         ghosts.push({
-          x: width / 2 + (i - 2) * 50,
+          x: width / 2 + (i - 1.5) * GRID_SIZE,
           y: height / 2,
-          w: 22,
-          h: 22,
+          w: 20,
+          h: 20,
           color: ghostColors[i],
           dirX: d.x,
           dirY: d.y,
-          speed: 2.2 + Math.random() * 0.8
+          speed: 2.2
         });
       }
     }
 
     function updatePac() {
-      // 1. Check if Pac-Cube can pivot to requested direction
+      // Intent/Direction shift check
       if (pac.nextDirX !== pac.dirX || pac.nextDirY !== pac.dirY) {
         const testBox = {
           x: pac.x + pac.nextDirX * pac.speed,
@@ -628,14 +637,13 @@
           w: pac.w,
           h: pac.h
         };
-        const blocked = walls.some((w) => checkRectCollision(testBox, w));
-        if (!blocked) {
+        if (!walls.some((w) => checkRectCollision(testBox, w))) {
           pac.dirX = pac.nextDirX;
           pac.dirY = pac.nextDirY;
         }
       }
 
-      // 2. Move in active direction if path is free
+      // Move in active direction
       const moveBox = {
         x: pac.x + pac.dirX * pac.speed,
         y: pac.y + pac.dirY * pac.speed,
@@ -643,34 +651,39 @@
         h: pac.h
       };
 
-      const wallBlocked = walls.some((w) => checkRectCollision(moveBox, w));
-      if (!wallBlocked) {
+      if (!walls.some((w) => checkRectCollision(moveBox, w))) {
         pac.x += pac.dirX * pac.speed;
         pac.y += pac.dirY * pac.speed;
       }
 
-      // Mouth animation
+      // Wrap screen edges
+      if (pac.x < -pac.w) pac.x = width;
+      if (pac.x > width) pac.x = -pac.w;
+      if (pac.y < -pac.h) pac.y = height;
+      if (pac.y > height) pac.y = -pac.h;
+
+      // Chomp animation
       pac.mouth += pac.mouthSpeed;
       if (pac.mouth > 1 || pac.mouth < 0) pac.mouthSpeed *= -1;
 
-      // 3. Eat Pellets
+      // Eat larger pellets
       pellets.forEach((p) => {
         if (!p.eaten) {
           const dx = (pac.x + pac.w / 2) - p.x;
           const dy = (pac.y + pac.h / 2) - p.y;
-          if (Math.hypot(dx, dy) < pac.w / 1.4) {
+          if (Math.hypot(dx, dy) < pac.w / 1.3) {
             p.eaten = true;
           }
         }
       });
 
-      // Respawn pellets if all cleared
+      // Respawn pellets if all collected
       if (pellets.length > 0 && pellets.every((p) => p.eaten)) {
         pellets.forEach((p) => (p.eaten = false));
       }
 
-      // 4. Update Ghosts with Maze Collisions
-      const validDirections = [
+      // Ghosts AI
+      const cardinalDirs = [
         { x: 1, y: 0 },
         { x: -1, y: 0 },
         { x: 0, y: 1 },
@@ -685,13 +698,12 @@
           h: g.h
         };
 
-        const hitsWall = walls.some((w) => checkRectCollision(nextGhostBox, w));
+        const blocked = walls.some((w) => checkRectCollision(nextGhostBox, w));
 
-        if (hitsWall || Math.random() < 0.02) {
-          // Shuffle and pick a free direction
-          const shuffled = [...validDirections].sort(() => 0.5 - Math.random());
+        if (blocked || Math.random() < 0.02) {
+          const shuffled = [...cardinalDirs].sort(() => 0.5 - Math.random());
           for (let d of shuffled) {
-            const probe = { x: g.x + d.x * (g.speed + 2), y: g.y + d.y * (g.speed + 2), w: g.w, h: g.h };
+            const probe = { x: g.x + d.x * (g.speed + 3), y: g.y + d.y * (g.speed + 3), w: g.w, h: g.h };
             if (!walls.some((w) => checkRectCollision(probe, w))) {
               g.dirX = d.x;
               g.dirY = d.y;
@@ -702,36 +714,37 @@
           g.x += g.dirX * g.speed;
           g.y += g.dirY * g.speed;
         }
+
+        // Ghost Screen Wrap
+        if (g.x < -g.w) g.x = width;
+        if (g.x > width) g.x = -g.w;
+        if (g.y < -g.h) g.y = height;
+        if (g.y > height) g.y = -g.h;
       });
     }
 
     function drawPac() {
-      // Draw Maze Walls
+      // 1. Draw Maze Walls (Crisp, tight arcade borders)
       ctx.lineWidth = 2;
       walls.forEach((w) => {
-        // Inner subtle fill
-        ctx.fillStyle = 'rgba(181, 55, 242, 0.12)';
+        ctx.fillStyle = '#180d2e';
         ctx.fillRect(w.x, w.y, w.w, w.h);
 
-        // Neon outline
-        ctx.strokeStyle = '#b537f2';
-        ctx.shadowColor = 'rgba(181, 55, 242, 0.8)';
-        ctx.shadowBlur = 6;
+        ctx.strokeStyle = '#8e24aa';
         ctx.strokeRect(w.x, w.y, w.w, w.h);
       });
-      ctx.shadowBlur = 0; // Reset glow
 
-      // Draw Pellets
+      // 2. Draw Prominent Grid-Centered Pellets (6px diameter with soft glow)
       ctx.fillStyle = '#fce4ec';
       pellets.forEach((p) => {
         if (!p.eaten) {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
           ctx.fill();
         }
       });
 
-      // Draw Pac-Cube
+      // 3. Draw Pac-Cube
       ctx.fillStyle = '#b537f2';
       ctx.save();
       ctx.translate(pac.x + pac.w / 2, pac.y + pac.h / 2);
@@ -752,10 +765,10 @@
 
       // Pixel eye
       ctx.fillStyle = '#080511';
-      ctx.fillRect(2, -pac.h / 3.5, 3, 3);
+      ctx.fillRect(2, -pac.h / 3.8, 3, 3);
       ctx.restore();
 
-      // Draw Ghosts
+      // 4. Draw Ghosts
       ghosts.forEach((g) => {
         ctx.fillStyle = g.color;
         ctx.beginPath();
@@ -770,11 +783,11 @@
 
         // Ghost eyes
         ctx.fillStyle = '#fff';
-        ctx.fillRect(g.x + 3, g.y + 4, 4, 5);
-        ctx.fillRect(g.x + 11, g.y + 4, 4, 5);
+        ctx.fillRect(g.x + 3, g.y + 4, 4, 4);
+        ctx.fillRect(g.x + 11, g.y + 4, 4, 4);
         ctx.fillStyle = '#0a0a20';
-        ctx.fillRect(g.x + 5, g.y + 6, 2, 2);
-        ctx.fillRect(g.x + 13, g.y + 6, 2, 2);
+        ctx.fillRect(g.x + 5, g.y + 5, 2, 2);
+        ctx.fillRect(g.x + 13, g.y + 5, 2, 2);
       });
     }
 
@@ -800,7 +813,7 @@
     // Initialize Default
     initInvaders();
 
-    // Main Engine Loop
+    // Main Game Loop
     function loop() {
       ctx.clearRect(0, 0, width, height);
       if (currentTheme === 'space') {
