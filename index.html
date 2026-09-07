@@ -40,6 +40,17 @@
       --muted: #d094b8;
     }
 
+    /* Fantasy Quest Theme (2D RPG) */
+    body.theme-rpg {
+      --bg: #0c0814;
+      --card-bg: rgba(20, 14, 30, 0.94);
+      --card-border: rgba(245, 158, 11, 0.35);
+      --accent: #f59e0b;
+      --accent-glow: rgba(245, 158, 11, 0.5);
+      --text: #fdfaf4;
+      --muted: #bfa588;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -69,13 +80,9 @@
       transition: opacity 0.3s ease;
     }
 
-    body.theme-pac-cube #bgCanvas {
-      opacity: 0.85;
-    }
-
-    body.theme-synthwave #bgCanvas {
-      opacity: 0.9;
-    }
+    body.theme-pac-cube #bgCanvas { opacity: 0.85; }
+    body.theme-synthwave #bgCanvas { opacity: 0.9; }
+    body.theme-rpg #bgCanvas { opacity: 0.92; }
 
     /* Content Overlay with Smooth Fade on Activity */
     .content-wrapper {
@@ -149,7 +156,8 @@
     }
 
     body.theme-pac-cube .theme-toggle-btn:hover,
-    body.theme-synthwave .theme-toggle-btn:hover {
+    body.theme-synthwave .theme-toggle-btn:hover,
+    body.theme-rpg .theme-toggle-btn:hover {
       color: #ffffff;
     }
 
@@ -275,7 +283,8 @@
     }
 
     body.theme-pac-cube .btn-primary,
-    body.theme-synthwave .btn-primary {
+    body.theme-synthwave .btn-primary,
+    body.theme-rpg .btn-primary {
       color: #ffffff;
     }
 
@@ -417,6 +426,7 @@
     const themeNameLabel = document.getElementById('themeName');
     const gameHint = document.getElementById('gameHint');
 
+    // Themes: 'space' | 'pac' | 'synth' | 'rpg'
     let currentTheme = 'space';
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
@@ -437,6 +447,7 @@
       if (currentTheme === 'space') initInvaders(false);
       if (currentTheme === 'pac') initPacGame(false);
       if (currentTheme === 'synth') initSynthRacer(false);
+      if (currentTheme === 'rpg') initRPGGame(false);
     });
 
     function checkRectCollision(r1, r2) {
@@ -464,6 +475,10 @@
 
       if (currentTheme === 'space' && e.code === 'Space') {
         firePlayerWeapon();
+      }
+
+      if (currentTheme === 'rpg' && e.code === 'Space') {
+        castFireball();
       }
 
       if (currentTheme === 'pac') {
@@ -756,7 +771,7 @@
           spaceLives--;
           player.invuln = 60;
           if (spaceLives <= 0) {
-            initInvaders(true); // Restart from Level 1
+            initInvaders(true);
             return;
           }
         }
@@ -767,7 +782,7 @@
         invaders.forEach((inv) => {
           inv.y += 14;
           if (inv.y > height - 100) {
-            initInvaders(true); // Reached base: restart from Level 1
+            initInvaders(true);
           }
         });
       }
@@ -781,7 +796,7 @@
           player.invuln = 60;
           enemyLasers.splice(i, 1);
           if (spaceLives <= 0) {
-            initInvaders(true); // Restart from Level 1
+            initInvaders(true);
             return;
           }
           continue;
@@ -1184,7 +1199,7 @@
       if (pellets.length > 0 && pellets.every((p) => p.eaten)) {
         pacLevel++;
         pacScore += 1000;
-        initPacGame(false); // Advance level with preserved score/lives
+        initPacGame(false);
       }
 
       const cardinalDirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
@@ -1232,9 +1247,9 @@
         if (checkRectCollision(pac, g) && pac.invuln <= 0) {
           pacLives--;
           if (pacLives <= 0) {
-            initPacGame(true); // Restart from Level 1
+            initPacGame(true);
           } else {
-            resetPacEntities(); // Keep pellets and progress, reset positions
+            resetPacEntities();
           }
         }
       });
@@ -1594,28 +1609,410 @@
     }
 
     // ==========================================
+    // 4. FANTASY QUEST ENGINE (2D Mage RPG)
+    // ==========================================
+    const mage = {
+      x: width / 2,
+      y: height / 2,
+      w: 24,
+      h: 30,
+      speed: 4.2,
+      facingX: 1,
+      facingY: 0,
+      invuln: 0,
+      castCooldown: 0
+    };
+
+    let fireballs = [];
+    let monsters = [];
+    let manaGems = [];
+    let rpgScore = 0;
+    let rpgLives = 3;
+    let rpgWave = 1;
+    let rpgStartTime = Date.now();
+    let rpgAnim = 0;
+
+    function initRPGGame(fullReset = true) {
+      if (fullReset) {
+        rpgScore = 0;
+        rpgLives = 3;
+        rpgWave = 1;
+        rpgStartTime = Date.now();
+      }
+
+      mage.x = width / 2;
+      mage.y = height * 0.7;
+      mage.facingX = 0;
+      mage.facingY = -1;
+      mage.invuln = 60;
+      mage.castCooldown = 0;
+
+      fireballs = [];
+      monsters = [];
+      manaGems = [];
+
+      // Spawn initial monsters based on wave
+      const skelCount = 4 + rpgWave * 2;
+      const orcCount = Math.max(1, rpgWave);
+
+      for (let i = 0; i < skelCount; i++) spawnMonster('skeleton');
+      for (let i = 0; i < orcCount; i++) spawnMonster('orc');
+    }
+
+    function spawnMonster(type) {
+      // Spawn along random screen edges
+      let sx = Math.random() < 0.5 ? -30 : width + 30;
+      let sy = Math.random() * height;
+      if (Math.random() < 0.5) {
+        sx = Math.random() * width;
+        sy = Math.random() < 0.5 ? -30 : height + 30;
+      }
+
+      monsters.push({
+        x: sx,
+        y: sy,
+        w: type === 'orc' ? 28 : 22,
+        h: type === 'orc' ? 32 : 26,
+        type: type, // 'skeleton' | 'orc'
+        hp: type === 'orc' ? 3 : 1,
+        speed: type === 'orc' ? 1.6 : 2.4,
+        anim: Math.random() * 10
+      });
+    }
+
+    function castFireball() {
+      if (mage.castCooldown > 0) return;
+
+      // Normalize shooting direction
+      let fx = mage.facingX;
+      let fy = mage.facingY;
+      if (fx === 0 && fy === 0) fy = -1;
+      const len = Math.hypot(fx, fy) || 1;
+      fx /= len;
+      fy /= len;
+
+      fireballs.push({
+        x: mage.x + mage.w / 2,
+        y: mage.y + mage.h / 2,
+        vx: fx * 8.5,
+        vy: fy * 8.5,
+        r: 6,
+        life: 80
+      });
+
+      mage.castCooldown = 18; // ~3.3 casts per second
+    }
+
+    function updateRPG() {
+      rpgAnim++;
+      if (mage.invuln > 0) mage.invuln--;
+      if (mage.castCooldown > 0) mage.castCooldown--;
+
+      // 8-Direction Player Movement
+      let mx = 0, my = 0;
+      if (keys['ArrowLeft'] || keys['KeyA']) mx -= 1;
+      if (keys['ArrowRight'] || keys['KeyD']) mx += 1;
+      if (keys['ArrowUp'] || keys['KeyW']) my -= 1;
+      if (keys['ArrowDown'] || keys['KeyS']) my += 1;
+
+      if (mx !== 0 || my !== 0) {
+        mage.facingX = mx;
+        mage.facingY = my;
+        const norm = Math.hypot(mx, my);
+        mage.x += (mx / norm) * mage.speed;
+        mage.y += (my / norm) * mage.speed;
+      }
+
+      // Constrain mage to screen bounds
+      mage.x = Math.max(15, Math.min(width - mage.w - 15, mage.x));
+      mage.y = Math.max(15, Math.min(height - mage.h - 15, mage.y));
+
+      // Update Fireballs
+      for (let i = fireballs.length - 1; i >= 0; i--) {
+        const fb = fireballs[i];
+        fb.x += fb.vx;
+        fb.y += fb.vy;
+        fb.life--;
+
+        if (fb.life <= 0 || fb.x < 0 || fb.x > width || fb.y < 0 || fb.y > height) {
+          fireballs.splice(i, 1);
+        }
+      }
+
+      // Update Mana Gems
+      for (let i = manaGems.length - 1; i >= 0; i--) {
+        const g = manaGems[i];
+        if (Math.hypot((mage.x + mage.w / 2) - g.x, (mage.y + mage.h / 2) - g.y) < 24) {
+          rpgScore += 150;
+          manaGems.splice(i, 1);
+        }
+      }
+
+      // Update Monsters
+      monsters.forEach((m) => {
+        m.anim += 0.1;
+        // Follow Mage
+        const dx = (mage.x + mage.w / 2) - (m.x + m.w / 2);
+        const dy = (mage.y + mage.h / 2) - (m.y + m.h / 2);
+        const dist = Math.hypot(dx, dy) || 1;
+
+        m.x += (dx / dist) * m.speed;
+        m.y += (dy / dist) * m.speed;
+
+        // Monster Hits Mage
+        if (checkRectCollision(mage, m) && mage.invuln <= 0) {
+          rpgLives--;
+          mage.invuln = 90;
+          if (rpgLives <= 0) {
+            initRPGGame(true);
+            return;
+          }
+        }
+      });
+
+      // Fireball vs Monster Hits
+      for (let fIdx = fireballs.length - 1; fIdx >= 0; fIdx--) {
+        const fb = fireballs[fIdx];
+        const fbBox = { x: fb.x - fb.r, y: fb.y - fb.r, w: fb.r * 2, h: fb.r * 2 };
+
+        for (let mIdx = monsters.length - 1; mIdx >= 0; mIdx--) {
+          const m = monsters[mIdx];
+          if (checkRectCollision(fbBox, m)) {
+            m.hp--;
+            fireballs.splice(fIdx, 1);
+
+            if (m.hp <= 0) {
+              if (m.type === 'skeleton') rpgScore += 100;
+              if (m.type === 'orc') rpgScore += 300;
+
+              // 50% chance to drop a glowing mana gem
+              if (Math.random() < 0.5) {
+                manaGems.push({ x: m.x + m.w / 2, y: m.y + m.h / 2 });
+              }
+
+              monsters.splice(mIdx, 1);
+            }
+            break;
+          }
+        }
+      }
+
+      // Wave Progression
+      if (monsters.length === 0) {
+        rpgWave++;
+        rpgScore += 500;
+        const skelCount = 4 + rpgWave * 2;
+        const orcCount = Math.max(1, rpgWave);
+        for (let i = 0; i < skelCount; i++) spawnMonster('skeleton');
+        for (let i = 0; i < orcCount; i++) spawnMonster('orc');
+      }
+    }
+
+    function drawRPG() {
+      // 1. Dungeon Arena Floor (Rune Grid & Cobblestone)
+      ctx.fillStyle = '#0a0612';
+      ctx.fillRect(0, 0, width, height);
+
+      // Subtle ancient tile grid
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.08)';
+      ctx.lineWidth = 1;
+      const tileSize = 60;
+      for (let x = 0; x < width; x += tileSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += tileSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Arcane Dungeon Arena Center Rune
+      ctx.save();
+      ctx.strokeStyle = 'rgba(181, 55, 242, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(width / 2, height / 2, 120, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(width / 2, height / 2, 160, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // 2. Draw Mana Gems (Blue Stars)
+      manaGems.forEach((g) => {
+        ctx.save();
+        ctx.fillStyle = '#00e5ff';
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(g.x, g.y, 4 + Math.sin(rpgAnim * 0.15) * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 3. Draw Purple Fireballs
+      fireballs.forEach((fb) => {
+        ctx.save();
+        ctx.fillStyle = '#c026d3';
+        ctx.shadowColor = '#e879f9';
+        ctx.shadowBlur = 14;
+
+        // Outer Flame
+        ctx.beginPath();
+        ctx.arc(fb.x, fb.y, fb.r + 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner Arcane Core
+        ctx.fillStyle = '#fdf4ff';
+        ctx.beginPath();
+        ctx.arc(fb.x, fb.y, fb.r * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 4. Draw Monsters
+      monsters.forEach((m) => {
+        ctx.save();
+        const wobble = Math.sin(m.anim) * 2;
+
+        if (m.type === 'skeleton') {
+          // --- SKELETON (Ivory / Bone Archer) ---
+          ctx.fillStyle = '#e2e8f0';
+          ctx.shadowColor = 'rgba(255,255,255,0.4)';
+          ctx.shadowBlur = 4;
+
+          // Skull
+          ctx.fillRect(m.x + 5, m.y, 12, 10);
+          // Red glowing eyes
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(m.x + 7, m.y + 4, 2, 2);
+          ctx.fillRect(m.x + 13, m.y + 4, 2, 2);
+
+          // Ribcage & Spine
+          ctx.fillStyle = '#cbd5e1';
+          ctx.fillRect(m.x + 8, m.y + 10, 6, 8);
+          ctx.fillRect(m.x + 5, m.y + 12, 12, 2);
+          ctx.fillRect(m.x + 6, m.y + 15, 10, 2);
+
+          // Bone Legs
+          ctx.fillRect(m.x + 6, m.y + 18, 3, 8 + wobble);
+          ctx.fillRect(m.x + 13, m.y + 18, 3, 8 - wobble);
+
+        } else if (m.type === 'orc') {
+          // --- ORC BRUTE (Green Muscle, Armor, & Horns) ---
+          ctx.fillStyle = '#15803d'; // Green skin
+          ctx.shadowColor = '#15803d';
+          ctx.shadowBlur = 6;
+
+          // Head & Shoulders
+          ctx.fillRect(m.x + 6, m.y + 2, 16, 12);
+          // Yellow eyes
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(m.x + 9, m.y + 6, 3, 2);
+          ctx.fillRect(m.x + 16, m.y + 6, 3, 2);
+          // Tusks
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(m.x + 8, m.y + 11, 2, 3);
+          ctx.fillRect(m.x + 18, m.y + 11, 2, 3);
+
+          // Armored Chestplate
+          ctx.fillStyle = '#57534e';
+          ctx.fillRect(m.x + 4, m.y + 14, 20, 10);
+
+          // War Axe
+          ctx.fillStyle = '#78716c';
+          ctx.fillRect(m.x + 22, m.y + 6 + wobble, 4, 18);
+          ctx.fillStyle = '#dc2626';
+          ctx.fillRect(m.x + 20, m.y + 4 + wobble, 8, 6);
+
+          // Sturdy Legs
+          ctx.fillStyle = '#15803d';
+          ctx.fillRect(m.x + 6, m.y + 24, 6, 8);
+          ctx.fillRect(m.x + 16, m.y + 24, 6, 8);
+        }
+        ctx.restore();
+      });
+
+      // 5. Draw Mage (Blue Wizard Hat & Robes)
+      if (mage.invuln % 6 < 3) {
+        ctx.save();
+        const mx = mage.x;
+        const my = mage.y;
+
+        // Purple Mage Robe
+        ctx.fillStyle = '#4338ca';
+        ctx.fillRect(mx + 4, my + 14, 16, 14);
+
+        // Wizard Hands & Staff
+        ctx.fillStyle = '#78350f'; // Wooden Staff
+        ctx.fillRect(mx + 20, my + 4, 3, 24);
+        // Staff Crystal Orb (Purple Flame glow)
+        ctx.fillStyle = '#c026d3';
+        ctx.shadowColor = '#e879f9';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(mx + 21, my + 4, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Mage Face
+        ctx.fillStyle = '#fed7aa';
+        ctx.fillRect(mx + 7, my + 10, 10, 6);
+
+        // Iconic Pointy Blue Hat with gold brim
+        ctx.fillStyle = '#2563eb'; // Deep Blue Hat
+        ctx.beginPath();
+        ctx.moveTo(mx + 2, my + 10);
+        ctx.lineTo(mx + 22, my + 10);
+        ctx.lineTo(mx + 17, my + 2);
+        ctx.lineTo(mx + 8, my - 6); // Floppy tip
+        ctx.lineTo(mx + 7, my + 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Hat Gold Ribbon
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(mx + 4, my + 8, 16, 2);
+
+        ctx.restore();
+      }
+
+      drawHUD(rpgScore, rpgStartTime, rpgLives, '#f59e0b', rpgWave);
+    }
+
+    // ==========================================
     // THEME SWITCHER CONTROLLER (CLEAN RESETS)
     // ==========================================
     themeToggleBtn.addEventListener('click', () => {
-      document.body.classList.remove('theme-pac-cube', 'theme-synthwave');
+      document.body.classList.remove('theme-pac-cube', 'theme-synthwave', 'theme-rpg');
 
       if (currentTheme === 'space') {
         currentTheme = 'pac';
         document.body.classList.add('theme-pac-cube');
         themeNameLabel.textContent = 'RETRO MAZE';
         gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE • ESCAPE GHOSTS ]';
-        initPacGame(true); // Fresh clean start from Level 1
+        initPacGame(true);
       } else if (currentTheme === 'pac') {
         currentTheme = 'synth';
         document.body.classList.add('theme-synthwave');
         themeNameLabel.textContent = 'SUNSET CHASER';
         gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT TO STEER • UP TO BOOST ]';
-        initSynthRacer(true); // Fresh clean start
+        initSynthRacer(true);
+      } else if (currentTheme === 'synth') {
+        currentTheme = 'rpg';
+        document.body.classList.add('theme-rpg');
+        themeNameLabel.textContent = 'FANTASY QUEST';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: MOVE WITH ARROWS/WASD • CAST PURPLE FIREBALLS WITH SPACEBAR ]';
+        initRPGGame(true);
       } else {
         currentTheme = 'space';
         themeNameLabel.textContent = 'SPACE INVASION';
         gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]';
-        initInvaders(true); // Fresh clean start from Level 1
+        initInvaders(true);
       }
     });
 
@@ -1635,6 +2032,9 @@
       } else if (currentTheme === 'synth') {
         updateSynthRacer();
         drawSynthRacer();
+      } else if (currentTheme === 'rpg') {
+        updateRPG();
+        drawRPG();
       }
 
       requestAnimationFrame(loop);
