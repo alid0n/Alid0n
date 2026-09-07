@@ -373,6 +373,10 @@
       color: #ffffff;
     }
 
+    body.theme-boring #mobileGameToggle {
+      display: none !important;
+    }
+
     #touchControls {
       position: fixed;
       bottom: 0;
@@ -453,6 +457,9 @@
     @media (max-width: 1023px) {
       #mobileGameToggle {
         display: block;
+      }
+      body.theme-boring #mobileGameToggle {
+        display: none !important;
       }
     }
   </style>
@@ -600,19 +607,8 @@
       }
     });
 
-    let userActiveTimer = null;
-    function registerGameControl() {
-      if (!isPlayingMobileGame) {
-        contentWrapper.classList.add('dimmed');
-        canvas.classList.remove('faded');
-        clearTimeout(userActiveTimer);
-        userActiveTimer = setTimeout(restorePortfolioFocus, 2600);
-      }
-    }
-
     function restorePortfolioFocus() {
       if (isPlayingMobileGame) return;
-      clearTimeout(userActiveTimer);
       isPlayingMobileGame = false;
       mobileGameToggle.textContent = 'PLAY GAME';
       mobileGameToggle.classList.remove('playing');
@@ -621,6 +617,7 @@
       touchControls.classList.remove('active');
     }
 
+    // Mouse movement or scrolling unfades the portfolio back to reading mode
     window.addEventListener('wheel', restorePortfolioFocus, { passive: true });
     window.addEventListener('scroll', restorePortfolioFocus, { passive: true });
     window.addEventListener('mousedown', restorePortfolioFocus, { passive: true });
@@ -651,7 +648,6 @@
       if (!el) return;
       const pressOn = (e) => {
         e.preventDefault();
-        registerGameControl();
         keys[code] = true;
         el.classList.add('pressed');
         if (code === 'Space' && currentTheme === 'space') firePlayerWeapon();
@@ -676,7 +672,10 @@
 
     window.addEventListener('keydown', (e) => {
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
-        registerGameControl();
+        if (!isPlayingMobileGame) {
+          contentWrapper.classList.add('dimmed');
+          canvas.classList.remove('faded');
+        }
       }
 
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
@@ -1073,7 +1072,8 @@
               }
             }
           } else { g.x += g.dirX * curSpeed; g.y += g.dirY * curSpeed; }
-          if (g.x < mazeBounds.left - g.w) g.x = mazeBounds.right - 2; else if (g.x > mazeBounds.right) g.x = mazeBounds.left - g.w + 2;
+          if (g.x < mazeBounds.left - g.w) g.x = mazeBounds.right - 2;
+          else if (g.x > mazeBounds.right) g.x = mazeBounds.left - g.w + 2;
         }
 
         if (checkRectCollision(pac, g) && g.state !== 'eaten') {
@@ -1081,7 +1081,8 @@
             g.state = 'eaten'; ghostsEatenChain++;
             pacScore += Math.min(1600, 200 * Math.pow(2, ghostsEatenChain - 1));
           } else if (pac.invuln <= 0) {
-            if (--pacLives <= 0) initPacGame(true); else resetPacEntities();
+            if (--pacLives <= 0) initPacGame(true);
+            else resetPacEntities();
           }
         }
       });
@@ -1598,7 +1599,6 @@
           const waveShift = (rpgTicks * 0.8) % 30;
           for (let wy = ob.y + waveShift; wy < ob.y + ob.h; wy += 35) { ctx.fillRect(ob.x + 8, wy, 16, 2); ctx.fillRect(ob.x + 28, wy + 14, 18, 2); }
         } else if (ob.type === 'tree') {
-          // Fully detailed 3-tier shaded pine trees
           ctx.fillStyle = '#451a03'; ctx.fillRect(ob.x + ob.w / 2 - 4, ob.y + ob.h - 16, 8, 16);
           ctx.fillStyle = '#064e3b'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y); ctx.lineTo(ob.x + ob.w, ob.y + 20); ctx.lineTo(ob.x, ob.y + 20); ctx.fill();
           ctx.fillStyle = '#047857'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 12); ctx.lineTo(ob.x + ob.w + 4, ob.y + 32); ctx.lineTo(ob.x - 4, ob.y + 32); ctx.fill();
@@ -1678,7 +1678,6 @@
           if (m.type === 'skeleton_bow') { ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(m.x + 20, m.y + 16, 8, -Math.PI / 2, Math.PI / 2); ctx.stroke(); }
           else { ctx.fillStyle = '#94a3b8'; ctx.fillRect(m.x + 19, m.y + 10, 2, 12); }
         } else if (m.type === 'orc') {
-          // Fully detailed shaded orc with iron armor & tusks
           ctx.fillStyle = '#166534'; ctx.fillRect(m.x + 5, m.y + 4, 22, 12);
           ctx.fillStyle = '#475569'; ctx.fillRect(m.x + 4, m.y + 1, 24, 6);
           ctx.fillStyle = '#e2e8f0'; ctx.fillRect(m.x + 2, m.y - 3, 3, 5); ctx.fillRect(m.x + 27, m.y - 3, 3, 5);
@@ -1693,6 +1692,7 @@
           ctx.fillStyle = '#18181b'; ctx.beginPath(); ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, m.w / 2.5, m.h / 2.8, 0, 0, Math.PI * 2); ctx.fill();
         } else if (m.type === 'cyclops') {
           ctx.fillStyle = '#7c2d12'; ctx.fillRect(m.x + 8, m.y + 8, m.w - 16, m.h - 16);
+          ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(m.x + m.w / 2, m.y + 16, 7, 0, Math.PI * 2); ctx.fill();
         } else if (m.type === 'dragon') {
           ctx.fillStyle = m.isFlying ? '#dc2626' : '#991b1b'; ctx.fillRect(m.x + 18, m.y + 16, m.w - 36, m.h - 24);
         } else if (m.type === 'worm') {
@@ -1731,29 +1731,29 @@
       const selected = e.target.value;
       document.body.classList.remove('theme-pac-cube', 'theme-synthwave', 'theme-nightrider', 'theme-boring', 'theme-rpg');
 
-      if (selected === 'space') {
-        currentTheme = 'space'; themeSelect.value = 'space';
+      if (selected === 'boring') {
+        currentTheme = 'boring'; document.body.classList.add('theme-boring');
+        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
+      } else if (selected === 'space') {
+        currentTheme = 'space';
         gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]';
         initInvaders(true);
       } else if (selected === 'pac') {
-        currentTheme = 'pac'; document.body.classList.add('theme-pac-cube'); themeSelect.value = 'pac';
+        currentTheme = 'pac'; document.body.classList.add('theme-pac-cube');
         gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE • EAT POWER PELLETS ]';
         initPacGame(true);
       } else if (selected === 'synth') {
-        currentTheme = 'synth'; document.body.classList.add('theme-synthwave'); themeSelect.value = 'synth';
+        currentTheme = 'synth'; document.body.classList.add('theme-synthwave');
         gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT TO STEER ]';
         initSynthRacer(true);
       } else if (selected === 'nightrider') {
-        currentTheme = 'nightrider'; document.body.classList.add('theme-nightrider'); themeSelect.value = 'nightrider';
+        currentTheme = 'nightrider'; document.body.classList.add('theme-nightrider');
         gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON 3D CITY DRIVE • LEFT/RIGHT TO TURN CAMERA ]';
         initNightRider(true);
       } else if (selected === 'rpg') {
-        currentTheme = 'rpg'; document.body.classList.add('theme-rpg'); themeSelect.value = 'rpg';
+        currentTheme = 'rpg'; document.body.classList.add('theme-rpg');
         gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD TO EXPLORE • SPACEBAR TO ATTACK ]';
         initRPGGame(true);
-      } else if (selected === 'boring') {
-        currentTheme = 'boring'; document.body.classList.add('theme-boring'); themeSelect.value = 'boring';
-        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
       }
     });
 
