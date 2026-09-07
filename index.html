@@ -502,7 +502,7 @@
     }
 
     // ==========================================
-    // 1. SPACE INVADERS ENGINE (2x Start Speed)
+    // 1. SPACE INVADERS ENGINE
     // ==========================================
     const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7.5, invuln: 0, weapon: 'standard', weaponTimer: 0 };
     let bullets = [], enemyLasers = [], invaders = [], powerups = [];
@@ -601,7 +601,6 @@
       }
 
       const aliveInvaders = invaders.filter(inv => inv.alive);
-      // 2x START SPEED: Base speed doubled from 0.75 -> 1.5
       const baseSpeed = spaceLevel === 1 ? 1.5 : 1.9;
       const speedModifier = baseSpeed + (1 - aliveInvaders.length / (invaderRows * invaderCols)) * 1.5 + (spaceLevel - 1) * 0.35;
 
@@ -670,7 +669,6 @@
     function drawEnemy(inv) {
       const cx = inv.x + inv.w / 2;
       const cy = inv.y + inv.h / 2;
-      const pulse = Math.sin(animTick * 0.1) * 2;
 
       ctx.save();
       ctx.shadowBlur = 8;
@@ -710,7 +708,7 @@
 
         ctx.fillStyle = '#ffeb3b';
         ctx.beginPath();
-        ctx.arc(cx, cy - 2, 3 + pulse * 0.5, 0, Math.PI * 2);
+        ctx.arc(cx, cy - 2, 3, 0, Math.PI * 2);
         ctx.fill();
 
       } else if (inv.type === 'dreadnought') {
@@ -783,7 +781,7 @@
     }
 
     // ==========================================
-    // 2. RETRO MAZE ENGINE (Power Pellets & Edible Ghosts)
+    // 2. RETRO MAZE ENGINE
     // ==========================================
     const pac = { x: 60, y: 60, w: 22, h: 22, speed: 3.2, dirX: 1, dirY: 0, nextDirX: 1, nextDirY: 0, mouth: 0, mouthSpeed: 0.18, invuln: 0 };
     let walls = [], pellets = [], powerPellets = [], ghosts = [], ghostPenGate = null, penExitTile = { x: 0, y: 0 }, mazeBounds = { left: 0, right: 0, tileSize: 20 };
@@ -887,21 +885,18 @@
       pac.mouth += pac.mouthSpeed;
       if (pac.mouth > 1 || pac.mouth < 0) pac.mouthSpeed *= -1;
 
-      // Eat Regular Pellets
       pellets.forEach(p => {
         if (!p.eaten && Math.hypot((pac.x + pac.w / 2) - p.x, (pac.y + pac.h / 2) - p.y) < pac.w / 1.3) {
           p.eaten = true; pacScore += 10;
         }
       });
 
-      // Eat Power Pellets (Trigger Frightened Ghost Mode)
       powerPellets.forEach(p => {
         if (!p.eaten && Math.hypot((pac.x + pac.w / 2) - p.x, (pac.y + pac.h / 2) - p.y) < pac.w) {
           p.eaten = true;
           pacScore += 50;
-          frightTimer = 480; // 8 seconds of vulnerability
+          frightTimer = 480;
           ghostsEatenChain = 0;
-          // Reverse free ghosts directions
           ghosts.forEach(g => {
             if (g.state === 'free') {
               g.dirX *= -1;
@@ -924,19 +919,17 @@
           else if (g.y > penExitTile.y) g.y -= 1.5;
           else { g.state = 'free'; g.dirX = Math.random() > 0.5 ? 1 : -1; g.dirY = 0; }
         } else if (g.state === 'eaten') {
-          // Rapid eyes floating back to central pen
           const dx = g.homeX - g.x;
           const dy = g.homeY - g.y;
           const dist = Math.hypot(dx, dy) || 1;
           if (dist < 4) {
             g.state = 'in_pen';
-            g.releaseTimer = 60; // short rest before respawn
+            g.releaseTimer = 60;
           } else {
             g.x += (dx / dist) * 4.5;
             g.y += (dy / dist) * 4.5;
           }
         } else {
-          // Free Roaming: Slow down if frightened
           const curSpeed = (frightTimer > 0) ? g.speed * 0.65 : g.speed;
           const nextBox = { x: g.x + g.dirX * curSpeed, y: g.y + g.dirY * curSpeed, w: g.w, h: g.h };
 
@@ -953,16 +946,13 @@
           else if (g.x > mazeBounds.right) g.x = mazeBounds.left - g.w + 2;
         }
 
-        // Pacman & Ghost Collision
         if (checkRectCollision(pac, g) && g.state !== 'eaten') {
           if (frightTimer > 0 && g.state === 'free') {
-            // Eat ghost for escalating bonus points
             g.state = 'eaten';
             ghostsEatenChain++;
             const points = Math.min(1600, 200 * Math.pow(2, ghostsEatenChain - 1));
             pacScore += points;
           } else if (pac.invuln <= 0) {
-            // Lost a life
             if (--pacLives <= 0) initPacGame(true);
             else resetPacEntities();
           }
@@ -1011,7 +1001,6 @@
         const isFlashing = isFrightened && frightTimer < 150 && Math.floor(frightTimer / 15) % 2 === 0;
 
         if (g.state === 'eaten') {
-          // Floating Eyes returning home
           ctx.fillStyle = '#fff';
           ctx.fillRect(g.x + 3, g.y + 4, 5, 5);
           ctx.fillRect(g.x + 11, g.y + 4, 5, 5);
@@ -1019,7 +1008,6 @@
           ctx.fillRect(g.x + 5, g.y + 6, 2, 2);
           ctx.fillRect(g.x + 13, g.y + 6, 2, 2);
         } else if (isFrightened) {
-          // Cool Frightened Ghost Appearance (Arcade Blue/White with Wavy Mouth)
           ctx.fillStyle = isFlashing ? '#ffffff' : '#2563eb';
           ctx.strokeStyle = isFlashing ? '#2563eb' : '#38bdf8';
           ctx.lineWidth = 1.5;
@@ -1035,12 +1023,10 @@
           ctx.fill();
           ctx.stroke();
 
-          // Frightened Glowing Eyes
           ctx.fillStyle = isFlashing ? '#dc2626' : '#fef08a';
           ctx.fillRect(g.x + 4, g.y + 5, 3, 3);
           ctx.fillRect(g.x + 12, g.y + 5, 3, 3);
 
-          // Wavy Mouth
           ctx.strokeStyle = isFlashing ? '#dc2626' : '#fef08a';
           ctx.lineWidth = 1.5;
           ctx.beginPath();
@@ -1050,7 +1036,6 @@
           ctx.lineTo(g.x + 15, g.y + 11);
           ctx.stroke();
         } else {
-          // Normal Ghost
           ctx.fillStyle = g.color;
           ctx.beginPath();
           ctx.arc(g.x + g.w / 2, g.y + g.h / 3, g.w / 2, Math.PI, 0, false);
@@ -1062,7 +1047,6 @@
           ctx.closePath();
           ctx.fill();
 
-          // Pupil direction
           ctx.fillStyle = '#fff';
           ctx.fillRect(g.x + 3, g.y + 4, 4, 4);
           ctx.fillRect(g.x + 11, g.y + 4, 4, 4);
@@ -1319,12 +1303,14 @@
     }
 
     // ==========================================
-    // 4. FANTASY QUEST
+    // 4. FANTASY QUEST (Despawning Loot, Armor, Animations, Worm Boss)
     // ==========================================
     const hero = {
       x: 100, y: 100, w: 26, h: 32, speed: 3.8,
       facingX: 1, facingY: 0, invuln: 0, attackCooldown: 0,
-      weapon: 'sword'
+      weapon: 'sword',
+      shields: 0,
+      attackAnimTimer: 0
     };
 
     let obstacles = [];
@@ -1342,6 +1328,7 @@
       if (fullReset) {
         rpgScore = 0; rpgLives = 3; rpgWave = 1; rpgStartTime = Date.now();
         hero.weapon = 'sword';
+        hero.shields = 0;
       }
 
       generateWorldObstacles();
@@ -1349,7 +1336,7 @@
       hero.x = bridge.x + bridge.w / 2 - hero.w / 2;
       hero.y = bridge.y + bridge.h / 2 - hero.h / 2;
       hero.facingX = 1; hero.facingY = 0;
-      hero.invuln = 60; hero.attackCooldown = 0;
+      hero.invuln = 60; hero.attackCooldown = 0; hero.attackAnimTimer = 0;
       heroProjectiles = []; enemyProjectiles = []; lootDrops = []; meleeSlash = null;
 
       spawnWaveNPCs();
@@ -1431,7 +1418,6 @@
         });
       }
 
-      // LEVEL 3: Giant Spider Boss
       if (rpgWave === 3) {
         npcs.push({
           type: 'spider', x: width * 0.78, y: height * 0.35,
@@ -1440,7 +1426,6 @@
         });
       }
 
-      // LEVEL 4: Giant Cyclops Boss
       if (rpgWave === 4) {
         npcs.push({
           type: 'cyclops', x: width * 0.8, y: height * 0.4,
@@ -1449,14 +1434,25 @@
         });
       }
 
-      // LEVEL 5+: The Dragon Boss
-      if (rpgWave >= 5) {
+      if (rpgWave === 5) {
         npcs.push({
           type: 'dragon', x: width * 0.75, y: height * 0.4,
-          w: 74, h: 62, hp: 16 + (rpgWave * 2), maxHp: 16 + (rpgWave * 2),
+          w: 74, h: 62, hp: 18, maxHp: 18,
           speed: 2.3, aggroRadius: 360, state: 'wander',
           isFlying: true, flightToggleTimer: 220, fireCooldown: 90, breathingFire: 0,
           wanderDir: { x: -1, y: 0 }, wanderTimer: 90
+        });
+      }
+
+      // LEVEL 6+: Giant Earthworm Boss
+      if (rpgWave >= 6) {
+        npcs.push({
+          type: 'worm', x: width * 0.75, y: height * 0.45,
+          w: 46, h: 46, hp: 20 + (rpgWave * 2), maxHp: 20 + (rpgWave * 2),
+          speed: 2.8, aggroRadius: 400, state: 'emerged',
+          burrowTimer: 160, surfaceTimer: 0, isBurrowed: false,
+          targetX: 0, targetY: 0,
+          wanderDir: { x: -1, y: 0 }, wanderTimer: 70
         });
       }
     }
@@ -1470,6 +1466,8 @@
       if (fx === 0 && fy === 0) fx = 1;
       const norm = Math.hypot(fx, fy) || 1;
       fx /= norm; fy /= norm;
+
+      hero.attackAnimTimer = 14;
 
       if (hero.weapon === 'sword') {
         meleeSlash = {
@@ -1498,10 +1496,21 @@
       }
     }
 
+    function takeHeroDamage() {
+      if (hero.invuln > 0) return;
+      if (hero.shields > 0) {
+        hero.shields--;
+      } else {
+        if (--rpgLives <= 0) { initRPGGame(true); return; }
+      }
+      hero.invuln = 70;
+    }
+
     function updateRPG() {
       rpgTicks++;
       if (hero.invuln > 0) hero.invuln--;
       if (hero.attackCooldown > 0) hero.attackCooldown--;
+      if (hero.attackAnimTimer > 0) hero.attackAnimTimer--;
 
       let mx = 0, my = 0;
       if (keys['ArrowLeft'] || keys['KeyA']) mx -= 1;
@@ -1525,13 +1534,15 @@
       hero.x = Math.max(10, Math.min(width - hero.w - 10, hero.x));
       hero.y = Math.max(10, Math.min(height - hero.h - 10, hero.y));
 
+      // Hero Projectiles
       for (let i = heroProjectiles.length - 1; i >= 0; i--) {
         const p = heroProjectiles[i];
         p.x += p.vx; p.y += p.vy;
         p.life--;
 
         for (let m of npcs) {
-          if (m.hp > 0 && checkRectCollision({ x: p.x, y: p.y, w: p.w, h: p.h }, m)) {
+          // Burrowed worm is invulnerable to projectiles
+          if (m.hp > 0 && !(m.type === 'worm' && m.isBurrowed) && checkRectCollision({ x: p.x, y: p.y, w: p.w, h: p.h }, m)) {
             m.hp -= p.damage;
             m.state = 'aggro';
             heroProjectiles.splice(i, 1);
@@ -1541,24 +1552,25 @@
         if (p.life <= 0) heroProjectiles.splice(i, 1);
       }
 
+      // Enemy Projectiles
       for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
         const ep = enemyProjectiles[i];
         ep.x += ep.vx; ep.y += ep.vy;
         ep.life--;
 
-        if (checkRectCollision({ x: ep.x, y: ep.y, w: ep.w || 8, h: ep.h || 8 }, hero) && hero.invuln <= 0) {
+        if (checkRectCollision({ x: ep.x, y: ep.y, w: ep.w || 8, h: ep.h || 8 }, hero)) {
           enemyProjectiles.splice(i, 1);
-          if (--rpgLives <= 0) { initRPGGame(true); return; }
-          hero.invuln = 70;
+          takeHeroDamage();
           continue;
         }
         if (ep.life <= 0) enemyProjectiles.splice(i, 1);
       }
 
+      // Melee Slash
       if (meleeSlash) {
         meleeSlash.life--;
         for (let m of npcs) {
-          if (m.hp > 0 && checkRectCollision(meleeSlash, m)) {
+          if (m.hp > 0 && !(m.type === 'worm' && m.isBurrowed) && checkRectCollision(meleeSlash, m)) {
             m.hp -= meleeSlash.damage;
             m.state = 'aggro';
             m.x += hero.facingX * 14;
@@ -1568,21 +1580,39 @@
         if (meleeSlash.life <= 0) meleeSlash = null;
       }
 
+      // Loot Despawning after 4 seconds (240 ticks)
       for (let i = lootDrops.length - 1; i >= 0; i--) {
         const l = lootDrops[i];
+        l.lifetime--;
+
         if (checkRectCollision(hero, l)) {
-          hero.weapon = l.weaponType;
-          rpgScore += 200;
+          if (l.dropType === 'health') {
+            if (rpgLives < 5) rpgLives++;
+            rpgScore += 100;
+          } else if (l.dropType === 'armor') {
+            hero.shields = Math.min(3, hero.shields + 1);
+            rpgScore += 150;
+          } else {
+            hero.weapon = l.weaponType;
+            rpgScore += 200;
+          }
+          lootDrops.splice(i, 1);
+          continue;
+        }
+
+        if (l.lifetime <= 0) {
           lootDrops.splice(i, 1);
         }
       }
 
+      // NPCs
       npcs.forEach(npc => {
         const distToHero = Math.hypot((hero.x + hero.w / 2) - (npc.x + npc.w / 2), (hero.y + hero.h / 2) - (npc.y + npc.h / 2));
 
         if (distToHero < npc.aggroRadius) npc.state = 'aggro';
         else if (distToHero > npc.aggroRadius * 1.5) npc.state = 'wander';
 
+        // Skeleton Bow
         if (npc.type === 'skeleton_bow' && npc.state === 'aggro') {
           if (--npc.shootCooldown <= 0) {
             const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2);
@@ -1596,6 +1626,7 @@
           }
         }
 
+        // Spider Web
         if (npc.type === 'spider' && npc.state === 'aggro') {
           if (--npc.webCooldown <= 0) {
             const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2);
@@ -1609,14 +1640,13 @@
           }
         }
 
+        // Dragon Mechanics
         if (npc.type === 'dragon') {
           if (--npc.flightToggleTimer <= 0) {
             npc.isFlying = !npc.isFlying;
             npc.flightToggleTimer = 220 + Math.floor(Math.random() * 150);
           }
-
           if (npc.breathingFire > 0) npc.breathingFire--;
-
           if (npc.state === 'aggro' && --npc.fireCooldown <= 0) {
             npc.breathingFire = 24;
             const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2);
@@ -1630,8 +1660,38 @@
           }
         }
 
+        // Giant Worm Burrow & Erupt Mechanic
+        if (npc.type === 'worm') {
+          if (!npc.isBurrowed) {
+            if (--npc.burrowTimer <= 0) {
+              npc.isBurrowed = true;
+              npc.surfaceTimer = 150; // Stalk underneath for 2.5 seconds
+            }
+          } else {
+            // Track directly towards player while underground
+            const tdx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2);
+            const tdy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2);
+            const tdist = Math.hypot(tdx, tdy) || 1;
+            npc.x += (tdx / tdist) * 3.4;
+            npc.y += (tdy / tdist) * 3.4;
+
+            if (--npc.surfaceTimer <= 0) {
+              // Erupt directly underneath!
+              npc.isBurrowed = false;
+              npc.burrowTimer = 180;
+
+              // Eruption hit check
+              if (checkRectCollision({ x: npc.x - 10, y: npc.y - 10, w: npc.w + 20, h: npc.h + 20 }, hero)) {
+                takeHeroDamage();
+              }
+            }
+          }
+        }
+
         let moveX = 0, moveY = 0;
-        if (npc.state === 'aggro') {
+        if (npc.type === 'worm' && npc.isBurrowed) {
+          // Burrow movement handled above
+        } else if (npc.state === 'aggro') {
           const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2);
           const dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2);
           const norm = Math.hypot(dx, dy) || 1;
@@ -1647,48 +1707,74 @@
           moveY = npc.wanderDir.y * (npc.speed * 0.5);
         }
 
-        const nextNpcBox = { x: npc.x + moveX, y: npc.y + moveY, w: npc.w, h: npc.h };
-        const hitsObstacle = (npc.type === 'dragon' && npc.isFlying) ? false : obstacles.some(ob => checkRectCollision(nextNpcBox, ob));
+        if (!(npc.type === 'worm' && npc.isBurrowed)) {
+          const nextNpcBox = { x: npc.x + moveX, y: npc.y + moveY, w: npc.w, h: npc.h };
+          const hitsObstacle = (npc.type === 'dragon' && npc.isFlying) ? false : obstacles.some(ob => checkRectCollision(nextNpcBox, ob));
 
-        if (!hitsObstacle) {
-          npc.x += moveX; npc.y += moveY;
-        } else {
-          npc.wanderTimer = 0;
+          if (!hitsObstacle) {
+            npc.x += moveX; npc.y += moveY;
+          } else {
+            npc.wanderTimer = 0;
+          }
         }
 
         npc.x = Math.max(10, Math.min(width - npc.w - 10, npc.x));
         npc.y = Math.max(10, Math.min(height - npc.h - 10, npc.y));
 
-        if (checkRectCollision(hero, npc) && hero.invuln <= 0) {
-          if (--rpgLives <= 0) { initRPGGame(true); return; }
-          hero.invuln = 70;
+        if (checkRectCollision(hero, npc) && !(npc.type === 'worm' && npc.isBurrowed)) {
+          takeHeroDamage();
         }
       });
 
+      // Defeated enemies (4-second despawning health, armor, and weapon drops)
       for (let i = npcs.length - 1; i >= 0; i--) {
         const npc = npcs[i];
         if (npc.hp <= 0) {
-          if (npc.type === 'dragon') rpgScore += 1500;
+          if (npc.type === 'worm') rpgScore += 2500;
+          else if (npc.type === 'dragon') rpgScore += 1500;
           else if (npc.type === 'cyclops') rpgScore += 1000;
           else if (npc.type === 'spider') rpgScore += 800;
           else if (npc.type === 'orc') rpgScore += 300;
           else rpgScore += 100;
 
+          // Guaranteed Health Drop (240 ticks = 4 seconds)
+          lootDrops.push({
+            x: npc.x + npc.w / 2 - 9,
+            y: npc.y + npc.h / 2 - 9,
+            w: 18, h: 18,
+            dropType: 'health',
+            color: '#ff0055',
+            lifetime: 240
+          });
+
+          // Armor Drop Chance (30% chance from standard mobs, 100% from bosses)
+          if (Math.random() < 0.3 || npc.type === 'cyclops' || npc.type === 'dragon' || npc.type === 'worm') {
+            lootDrops.push({
+              x: npc.x + 14,
+              y: npc.y - 12,
+              w: 18, h: 18,
+              dropType: 'armor',
+              color: '#38bdf8',
+              lifetime: 240
+            });
+          }
+
+          // Weapon Loot Chance
           const roll = Math.random();
           if (npc.type === 'skeleton_sword' && roll < 0.35) {
-            lootDrops.push({ x: npc.x, y: npc.y, w: 20, h: 20, weaponType: 'sword', color: '#94a3b8' });
+            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'sword', color: '#94a3b8', lifetime: 240 });
           } else if (npc.type === 'skeleton_bow' && roll < 0.5) {
-            lootDrops.push({ x: npc.x, y: npc.y, w: 20, h: 20, weaponType: 'bow', color: '#38bdf8' });
+            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'bow', color: '#38bdf8', lifetime: 240 });
           } else if (npc.type === 'orc') {
             const drop = roll < 0.5 ? 'staff' : 'axe';
-            lootDrops.push({ x: npc.x, y: npc.y, w: 20, h: 20, weaponType: drop, color: drop === 'staff' ? '#c026d3' : '#ef4444' });
+            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: drop, color: drop === 'staff' ? '#c026d3' : '#ef4444', lifetime: 240 });
           } else if (npc.type === 'spider') {
-            lootDrops.push({ x: npc.x, y: npc.y, w: 20, h: 20, weaponType: 'bow', color: '#38bdf8' });
+            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'bow', color: '#38bdf8', lifetime: 240 });
           } else if (npc.type === 'cyclops') {
-            lootDrops.push({ x: npc.x, y: npc.y, w: 22, h: 22, weaponType: 'axe', color: '#ef4444' });
-          } else if (npc.type === 'dragon') {
-            lootDrops.push({ x: npc.x, y: npc.y, w: 22, h: 22, weaponType: 'axe', color: '#ef4444' });
-            lootDrops.push({ x: npc.x + 22, y: npc.y, w: 22, h: 22, weaponType: 'staff', color: '#c026d3' });
+            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'axe', color: '#ef4444', lifetime: 240 });
+          } else if (npc.type === 'dragon' || npc.type === 'worm') {
+            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'axe', color: '#ef4444', lifetime: 240 });
+            lootDrops.push({ x: npc.x + 22, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'staff', color: '#c026d3', lifetime: 240 });
           }
 
           npcs.splice(i, 1);
@@ -1809,19 +1895,48 @@
         }
       }
 
+      // Loot Drops with 4-second despawn blinking
       lootDrops.forEach(l => {
-        ctx.save();
-        ctx.fillStyle = '#1e1b4b';
-        ctx.strokeStyle = l.color;
-        ctx.lineWidth = 2;
-        ctx.shadowColor = l.color;
-        ctx.shadowBlur = 8;
-        ctx.strokeRect(l.x, l.y, l.w, l.h);
-        ctx.fillRect(l.x, l.y, l.w, l.h);
+        // Fast blink if under 1.5 seconds (90 frames)
+        if (l.lifetime < 90 && Math.floor(l.lifetime / 8) % 2 === 0) return;
 
-        ctx.fillStyle = l.color;
-        ctx.font = '9px "Press Start 2P", monospace';
-        ctx.fillText(l.weaponType[0].toUpperCase(), l.x + 5, l.y + 14);
+        ctx.save();
+        if (l.dropType === 'health') {
+          ctx.fillStyle = '#ff0055';
+          ctx.shadowColor = '#ff0055';
+          ctx.shadowBlur = 8;
+          ctx.font = '12px "Press Start 2P", monospace';
+          ctx.fillText('♥', l.x + 2, l.y + 14);
+        } else if (l.dropType === 'armor') {
+          // Blue Shield Icon
+          ctx.fillStyle = '#0284c7';
+          ctx.strokeStyle = '#38bdf8';
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 8;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(l.x + l.w / 2, l.y);
+          ctx.lineTo(l.x + l.w, l.y + 5);
+          ctx.lineTo(l.x + l.w - 3, l.y + l.h);
+          ctx.lineTo(l.x + l.w / 2, l.y + l.h + 2);
+          ctx.lineTo(l.x + 3, l.y + l.h);
+          ctx.lineTo(l.x, l.y + 5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = '#1e1b4b';
+          ctx.strokeStyle = l.color;
+          ctx.lineWidth = 2;
+          ctx.shadowColor = l.color;
+          ctx.shadowBlur = 8;
+          ctx.strokeRect(l.x, l.y, l.w, l.h);
+          ctx.fillRect(l.x, l.y, l.w, l.h);
+
+          ctx.fillStyle = l.color;
+          ctx.font = '9px "Press Start 2P", monospace';
+          ctx.fillText(l.weaponType[0].toUpperCase(), l.x + 5, l.y + 14);
+        }
         ctx.restore();
       });
 
@@ -1864,6 +1979,8 @@
       if (meleeSlash) {
         ctx.save();
         ctx.strokeStyle = meleeSlash.type === 'axe' ? '#ef4444' : '#38bdf8';
+        ctx.shadowColor = meleeSlash.type === 'axe' ? '#ef4444' : '#38bdf8';
+        ctx.shadowBlur = 8;
         ctx.lineWidth = 3;
         ctx.strokeRect(meleeSlash.x, meleeSlash.y, meleeSlash.w, meleeSlash.h);
         ctx.restore();
@@ -1872,7 +1989,7 @@
       npcs.forEach(m => {
         ctx.save();
 
-        if (m.hp < m.maxHp) {
+        if (m.hp < m.maxHp && !(m.type === 'worm' && m.isBurrowed)) {
           const barW = Math.max(m.w, 24);
           const barH = 4;
           const barX = m.x + m.w / 2 - barW / 2;
@@ -1932,6 +2049,13 @@
           ctx.fillRect(m.x + 21, m.y + 13, 3, 4);
           ctx.fillStyle = '#334155';
           ctx.fillRect(m.x + 3, m.y + 16, 26, 10);
+          ctx.fillStyle = '#b45309';
+          ctx.fillRect(m.x + 5, m.y + 26, 22, 4);
+
+          ctx.fillStyle = '#166534';
+          ctx.fillRect(m.x + 6, m.y + 30, 6, 4);
+          ctx.fillRect(m.x + 20, m.y + 30, 6, 4);
+
           ctx.fillStyle = '#78350f';
           ctx.fillRect(m.x + 28, m.y + 8, 3, 22);
           ctx.fillStyle = '#94a3b8';
@@ -2035,9 +2159,43 @@
           ctx.fillRect(m.x + m.w / 2 - 4, m.y + m.h - 10, 8, 16);
           ctx.fillStyle = '#451a03';
           ctx.fillRect(m.x + m.w / 2 - 6, m.y + m.h + 4, 12, 4);
+
+        } else if (m.type === 'worm') {
+          // Giant Burrowing Earthworm
+          if (m.isBurrowed) {
+            // Churning Dirt Mound
+            ctx.fillStyle = '#78350f';
+            ctx.beginPath();
+            ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, 24, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(m.x + m.w / 2 - 8, m.y + m.h / 2 - 3, 16, 6);
+          } else {
+            // Emerged Giant Worm with Spiked Segmented Body & Jaws
+            ctx.fillStyle = '#831843'; // Deep crimson worm skin
+            ctx.fillRect(m.x + 6, m.y + 8, m.w - 12, m.h - 8);
+
+            // Armored Plates
+            ctx.fillStyle = '#be185d';
+            ctx.fillRect(m.x + 4, m.y + 12, m.w - 8, 6);
+            ctx.fillRect(m.x + 4, m.y + 24, m.w - 8, 6);
+
+            // Gaping Maw
+            ctx.fillStyle = '#1e1b4b';
+            ctx.beginPath();
+            ctx.arc(m.x + m.w / 2, m.y + 10, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Inner Rows of Sharp Teeth
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(m.x + m.w / 2 - 6, m.y + 4, 3, 4);
+            ctx.fillRect(m.x + m.w / 2 + 3, m.y + 4, 3, 4);
+            ctx.fillRect(m.x + m.w / 2 - 6, m.y + 12, 3, 4);
+            ctx.fillRect(m.x + m.w / 2 + 3, m.y + 12, 3, 4);
+          }
         }
 
-        if (m.state === 'aggro') {
+        if (m.state === 'aggro' && !(m.type === 'worm' && m.isBurrowed)) {
           ctx.fillStyle = '#ef4444';
           ctx.font = '9px "Press Start 2P", monospace';
           ctx.fillText('!', m.x + m.w / 2 - 3, m.y - 12);
@@ -2045,13 +2203,23 @@
         ctx.restore();
       });
 
-      // Hero Player
+      // Hero Player with Dynamic Weapon Animations & Armor Shield
       if (hero.invuln % 6 < 3) {
         ctx.save();
         ctx.fillStyle = '#312e81';
         ctx.fillRect(hero.x + 4, hero.y + 14, 18, 16);
         ctx.fillStyle = '#4338ca';
         ctx.fillRect(hero.x + 6, hero.y + 16, 14, 12);
+
+        // Armor Shading on Robe
+        if (hero.shields > 0) {
+          ctx.strokeStyle = '#38bdf8';
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 8;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(hero.x + 4, hero.y + 14, 18, 16);
+          ctx.shadowBlur = 0;
+        }
 
         ctx.fillStyle = '#fed7aa';
         ctx.fillRect(hero.x + 8, hero.y + 9, 10, 6);
@@ -2073,28 +2241,53 @@
         ctx.fillStyle = '#06b6d4';
         ctx.fillRect(hero.x + 12, hero.y + 6, 2, 3);
 
-        const wx = hero.x + (hero.facingX >= 0 ? 20 : 1);
-        const wy = hero.y + 13;
+        // Dynamic Weapon Rendering & Action Animations
+        const isAttacking = hero.attackAnimTimer > 0;
+        const attackShift = isAttacking ? (hero.attackAnimTimer * 1.5) : 0;
+        const wx = hero.x + (hero.facingX >= 0 ? 20 : 1) + (hero.facingX * attackShift);
+        const wy = hero.y + 13 + (hero.facingY * attackShift);
 
         if (hero.weapon === 'sword') {
-          ctx.fillStyle = '#94a3b8'; ctx.fillRect(wx, wy, 3, 15);
-          ctx.fillStyle = '#f59e0b'; ctx.fillRect(wx - 2, wy + 11, 7, 2);
+          ctx.save();
+          ctx.translate(wx, wy);
+          if (isAttacking) ctx.rotate(hero.facingX >= 0 ? 0.6 : -0.6);
+          ctx.fillStyle = '#94a3b8'; ctx.fillRect(0, 0, 3, 16);
+          ctx.fillStyle = '#f59e0b'; ctx.fillRect(-2, 11, 7, 2);
+          ctx.restore();
         } else if (hero.weapon === 'bow') {
-          ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2; ctx.strokeRect(wx, wy, 4, 14);
-          ctx.fillStyle = '#f8fafc'; ctx.fillRect(wx + 2, wy + 2, 1, 10);
+          ctx.save();
+          ctx.translate(wx, wy);
+          ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2;
+          ctx.strokeRect(0, 0, 4, 14);
+          // Drawn String Animation
+          ctx.fillStyle = '#f8fafc';
+          ctx.fillRect(isAttacking ? -3 : 2, 2, 1, 10);
+          ctx.restore();
         } else if (hero.weapon === 'staff') {
-          ctx.fillStyle = '#78350f'; ctx.fillRect(wx, wy - 3, 3, 18);
-          ctx.fillStyle = '#c026d3'; ctx.shadowColor = '#e879f9'; ctx.shadowBlur = 8;
-          ctx.beginPath(); ctx.arc(wx + 1, wy - 5, 4, 0, Math.PI * 2); ctx.fill();
+          ctx.save();
+          ctx.translate(wx, wy);
+          ctx.fillStyle = '#78350f'; ctx.fillRect(0, -3, 3, 18);
+          // Glowing Pulse during Cast
+          ctx.fillStyle = isAttacking ? '#f472b6' : '#c026d3';
+          ctx.shadowColor = '#e879f9';
+          ctx.shadowBlur = isAttacking ? 16 : 8;
+          ctx.beginPath(); ctx.arc(1, -5, isAttacking ? 6 : 4, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
         } else if (hero.weapon === 'axe') {
-          ctx.fillStyle = '#78350f'; ctx.fillRect(wx, wy, 3, 16);
-          ctx.fillStyle = '#dc2626'; ctx.fillRect(wx - 3, wy, 9, 6);
-          ctx.fillStyle = '#cbd5e1'; ctx.fillRect(wx - 4, wy + 1, 1, 4);
+          ctx.save();
+          ctx.translate(wx, wy);
+          if (isAttacking) ctx.rotate(hero.facingX >= 0 ? 1.2 : -1.2);
+          ctx.fillStyle = '#78350f'; ctx.fillRect(0, 0, 3, 16);
+          ctx.fillStyle = '#dc2626'; ctx.fillRect(-4, 0, 11, 7);
+          ctx.fillStyle = '#cbd5e1'; ctx.fillRect(-5, 1, 1, 5);
+          ctx.restore();
         }
         ctx.restore();
       }
 
-      drawHUD(rpgScore, rpgStartTime, rpgLives, '#f59e0b', rpgWave, `WEAPON: ${hero.weapon.toUpperCase()}`);
+      let shieldText = hero.shields > 0 ? `SHIELD: [${'★'.repeat(hero.shields)}]` : null;
+      let statusExtra = `WEAPON: ${hero.weapon.toUpperCase()}${shieldText ? ' | ' + shieldText : ''}`;
+      drawHUD(rpgScore, rpgStartTime, rpgLives, '#f59e0b', rpgWave, statusExtra);
     }
 
     // ==========================================
