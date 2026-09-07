@@ -18,15 +18,26 @@
       --muted: #94a3b8;
     }
 
-    /* Pac-Cube Theme Overrides - High readability / non-distracting canvas */
+    /* Pac-Cube Theme - Classic Arcade Dark Blue */
     body.theme-pac-cube {
-      --bg: #05030a;
-      --card-bg: rgba(13, 10, 24, 0.94);
-      --card-border: rgba(181, 55, 242, 0.4);
-      --accent: #b537f2;
-      --accent-glow: rgba(181, 55, 242, 0.45);
-      --text: #f8f6fc;
-      --muted: #a39bb5;
+      --bg: #02030a;
+      --card-bg: rgba(6, 9, 24, 0.94);
+      --card-border: rgba(0, 50, 255, 0.45);
+      --accent: #0044ff;
+      --accent-glow: rgba(0, 68, 255, 0.5);
+      --text: #f0f5ff;
+      --muted: #8ca3d4;
+    }
+
+    /* Synthwave Racer Theme - Hot Pink & Electric Sunset */
+    body.theme-synthwave {
+      --bg: #090214;
+      --card-bg: rgba(22, 7, 34, 0.92);
+      --card-border: rgba(255, 0, 128, 0.35);
+      --accent: #ff007f;
+      --accent-glow: rgba(255, 0, 128, 0.5);
+      --text: #fff2f8;
+      --muted: #d094b8;
     }
 
     * {
@@ -59,7 +70,11 @@
     }
 
     body.theme-pac-cube #bgCanvas {
-      opacity: 0.65; /* Prevents arcade brights from fighting the foreground content */
+      opacity: 0.72;
+    }
+
+    body.theme-synthwave #bgCanvas {
+      opacity: 0.8;
     }
 
     /* Content Overlay */
@@ -91,6 +106,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
+      gap: 12px;
     }
 
     .pixel-tag {
@@ -117,15 +133,17 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
 
     .theme-toggle-btn:hover {
       background: var(--accent);
       color: #05100c;
-      box-shadow: 0 0 12px var(--accent-glow);
+      box-shadow: 0 0 14px var(--accent-glow);
     }
 
-    body.theme-pac-cube .theme-toggle-btn:hover {
+    body.theme-pac-cube .theme-toggle-btn:hover,
+    body.theme-synthwave .theme-toggle-btn:hover {
       color: #ffffff;
     }
 
@@ -173,6 +191,7 @@
       padding: 6px;
       transition: color 0.3s;
       text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      line-height: 1.6;
     }
 
     /* Project Cards Grid */
@@ -249,13 +268,14 @@
       color: #05100c;
     }
 
-    body.theme-pac-cube .btn-primary {
+    body.theme-pac-cube .btn-primary,
+    body.theme-synthwave .btn-primary {
       color: #ffffff;
     }
 
     .btn-primary:hover {
       filter: brightness(1.15);
-      box-shadow: 0 0 12px var(--accent-glow);
+      box-shadow: 0 0 14px var(--accent-glow);
     }
 
     .btn-secondary {
@@ -281,7 +301,7 @@
 </head>
 <body>
 
-  <!-- Game Canvas -->
+  <!-- Background Game Engine Canvas -->
   <canvas id="bgCanvas"></canvas>
 
   <div class="content-wrapper">
@@ -382,7 +402,7 @@
 
   </div>
 
-  <!-- Game Engines & Theme Controller -->
+  <!-- Unified Arcade Game Engines -->
   <script>
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
@@ -390,7 +410,8 @@
     const themeNameLabel = document.getElementById('themeName');
     const gameHint = document.getElementById('gameHint');
 
-    let currentTheme = 'space'; // 'space' or 'pac'
+    // Themes: 'space' | 'pac' | 'synth'
+    let currentTheme = 'space';
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
@@ -399,6 +420,7 @@
       height = canvas.height = window.innerHeight;
       if (currentTheme === 'space') initInvaders();
       if (currentTheme === 'pac') initPacGame();
+      if (currentTheme === 'synth') initSynthRacer();
     });
 
     function checkRectCollision(r1, r2) {
@@ -437,7 +459,7 @@
     });
 
     // ==========================================
-    // SPACE INVADERS ENGINE
+    // 1. SPACE INVADERS ENGINE
     // ==========================================
     const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7 };
     let bullets = [];
@@ -527,16 +549,14 @@
     }
 
     // ==========================================
-    // TIGHT-GRID PAC-CUBE ENGINE
+    // 2. PAC-CUBE ENGINE (Classic Arcade Maze)
     // ==========================================
-    const GRID_SIZE = 40; // Strict tight 40px grid
-
     const pac = {
-      x: GRID_SIZE,
-      y: GRID_SIZE,
+      x: 60,
+      y: 60,
       w: 22,
       h: 22,
-      speed: 3,
+      speed: 3.2,
       dirX: 1,
       dirY: 0,
       nextDirX: 1,
@@ -547,89 +567,103 @@
 
     let walls = [];
     let pellets = [];
+    let powerPellets = [];
     let ghosts = [];
-    const ghostColors = ['#ff0055', '#ffb8de', '#00e5ff', '#ffb847'];
+    let ghostPenGate = null;
+    const ghostColors = ['#ff0000', '#00ffff', '#ffb8de', '#ffb852'];
+
+    // Original Arcade blueprint represented by a 28x31 tile matrix
+    const pacMapBlueprint = [
+      "############################",
+      "#............##............#",
+      "#.####.#####.##.#####.####.#",
+      "#O####.#####.##.#####.####O#",
+      "#.####.#####.##.#####.####.#",
+      "#..........................#",
+      "#.####.##.########.##.####.#",
+      "#.####.##.########.##.####.#",
+      "#......##....##....##......#",
+      "######.##### ## #####.######",
+      "     #.##### ## #####.#     ",
+      "     #.##          ##.#     ",
+      "     #.## ###--### ##.#     ",
+      "######.## #      # ##.######",
+      "      .   #      #   .      ",
+      "######.## #      # ##.######",
+      "     #.## ######## ##.#     ",
+      "     #.##          ##.#     ",
+      "     #.## ######## ##.#     ",
+      "######.## ######## ##.######",
+      "#............##............#",
+      "#.####.#####.##.#####.####.#",
+      "#.####.#####.##.#####.####.#",
+      "#O..##................##..O#",
+      "###.##.##.########.##.##.###",
+      "###.##.##.########.##.##.###",
+      "#......##....##....##......#",
+      "#.##########.##.##########.#",
+      "#.##########.##.##########.#",
+      "#..........................#",
+      "############################"
+    ];
 
     function initPacGame() {
       walls = [];
       pellets = [];
+      powerPellets = [];
       ghosts = [];
 
-      const cols = Math.floor(width / GRID_SIZE);
-      const rows = Math.floor(height / GRID_SIZE);
+      const rows = pacMapBlueprint.length;
+      const cols = pacMapBlueprint[0].length;
+      const tileSize = Math.min(Math.floor(width / cols), Math.floor((height - 20) / rows));
+      const offsetX = Math.floor((width - cols * tileSize) / 2);
+      const offsetY = Math.floor((height - rows * tileSize) / 2);
 
-      // 1. Outer perimeter walls
-      walls.push({ x: 0, y: 0, w: cols * GRID_SIZE, h: 8 });
-      walls.push({ x: 0, y: (rows - 1) * GRID_SIZE + (GRID_SIZE - 8), w: cols * GRID_SIZE, h: 8 });
-      walls.push({ x: 0, y: 0, w: 8, h: rows * GRID_SIZE });
-      walls.push({ x: (cols - 1) * GRID_SIZE + (GRID_SIZE - 8), y: 0, w: 8, h: rows * GRID_SIZE });
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const char = pacMapBlueprint[r][c];
+          const x = offsetX + c * tileSize;
+          const y = offsetY + r * tileSize;
 
-      // 2. Structured internal labyrinth walls
-      for (let r = 2; r < rows - 2; r += 2) {
-        for (let c = 2; c < cols - 2; c += 2) {
-          const wx = c * GRID_SIZE;
-          const wy = r * GRID_SIZE;
-
-          if ((r + c) % 4 === 0) {
-            // Horizontal bar
-            walls.push({ x: wx, y: wy + 16, w: GRID_SIZE * 1.5, h: 8 });
-          } else if ((r + c) % 4 === 2) {
-            // Vertical bar
-            walls.push({ x: wx + 16, y: wy, w: 8, h: GRID_SIZE * 1.5 });
+          if (char === '#') {
+            walls.push({ x, y, w: tileSize, h: tileSize });
+          } else if (char === '-') {
+            ghostPenGate = { x, y: y + tileSize / 2 - 2, w: tileSize, h: 4 };
+          } else if (char === '.') {
+            pellets.push({ x: x + tileSize / 2, y: y + tileSize / 2, eaten: false });
+          } else if (char === 'O') {
+            powerPellets.push({ x: x + tileSize / 2, y: y + tileSize / 2, eaten: false });
           }
         }
       }
 
-      // 3. Spawn Pellets exactly centered on the 40px grid corridors
-      for (let c = 1; c < cols - 1; c++) {
-        for (let r = 1; r < rows - 1; r++) {
-          const centerX = c * GRID_SIZE + GRID_SIZE / 2;
-          const centerY = r * GRID_SIZE + GRID_SIZE / 2;
-          
-          const pelletBox = { x: centerX - 6, y: centerY - 6, w: 12, h: 12 };
-          const hitsWall = walls.some((w) => checkRectCollision(pelletBox, w));
-
-          if (!hitsWall) {
-            pellets.push({ x: centerX, y: centerY, eaten: false });
-          }
-        }
-      }
-
-      // Position Pac-Cube squarely on the first open pellet
-      if (pellets.length > 0) {
-        pac.x = pellets[0].x - pac.w / 2;
-        pac.y = pellets[0].y - pac.h / 2;
-      }
-      pac.dirX = 1;
+      // Initial Pacman starting position (lower corridor)
+      pac.w = Math.max(16, tileSize - 4);
+      pac.h = Math.max(16, tileSize - 4);
+      pac.x = offsetX + 13.5 * tileSize - pac.w / 2;
+      pac.y = offsetY + 23 * tileSize + (tileSize - pac.h) / 2;
+      pac.dirX = -1;
       pac.dirY = 0;
-      pac.nextDirX = 1;
+      pac.nextDirX = -1;
       pac.nextDirY = 0;
 
-      // 4. Spawn Ghosts
-      const directions = [
-        { x: 1, y: 0 },
-        { x: -1, y: 0 },
-        { x: 0, y: 1 },
-        { x: 0, y: -1 }
-      ];
-
+      // Ghosts positioned around the pen
       for (let i = 0; i < 4; i++) {
-        const d = directions[i];
         ghosts.push({
-          x: width / 2 + (i - 1.5) * GRID_SIZE,
-          y: height / 2,
-          w: 20,
-          h: 20,
+          x: offsetX + (12 + i) * tileSize,
+          y: offsetY + 14 * tileSize,
+          w: pac.w,
+          h: pac.h,
           color: ghostColors[i],
-          dirX: d.x,
-          dirY: d.y,
+          dirX: i % 2 === 0 ? 1 : -1,
+          dirY: 0,
           speed: 2.2
         });
       }
     }
 
     function updatePac() {
-      // Intent/Direction shift check
+      // 1. Pivot turning
       if (pac.nextDirX !== pac.dirX || pac.nextDirY !== pac.dirY) {
         const testBox = {
           x: pac.x + pac.nextDirX * pac.speed,
@@ -643,7 +677,7 @@
         }
       }
 
-      // Move in active direction
+      // 2. Active movement
       const moveBox = {
         x: pac.x + pac.dirX * pac.speed,
         y: pac.y + pac.dirY * pac.speed,
@@ -656,30 +690,34 @@
         pac.y += pac.dirY * pac.speed;
       }
 
-      // Wrap screen edges
+      // 3. Side Tunnel wrap-around
       if (pac.x < -pac.w) pac.x = width;
       if (pac.x > width) pac.x = -pac.w;
-      if (pac.y < -pac.h) pac.y = height;
-      if (pac.y > height) pac.y = -pac.h;
 
-      // Chomp animation
+      // Chomp
       pac.mouth += pac.mouthSpeed;
       if (pac.mouth > 1 || pac.mouth < 0) pac.mouthSpeed *= -1;
 
-      // Eat larger pellets
+      // Eat Pellets
       pellets.forEach((p) => {
         if (!p.eaten) {
           const dx = (pac.x + pac.w / 2) - p.x;
           const dy = (pac.y + pac.h / 2) - p.y;
-          if (Math.hypot(dx, dy) < pac.w / 1.3) {
-            p.eaten = true;
-          }
+          if (Math.hypot(dx, dy) < pac.w / 1.3) p.eaten = true;
         }
       });
 
-      // Respawn pellets if all collected
+      powerPellets.forEach((p) => {
+        if (!p.eaten) {
+          const dx = (pac.x + pac.w / 2) - p.x;
+          const dy = (pac.y + pac.h / 2) - p.y;
+          if (Math.hypot(dx, dy) < pac.w) p.eaten = true;
+        }
+      });
+
       if (pellets.length > 0 && pellets.every((p) => p.eaten)) {
         pellets.forEach((p) => (p.eaten = false));
+        powerPellets.forEach((p) => (p.eaten = false));
       }
 
       // Ghosts AI
@@ -691,19 +729,19 @@
       ];
 
       ghosts.forEach((g) => {
-        const nextGhostBox = {
+        const nextBox = {
           x: g.x + g.dirX * g.speed,
           y: g.y + g.dirY * g.speed,
           w: g.w,
           h: g.h
         };
 
-        const blocked = walls.some((w) => checkRectCollision(nextGhostBox, w));
+        const blocked = walls.some((w) => checkRectCollision(nextBox, w));
 
-        if (blocked || Math.random() < 0.02) {
+        if (blocked || Math.random() < 0.03) {
           const shuffled = [...cardinalDirs].sort(() => 0.5 - Math.random());
           for (let d of shuffled) {
-            const probe = { x: g.x + d.x * (g.speed + 3), y: g.y + d.y * (g.speed + 3), w: g.w, h: g.h };
+            const probe = { x: g.x + d.x * (g.speed + 2), y: g.y + d.y * (g.speed + 2), w: g.w, h: g.h };
             if (!walls.some((w) => checkRectCollision(probe, w))) {
               g.dirX = d.x;
               g.dirY = d.y;
@@ -715,37 +753,53 @@
           g.y += g.dirY * g.speed;
         }
 
-        // Ghost Screen Wrap
         if (g.x < -g.w) g.x = width;
         if (g.x > width) g.x = -g.w;
-        if (g.y < -g.h) g.y = height;
-        if (g.y > height) g.y = -g.h;
       });
     }
 
     function drawPac() {
-      // 1. Draw Maze Walls (Crisp, tight arcade borders)
+      // 1. Draw Maze Walls in Iconic Arcade Blue
       ctx.lineWidth = 2;
       walls.forEach((w) => {
-        ctx.fillStyle = '#180d2e';
+        ctx.fillStyle = '#02030a';
         ctx.fillRect(w.x, w.y, w.w, w.h);
 
-        ctx.strokeStyle = '#8e24aa';
-        ctx.strokeRect(w.x, w.y, w.w, w.h);
+        ctx.strokeStyle = '#0022ff';
+        ctx.shadowColor = 'rgba(0, 34, 255, 0.9)';
+        ctx.shadowBlur = 4;
+        ctx.strokeRect(w.x + 1, w.y + 1, w.w - 2, w.h - 2);
       });
+      ctx.shadowBlur = 0;
 
-      // 2. Draw Prominent Grid-Centered Pellets (6px diameter with soft glow)
-      ctx.fillStyle = '#fce4ec';
+      // Draw Pen Pink Gate
+      if (ghostPenGate) {
+        ctx.fillStyle = '#ffb8de';
+        ctx.fillRect(ghostPenGate.x, ghostPenGate.y, ghostPenGate.w, ghostPenGate.h);
+      }
+
+      // 2. Standard Pellets (Yellow)
+      ctx.fillStyle = '#ffe066';
       pellets.forEach((p) => {
         if (!p.eaten) {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
       });
 
-      // 3. Draw Pac-Cube
-      ctx.fillStyle = '#b537f2';
+      // 3. Power Pellets (Glowing Yellow/White)
+      powerPellets.forEach((p) => {
+        if (!p.eaten) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 6.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#fff9d6';
+          ctx.fill();
+        }
+      });
+
+      // 4. Draw Classic Pacman (Yellow Chomp)
+      ctx.fillStyle = '#ffee00';
       ctx.save();
       ctx.translate(pac.x + pac.w / 2, pac.y + pac.h / 2);
 
@@ -762,13 +816,9 @@
       ctx.arc(0, 0, pac.w / 2, mouthCut * Math.PI, (2 - mouthCut) * Math.PI);
       ctx.closePath();
       ctx.fill();
-
-      // Pixel eye
-      ctx.fillStyle = '#080511';
-      ctx.fillRect(2, -pac.h / 3.8, 3, 3);
       ctx.restore();
 
-      // 4. Draw Ghosts
+      // 5. Draw Ghosts
       ghosts.forEach((g) => {
         ctx.fillStyle = g.color;
         ctx.beginPath();
@@ -781,7 +831,6 @@
         ctx.closePath();
         ctx.fill();
 
-        // Ghost eyes
         ctx.fillStyle = '#fff';
         ctx.fillRect(g.x + 3, g.y + 4, 4, 4);
         ctx.fillRect(g.x + 11, g.y + 4, 4, 4);
@@ -792,37 +841,259 @@
     }
 
     // ==========================================
-    // THEME SWITCHER LOGIC
+    // 3. SYNTHWAVE RACER ENGINE (First-Person 3D)
+    // ==========================================
+    const racer = {
+      playerX: 0, // -1 to 1 across lanes
+      speed: 1.0,
+      roadOffset: 0,
+      steer: 0
+    };
+
+    let trafficCars = [];
+
+    function initSynthRacer() {
+      racer.playerX = 0;
+      racer.speed = 1.0;
+      racer.roadOffset = 0;
+      trafficCars = [];
+
+      for (let i = 0; i < 4; i++) {
+        trafficCars.push({
+          x: (Math.random() * 1.6) - 0.8,
+          z: 200 + i * 180,
+          color: i % 2 === 0 ? '#00e5ff' : '#ff007f',
+          speed: 0.6 + Math.random() * 0.4
+        });
+      }
+    }
+
+    function updateSynthRacer() {
+      // Steering & Acceleration
+      if (keys['ArrowLeft'] || keys['KeyA']) racer.playerX = Math.max(-0.9, racer.playerX - 0.025);
+      if (keys['ArrowRight'] || keys['KeyD']) racer.playerX = Math.min(0.9, racer.playerX + 0.025);
+
+      if (keys['ArrowUp'] || keys['KeyW']) racer.speed = Math.min(2.2, racer.speed + 0.04);
+      else racer.speed = Math.max(1.0, racer.speed - 0.02);
+
+      racer.roadOffset = (racer.roadOffset + racer.speed * 8) % 60;
+
+      // Update Inbound Traffic
+      trafficCars.forEach((car) => {
+        car.z -= (racer.speed * 6 + car.speed * 2);
+
+        if (car.z < 20) {
+          // Check collision with player car cockpit
+          if (Math.abs(car.x - racer.playerX) < 0.28) {
+            racer.speed = 0.5; // crash penalty
+          }
+          // Respawn in horizon
+          car.z = 800 + Math.random() * 200;
+          car.x = (Math.random() * 1.6) - 0.8;
+        }
+      });
+    }
+
+    function drawSynthRacer() {
+      const horizonY = height * 0.46;
+
+      // 1. Sky & Giant Retro Sun
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+      skyGrad.addColorStop(0, '#090214');
+      skyGrad.addColorStop(0.7, '#240738');
+      skyGrad.addColorStop(1, '#ff007f');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, horizonY);
+
+      // Sunset Orb
+      const sunRadius = Math.min(width, height) * 0.18;
+      const sunX = width / 2;
+      const sunY = horizonY - 20;
+
+      const sunGrad = ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
+      sunGrad.addColorStop(0, '#ffee55');
+      sunGrad.addColorStop(0.6, '#ff007f');
+      sunGrad.addColorStop(1, '#7900ff');
+
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Retro horizon scanlines slicing through the sun
+      ctx.fillStyle = '#090214';
+      for (let i = 0; i < 7; i++) {
+        const sliceY = sunY + (i * 12);
+        if (sliceY < horizonY) {
+          ctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
+        }
+      }
+
+      // Mountain Silhouettes
+      ctx.fillStyle = '#160424';
+      ctx.beginPath();
+      ctx.moveTo(0, horizonY);
+      for (let mx = 0; mx <= width; mx += 60) {
+        const peak = Math.sin(mx * 0.015) * 45 + Math.cos(mx * 0.04) * 20;
+        ctx.lineTo(mx, horizonY - Math.abs(peak));
+      }
+      ctx.lineTo(width, horizonY);
+      ctx.closePath();
+      ctx.fill();
+
+      // 2. First-Person 3D Perspective Road Grid
+      const groundGrad = ctx.createLinearGradient(0, horizonY, 0, height);
+      groundGrad.addColorStop(0, '#10021c');
+      groundGrad.addColorStop(1, '#05000a');
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, horizonY, width, height - horizonY);
+
+      // Horizontal depth lines
+      ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)';
+      ctx.lineWidth = 1.5;
+
+      for (let z = 10; z < 600; z += 30) {
+        const effectiveZ = (z - racer.roadOffset + 600) % 600;
+        if (effectiveZ <= 5) continue;
+        const lineY = horizonY + (height - horizonY) * (40 / effectiveZ);
+        if (lineY > horizonY && lineY < height) {
+          ctx.beginPath();
+          ctx.moveTo(0, lineY);
+          ctx.lineTo(width, lineY);
+          ctx.stroke();
+        }
+      }
+
+      // Perspective Highway Lanes
+      const roadCenterHorizon = width / 2 - (racer.playerX * 80);
+      const roadBottomCenter = width / 2 - (racer.playerX * (width * 0.5));
+      const roadBottomWidth = width * 1.1;
+
+      // Road boundary neon rails
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00ffff';
+      ctx.shadowBlur = 10;
+
+      // Left edge
+      ctx.beginPath();
+      ctx.moveTo(roadCenterHorizon - 30, horizonY);
+      ctx.lineTo(roadBottomCenter - roadBottomWidth / 2, height);
+      ctx.stroke();
+
+      // Right edge
+      ctx.beginPath();
+      ctx.moveTo(roadCenterHorizon + 30, horizonY);
+      ctx.lineTo(roadBottomCenter + roadBottomWidth / 2, height);
+      ctx.stroke();
+
+      // Center dashed lanes
+      ctx.strokeStyle = '#ff007f';
+      ctx.shadowColor = '#ff007f';
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(roadCenterHorizon, horizonY);
+      ctx.lineTo(roadBottomCenter, height);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 3. Render 3D Traffic Cars
+      trafficCars.forEach((c) => {
+        if (c.z > 20 && c.z < 750) {
+          const depthScale = 60 / c.z;
+          const carY = horizonY + (height - horizonY) * depthScale;
+          const carScreenX = roadCenterHorizon + (c.x * width * 0.45 * depthScale);
+          const carW = 120 * depthScale;
+          const carH = 50 * depthScale;
+
+          if (carY > horizonY && carY < height - 30) {
+            ctx.fillStyle = c.color;
+            ctx.shadowColor = c.color;
+            ctx.shadowBlur = 10;
+            ctx.fillRect(carScreenX - carW / 2, carY - carH, carW, carH);
+
+            // Car neon taillights
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(carScreenX - carW * 0.38, carY - carH * 0.4, carW * 0.2, carH * 0.3);
+            ctx.fillRect(carScreenX + carW * 0.18, carY - carH * 0.4, carW * 0.2, carH * 0.3);
+          }
+        }
+      });
+      ctx.shadowBlur = 0;
+
+      // 4. First-Person Cockpit Dashboard / Hood View
+      ctx.fillStyle = '#0d0417';
+      ctx.strokeStyle = '#ff007f';
+      ctx.lineWidth = 2;
+
+      // Lower Dash
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      ctx.lineTo(width * 0.25, height - 65);
+      ctx.lineTo(width * 0.75, height - 65);
+      ctx.lineTo(width, height);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Retro Wireframe Steering Frame
+      const wheelX = width / 2;
+      const wheelY = height - 10;
+      ctx.strokeStyle = '#00ffff';
+      ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(wheelX, wheelY, 90, Math.PI, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // ==========================================
+    // THEME SWITCHER CONTROLLER
     // ==========================================
     themeToggleBtn.addEventListener('click', () => {
+      document.body.classList.remove('theme-pac-cube', 'theme-synthwave');
+
       if (currentTheme === 'space') {
         currentTheme = 'pac';
         document.body.classList.add('theme-pac-cube');
         themeNameLabel.textContent = 'PAC-CUBE';
-        gameHint.textContent = '[ PLAY THE BACKGROUND: USE ARROW KEYS / WASD TO NAVIGATE MAZE ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE ORIGINAL ARCADE BLUEPRINT ]';
         initPacGame();
+      } else if (currentTheme === 'pac') {
+        currentTheme = 'synth';
+        document.body.classList.add('theme-synthwave');
+        themeNameLabel.textContent = 'SYNTHWAVE RACER';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT OR A/D TO STEER • UP / W TO BOOST ]';
+        initSynthRacer();
       } else {
         currentTheme = 'space';
-        document.body.classList.remove('theme-pac-cube');
         themeNameLabel.textContent = 'SPACE INVASION';
         gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]';
         initInvaders();
       }
     });
 
-    // Initialize Default
+    // Initialize Default Theme
     initInvaders();
 
-    // Main Game Loop
+    // Master Render Loop
     function loop() {
       ctx.clearRect(0, 0, width, height);
+
       if (currentTheme === 'space') {
         updateSpace();
         drawSpace();
-      } else {
+      } else if (currentTheme === 'pac') {
         updatePac();
         drawPac();
+      } else if (currentTheme === 'synth') {
+        updateSynthRacer();
+        drawSynthRacer();
       }
+
       requestAnimationFrame(loop);
     }
 
