@@ -38,6 +38,16 @@
       --muted: #d094b8;
     }
 
+    body.theme-nightrider {
+      --bg: #020408;
+      --card-bg: rgba(3, 7, 18, 0.95);
+      --card-border: rgba(0, 229, 255, 0.5);
+      --accent: #00e5ff;
+      --accent-glow: rgba(0, 229, 255, 0.6);
+      --text: #f0f9ff;
+      --muted: #7dd3fc;
+    }
+
     body.theme-rpg {
       --bg: #080c08;
       --card-bg: rgba(16, 22, 16, 0.94);
@@ -51,9 +61,9 @@
     body.theme-boring {
       --bg: #000000;
       --card-bg: rgba(12, 12, 12, 0.95);
-      --card-border: rgba(255, 255, 255, 0.3);
+      --card-border: rgba(255, 255, 255, 0.5);
       --accent: #ffffff;
-      --accent-glow: rgba(255, 255, 255, 0.3);
+      --accent-glow: rgba(255, 255, 255, 0.2);
       --text: #ffffff;
       --muted: #a1a1aa;
     }
@@ -96,8 +106,9 @@
 
     body.theme-pac-cube #bgCanvas { opacity: 0.85; }
     body.theme-synthwave #bgCanvas { opacity: 0.92; }
+    body.theme-nightrider #bgCanvas { opacity: 0.95; }
     body.theme-rpg #bgCanvas { opacity: 0.95; }
-    body.theme-boring #bgCanvas { opacity: 0.2; }
+    body.theme-boring #bgCanvas { opacity: 0.15; }
 
     .content-wrapper {
       position: relative;
@@ -295,9 +306,15 @@
       color: #05100c;
     }
 
+    body.theme-boring .btn-primary {
+      background: #ffffff;
+      color: #000000;
+      border: 1px solid #ffffff;
+    }
+
     body.theme-pac-cube .btn-primary,
     body.theme-synthwave .btn-primary,
-    body.theme-boring .btn-primary,
+    body.theme-nightrider .btn-primary,
     body.theme-rpg .btn-primary {
       color: #ffffff;
     }
@@ -311,6 +328,12 @@
       background: rgba(255, 255, 255, 0.08);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    body.theme-boring .btn-secondary {
+      background: #111111;
+      color: #ffffff;
+      border: 1px solid #555555;
     }
 
     .btn-secondary:hover {
@@ -434,7 +457,7 @@
     }
   </style>
 </head>
-<body>
+<body class="theme-boring">
 
   <canvas id="bgCanvas" class="faded"></canvas>
 
@@ -460,11 +483,12 @@
       <div class="header-top-row">
         <span class="pixel-tag" id="pixelTag">&gt; DIGITAL_PORTFOLIO // ALID0N</span>
         <select class="theme-select" id="themeSelect" aria-label="Select Theme">
+          <option value="boring" selected>BORING</option>
           <option value="space">SPACE INVASION</option>
           <option value="pac">RETRO MAZE</option>
           <option value="synth">SUNSET CHASER</option>
+          <option value="nightrider">NIGHT RIDER</option>
           <option value="rpg">FANTASY QUEST</option>
-          <option value="boring">BORING</option>
         </select>
       </div>
 
@@ -485,7 +509,7 @@
     </header>
 
     <div class="game-hint" id="gameHint">
-      [ PLAY THE BACKGROUND: USE ARROWS / WASD TO MOVE &bull; SPACEBAR TO SHOOT / ATTACK ]
+      [ BORING MODE: NO ACTIVE GAME ]
     </div>
 
     <div class="section-title">ENGINE SYSTEMS &amp; MARKETPLACE ASSETS</div>
@@ -558,7 +582,7 @@
     const mobileGameToggle = document.getElementById('mobileGameToggle');
     const touchControls = document.getElementById('touchControls');
 
-    let currentTheme = 'space';
+    let currentTheme = 'boring';
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
     let isPlayingMobileGame = false;
@@ -600,6 +624,7 @@
     window.addEventListener('wheel', restorePortfolioFocus, { passive: true });
     window.addEventListener('scroll', restorePortfolioFocus, { passive: true });
     window.addEventListener('mousedown', restorePortfolioFocus, { passive: true });
+    window.addEventListener('mousemove', restorePortfolioFocus, { passive: true });
 
     window.addEventListener('resize', () => {
       width = canvas.width = window.innerWidth;
@@ -607,6 +632,7 @@
       if (currentTheme === 'space') initInvaders(false);
       if (currentTheme === 'pac') initPacGame(false);
       if (currentTheme === 'synth') initSynthRacer(false);
+      if (currentTheme === 'nightrider') initNightRider(false);
       if (currentTheme === 'rpg') initRPGGame(false);
     });
 
@@ -711,7 +737,7 @@
     }
 
     // ==========================================
-    // 1. SPACE INVADERS ENGINE (Detailed Vectors Restored)
+    // 1. SPACE INVADERS ENGINE
     // ==========================================
     const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7.5, invuln: 0, weapon: 'standard', weaponTimer: 0 };
     let bullets = [], enemyLasers = [], invaders = [], powerups = [];
@@ -878,10 +904,7 @@
     function drawEnemy(inv) {
       const cx = inv.x + inv.w / 2, cy = inv.y + inv.h / 2;
       const pulse = Math.sin(animTick * 0.1) * 2;
-
-      ctx.save();
-      ctx.shadowBlur = 8;
-
+      ctx.save(); ctx.shadowBlur = 8;
       if (inv.type === 'scout') {
         ctx.fillStyle = '#00ffaa'; ctx.strokeStyle = '#00ffaa'; ctx.shadowColor = '#00ffaa';
         ctx.beginPath(); ctx.moveTo(cx, inv.y + inv.h); ctx.lineTo(inv.x + inv.w + 2, inv.y + 4); ctx.lineTo(cx, inv.y + 8); ctx.lineTo(inv.x - 2, inv.y + 4); ctx.closePath(); ctx.fill();
@@ -902,7 +925,6 @@
         ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(inv.x + 2, inv.y); ctx.lineTo(inv.x + 2, inv.y - 4); ctx.moveTo(inv.x + inv.w - 2, inv.y); ctx.lineTo(inv.x + inv.w - 2, inv.y - 4); ctx.stroke();
       }
-
       ctx.restore();
     }
 
@@ -911,23 +933,20 @@
         ctx.fillStyle = player.weapon !== 'standard' ? '#00ffff' : '#00ffaa';
         ctx.beginPath(); ctx.moveTo(player.x + player.w / 2, player.y); ctx.lineTo(player.x + player.w, player.y + player.h); ctx.lineTo(player.x, player.y + player.h); ctx.closePath(); ctx.fill();
       }
-
       bullets.forEach(b => { ctx.fillStyle = b.color || '#38bdf8'; ctx.fillRect(b.x, b.y, b.w, b.h); });
       enemyLasers.forEach(l => { ctx.fillStyle = l.color; ctx.fillRect(l.x, l.y, l.w, l.h); });
-
       powerups.forEach(p => {
         ctx.save(); ctx.fillStyle = '#07090e'; ctx.strokeStyle = p.color; ctx.lineWidth = 2;
         ctx.strokeRect(p.x, p.y, p.w, p.h); ctx.fillRect(p.x, p.y, p.w, p.h);
         ctx.fillStyle = p.color; ctx.font = '10px "Press Start 2P", monospace'; ctx.fillText(p.label, p.x + 5, p.y + 15); ctx.restore();
       });
-
       invaders.forEach(inv => { if (inv.alive) drawEnemy(inv); });
       let extraText = player.weapon !== 'standard' ? `WEAPON: ${player.weapon.toUpperCase()} (${Math.ceil(player.weaponTimer / 60)}s)` : null;
       drawHUD(spaceScore, spaceStartTime, spaceLives, '#00ffaa', spaceLevel, extraText);
     }
 
     // ==========================================
-    // 2. RETRO MAZE ENGINE (Full Detail Restored)
+    // 2. RETRO MAZE ENGINE
     // ==========================================
     const pac = { x: 60, y: 60, w: 22, h: 22, speed: 3.2, dirX: 1, dirY: 0, nextDirX: 1, nextDirY: 0, mouth: 0, mouthSpeed: 0.18, invuln: 0 };
     let walls = [], pellets = [], powerPellets = [], ghosts = [], ghostPenGate = null, penExitTile = { x: 0, y: 0 }, mazeBounds = { left: 0, right: 0, tileSize: 20 };
@@ -1106,6 +1125,7 @@
           ctx.lineTo(g.x + g.w, g.y + g.h); ctx.lineTo(g.x + (g.w * 3) / 4, g.y + g.h - 4);
           ctx.lineTo(g.x + g.w / 2, g.y + g.h); ctx.lineTo(g.x + g.w / 4, g.y + g.h - 4); ctx.lineTo(g.x, g.y + g.h); ctx.closePath(); ctx.fill(); ctx.stroke();
           ctx.fillStyle = isFlashing ? '#dc2626' : '#fef08a'; ctx.fillRect(g.x + 4, g.y + 5, 3, 3); ctx.fillRect(g.x + 12, g.y + 5, 3, 3);
+          ctx.strokeStyle = isFlashing ? '#dc2626' : '#fef08a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(g.x + 4, g.y + 13); ctx.lineTo(g.x + 7, g.y + 11); ctx.lineTo(g.x + 11, g.y + 13); ctx.lineTo(g.x + 15, g.y + 11); ctx.stroke();
         } else {
           ctx.fillStyle = g.color; ctx.beginPath(); ctx.arc(g.x + g.w / 2, g.y + g.h / 3, g.w / 2, Math.PI, 0, false);
           ctx.lineTo(g.x + g.w, g.y + g.h); ctx.lineTo(g.x + (g.w * 3) / 4, g.y + g.h - 4);
@@ -1120,7 +1140,7 @@
     }
 
     // ==========================================
-    // 3. SUNSET CHASER ENGINE (Full Detailed Retro Synthwave Racer)
+    // 3. SUNSET CHASER ENGINE
     // ==========================================
     const racer = { playerX: 0, speed: 1.2, roadOffset: 0, steerAngle: 0 };
     let trafficCars = [], meteors = [], racerScore = 0, racerStartTime = Date.now();
@@ -1241,7 +1261,7 @@
     }
 
     // ==========================================
-    // 4. NIGHT RIDER ENGINE (Exact Match to Reference Image 1: 3D Blue Neon Grid City & Retro Sun)
+    // 4. NIGHT RIDER ENGINE
     // ==========================================
     const nr = { x: 0, speed: 1.8, roadOffset: 0, angle: 0 };
     let nrScore = 0, nrStart = Date.now(), nrBuildingsL = [], nrBuildingsR = [];
@@ -1273,7 +1293,6 @@
       skyGrad.addColorStop(0, '#05021a'); skyGrad.addColorStop(1, '#2c0442');
       ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, width, horizonY);
 
-      // Neon Orange Sun
       const sunR = Math.min(width, height) * 0.22, sunX = width / 2 - (nr.angle * 250), sunY = horizonY - 15;
       const sunGrad = ctx.createLinearGradient(sunX, sunY - sunR, sunX, sunY + sunR);
       sunGrad.addColorStop(0, '#ffcc00'); sunGrad.addColorStop(0.5, '#ff3300'); sunGrad.addColorStop(1, '#ff0066');
@@ -1284,7 +1303,6 @@
 
       ctx.fillStyle = '#000000'; ctx.fillRect(0, horizonY, width, height - horizonY);
 
-      // Glowing Blue Perspective Floor Grid
       ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.5; ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 10;
       for (let gx = -width * 1.5; gx <= width * 2.5; gx += 80) {
         const topX = width / 2 + (gx - width / 2 - nr.angle * 400) * 0.08;
@@ -1297,7 +1315,6 @@
       }
       ctx.shadowBlur = 0;
 
-      // 3D Neon Blue Wireframe Buildings
       nrBuildingsL.forEach(b => {
         if (b.z > 10 && b.z < 900) {
           const scale = 60 / b.z, bw = b.w * scale * 2.2, bh = b.h * scale * 2.5;
@@ -1319,7 +1336,7 @@
     }
 
     // ==========================================
-    // 5. FANTASY QUEST ENGINE (Detailed Orcs & Shaded Pine Trees)
+    // 5. FANTASY QUEST ENGINE
     // ==========================================
     const hero = {
       x: 100, y: 100, w: 26, h: 32, speed: 3.8,
@@ -1669,12 +1686,13 @@
           ctx.fillStyle = '#ffffff'; ctx.fillRect(m.x + 8, m.y + 13, 3, 4); ctx.fillRect(m.x + 21, m.y + 13, 3, 4);
           ctx.fillStyle = '#334155'; ctx.fillRect(m.x + 3, m.y + 16, 26, 10);
           ctx.fillStyle = '#b45309'; ctx.fillRect(m.x + 5, m.y + 26, 22, 4);
+          ctx.fillStyle = '#166534'; ctx.fillRect(m.x + 6, m.y + 30, 6, 4); ctx.fillRect(m.x + 20, m.y + 30, 6, 4);
           ctx.fillStyle = '#78350f'; ctx.fillRect(m.x + 28, m.y + 8, 3, 22);
+          ctx.fillStyle = '#94a3b8'; ctx.fillRect(m.x + 26, m.y + 6, 7, 8);
         } else if (m.type === 'spider') {
           ctx.fillStyle = '#18181b'; ctx.beginPath(); ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, m.w / 2.5, m.h / 2.8, 0, 0, Math.PI * 2); ctx.fill();
         } else if (m.type === 'cyclops') {
           ctx.fillStyle = '#7c2d12'; ctx.fillRect(m.x + 8, m.y + 8, m.w - 16, m.h - 16);
-          ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(m.x + m.w / 2, m.y + 16, 7, 0, Math.PI * 2); ctx.fill();
         } else if (m.type === 'dragon') {
           ctx.fillStyle = m.isFlying ? '#dc2626' : '#991b1b'; ctx.fillRect(m.x + 18, m.y + 16, m.w - 36, m.h - 24);
         } else if (m.type === 'worm') {
@@ -1715,31 +1733,29 @@
 
       if (selected === 'space') {
         currentTheme = 'space'; themeSelect.value = 'space';
-        gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE &bull; SPACEBAR TO SHOOT ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]';
         initInvaders(true);
       } else if (selected === 'pac') {
         currentTheme = 'pac'; document.body.classList.add('theme-pac-cube'); themeSelect.value = 'pac';
-        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE &bull; EAT POWER PELLETS ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE • EAT POWER PELLETS ]';
         initPacGame(true);
       } else if (selected === 'synth') {
         currentTheme = 'synth'; document.body.classList.add('theme-synthwave'); themeSelect.value = 'synth';
-        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT &bull; LEFT/RIGHT TO STEER ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT TO STEER ]';
         initSynthRacer(true);
       } else if (selected === 'nightrider') {
         currentTheme = 'nightrider'; document.body.classList.add('theme-nightrider'); themeSelect.value = 'nightrider';
-        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON 3D CITY DRIVE &bull; LEFT/RIGHT TO TURN CAMERA ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON 3D CITY DRIVE • LEFT/RIGHT TO TURN CAMERA ]';
         initNightRider(true);
       } else if (selected === 'rpg') {
         currentTheme = 'rpg'; document.body.classList.add('theme-rpg'); themeSelect.value = 'rpg';
-        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD TO EXPLORE &bull; SPACEBAR TO ATTACK ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD TO EXPLORE • SPACEBAR TO ATTACK ]';
         initRPGGame(true);
       } else if (selected === 'boring') {
         currentTheme = 'boring'; document.body.classList.add('theme-boring'); themeSelect.value = 'boring';
         gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
       }
     });
-
-    initInvaders(true);
 
     function loop() {
       ctx.clearRect(0, 0, width, height);
