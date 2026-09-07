@@ -408,7 +408,7 @@
 
   </div>
 
-  <!-- Unified Game Engines & HUD Logic -->
+  <!-- Unified Game Engines -->
   <script>
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
@@ -417,7 +417,6 @@
     const themeNameLabel = document.getElementById('themeName');
     const gameHint = document.getElementById('gameHint');
 
-    // Themes: 'space' | 'pac' | 'synth'
     let currentTheme = 'space';
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
@@ -429,7 +428,7 @@
       clearTimeout(userActiveTimer);
       userActiveTimer = setTimeout(() => {
         contentWrapper.classList.remove('dimmed');
-      }, 2500); // Fades back smoothly after 2.5s of no key presses
+      }, 2500);
     }
 
     window.addEventListener('resize', () => {
@@ -482,7 +481,7 @@
     // ==========================================
     // UNIVERSAL HUD RENDERER
     // ==========================================
-    function drawHUD(score, startTime, lives = null, accentColor = '#00ffaa') {
+    function drawHUD(score, startTime, lives = null, accentColor = '#00ffaa', wave = null) {
       const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
       const m = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
       const s = String(elapsedSec % 60).padStart(2, '0');
@@ -496,12 +495,16 @@
       ctx.fillText(`SCORE: ${score}`, 25, 35);
       ctx.fillText(`TIME: ${m}:${s}`, 25, 55);
 
+      if (wave !== null) {
+        ctx.fillText(`LEVEL: ${wave}`, 25, 75);
+      }
+
       if (lives !== null) {
         let heartStr = '';
         for (let i = 0; i < lives; i++) heartStr += '♥ ';
         ctx.fillStyle = '#ff0055';
         ctx.shadowColor = '#ff0055';
-        ctx.fillText(`LIVES: ${heartStr}`, 25, 75);
+        ctx.fillText(`LIVES: ${heartStr}`, 25, wave !== null ? 95 : 75);
       }
       ctx.restore();
     }
@@ -509,39 +512,66 @@
     // ==========================================
     // 1. SPACE INVADERS ENGINE
     // ==========================================
-    const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7, invuln: 0 };
+    const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7.5, invuln: 0 };
     let bullets = [];
+    let enemyLasers = [];
     let invaders = [];
     let invaderDir = 1;
     let spaceScore = 0;
     let spaceLives = 3;
+    let spaceLevel = 1;
     let spaceStartTime = Date.now();
+    let animTick = 0;
+
     const invaderRows = 4;
     const invaderCols = 10;
-    const invaderSize = 22;
+    const invaderSize = 28;
 
-    function initInvaders() {
-      spaceScore = 0;
-      spaceLives = 3;
-      spaceStartTime = Date.now();
+    function initInvaders(fullReset = true) {
+      if (fullReset) {
+        spaceScore = 0;
+        spaceLives = 3;
+        spaceLevel = 1;
+        spaceStartTime = Date.now();
+      }
       bullets = [];
+      enemyLasers = [];
       invaders = [];
-      const spacingX = Math.min(60, width / (invaderCols + 2));
+      invaderDir = 1;
+
+      const spacingX = Math.min(65, width / (invaderCols + 2));
       const startX = (width - invaderCols * spacingX) / 2;
+
       for (let r = 0; r < invaderRows; r++) {
         for (let c = 0; c < invaderCols; c++) {
+          let type = 'scout';
+          let hp = 1;
+
+          if (r === 2) {
+            type = 'cruiser';
+            hp = spaceLevel >= 2 ? 2 : 1;
+          } else if (r <= 1) {
+            type = 'dreadnought';
+            hp = spaceLevel >= 3 ? 3 : (spaceLevel >= 2 ? 2 : 1);
+          }
+
           invaders.push({
             x: startX + c * spacingX,
-            y: 90 + r * 45,
+            y: 90 + r * 48,
             w: invaderSize,
             h: invaderSize,
-            alive: true
+            type: type,
+            hp: hp,
+            maxHp: hp,
+            alive: true,
+            cooldown: Math.floor(Math.random() * 200) + 50
           });
         }
       }
     }
 
     function updateSpace() {
+      animTick++;
       if (player.invuln > 0) player.invuln--;
 
       if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
@@ -550,57 +580,175 @@
       player.y = height - 60;
 
       for (let i = bullets.length - 1; i >= 0; i--) {
-        bullets[i].y -= 9;
+        bullets[i].y -= 10;
         if (bullets[i].y < 0) bullets.splice(i, 1);
       }
+
+      const aliveCount = invaders.filter(inv => inv.alive).length;
+      const speedModifier = 1 + (1 - aliveCount / (invaderRows * invaderCols)) * 1.5 + (spaceLevel - 1) * 0.35;
 
       let edgeReached = false;
       invaders.forEach((inv) => {
         if (!inv.alive) return;
-        inv.x += invaderDir * 0.8;
+        inv.x += invaderDir * 0.9 * speedModifier;
         if (inv.x + inv.w > width - 20 || inv.x < 20) edgeReached = true;
 
-        // Check alien hitting player
+        inv.cooldown--;
+        if (inv.cooldown <= 0) {
+          if (inv.type === 'scout' && Math.random() < 0.3) {
+            enemyLasers.push({ x: inv.x + inv.w / 2 - 2, y: inv.y + inv.h, w: 4, h: 10, vy: 4.5, color: '#38bdf8' });
+            inv.cooldown = 180 + Math.floor(Math.random() * 140);
+          } else if (inv.type === 'cruiser' && Math.random() < 0.4) {
+            enemyLasers.push({ x: inv.x + inv.w / 2 - 3, y: inv.y + inv.h, w: 6, h: 14, vy: 6.0, color: '#ff0055' });
+            inv.cooldown = 150 + Math.floor(Math.random() * 120);
+          } else if (inv.type === 'dreadnought' && Math.random() < 0.5) {
+            enemyLasers.push({ x: inv.x + 4, y: inv.y + inv.h, w: 5, h: 12, vy: 5.0, color: '#b537f2' });
+            enemyLasers.push({ x: inv.x + inv.w - 9, y: inv.y + inv.h, w: 5, h: 12, vy: 5.0, color: '#b537f2' });
+            inv.cooldown = 130 + Math.floor(Math.random() * 100);
+          }
+        }
+
         if (checkRectCollision(player, inv) && player.invuln <= 0) {
           spaceLives--;
           player.invuln = 60;
-          if (spaceLives <= 0) initInvaders();
+          if (spaceLives <= 0) initInvaders(true);
         }
       });
 
       if (edgeReached) {
         invaderDir *= -1;
         invaders.forEach((inv) => {
-          inv.y += 15;
-          if (inv.y > height - 100) initInvaders();
+          inv.y += 14;
+          if (inv.y > height - 100) initInvaders(true);
         });
+      }
+
+      for (let i = enemyLasers.length - 1; i >= 0; i--) {
+        const l = enemyLasers[i];
+        l.y += l.vy;
+
+        if (checkRectCollision(player, l) && player.invuln <= 0) {
+          spaceLives--;
+          player.invuln = 60;
+          enemyLasers.splice(i, 1);
+          if (spaceLives <= 0) initInvaders(true);
+          continue;
+        }
+
+        if (l.y > height) enemyLasers.splice(i, 1);
       }
 
       bullets.forEach((b, bIdx) => {
         invaders.forEach((inv) => {
-          if (inv.alive && b.x < inv.x + inv.w && b.x + b.w > inv.x && b.y < inv.y + inv.h && b.y + b.h > inv.y) {
-            inv.alive = false;
+          if (inv.alive && checkRectCollision(b, inv)) {
+            inv.hp--;
             bullets.splice(bIdx, 1);
-            spaceScore += 100;
+
+            if (inv.hp <= 0) {
+              inv.alive = false;
+              if (inv.type === 'scout') spaceScore += 100;
+              if (inv.type === 'cruiser') spaceScore += 250;
+              if (inv.type === 'dreadnought') spaceScore += 500;
+            } else {
+              spaceScore += 25;
+            }
           }
         });
       });
 
       if (invaders.length > 0 && invaders.every((inv) => !inv.alive)) {
-        const spacingX = Math.min(60, width / (invaderCols + 2));
-        const startX = (width - invaderCols * spacingX) / 2;
-        invaders.forEach((inv, idx) => {
-          const r = Math.floor(idx / invaderCols);
-          const c = idx % invaderCols;
-          inv.x = startX + c * spacingX;
-          inv.y = 90 + r * 45;
-          inv.alive = true;
-        });
+        spaceLevel++;
+        spaceScore += 1000;
+        initInvaders(false);
       }
     }
 
+    function drawEnemy(inv) {
+      const cx = inv.x + inv.w / 2;
+      const cy = inv.y + inv.h / 2;
+      const pulse = Math.sin(animTick * 0.1) * 2;
+
+      ctx.save();
+      ctx.shadowBlur = 8;
+
+      if (inv.type === 'scout') {
+        ctx.fillStyle = '#00ffaa';
+        ctx.strokeStyle = '#00ffaa';
+        ctx.shadowColor = '#00ffaa';
+
+        ctx.beginPath();
+        ctx.moveTo(cx, inv.y + inv.h);
+        ctx.lineTo(inv.x + inv.w + 2, inv.y + 4);
+        ctx.lineTo(cx, inv.y + 8);
+        ctx.lineTo(inv.x - 2, inv.y + 4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx - 2, inv.y + 3, 4, 3);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(inv.x - 2, inv.y + 1, 3, 5);
+        ctx.fillRect(inv.x + inv.w - 1, inv.y + 1, 3, 5);
+
+      } else if (inv.type === 'cruiser') {
+        ctx.fillStyle = '#ff0055';
+        ctx.strokeStyle = '#ff0055';
+        ctx.shadowColor = '#ff0055';
+
+        ctx.fillRect(inv.x + 4, inv.y + 4, inv.w - 8, inv.h - 10);
+
+        ctx.fillStyle = inv.hp > 1 ? '#ff3377' : '#881133';
+        ctx.fillRect(inv.x, inv.y + 2, 5, inv.h - 4);
+        ctx.fillRect(inv.x + inv.w - 5, inv.y + 2, 5, inv.h - 4);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(inv.x + 7, inv.y + inv.h - 5, 3, 5);
+        ctx.fillRect(inv.x + inv.w - 10, inv.y + inv.h - 5, 3, 5);
+
+        ctx.fillStyle = '#ffeb3b';
+        ctx.beginPath();
+        ctx.arc(cx, cy - 2, 3 + pulse * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+
+      } else if (inv.type === 'dreadnought') {
+        ctx.fillStyle = '#b537f2';
+        ctx.strokeStyle = '#b537f2';
+        ctx.shadowColor = '#b537f2';
+
+        ctx.beginPath();
+        ctx.moveTo(inv.x + 6, inv.y);
+        ctx.lineTo(inv.x + inv.w - 6, inv.y);
+        ctx.lineTo(inv.x + inv.w, inv.y + 10);
+        ctx.lineTo(inv.x + inv.w - 4, inv.y + inv.h);
+        ctx.lineTo(cx, inv.y + inv.h - 4);
+        ctx.lineTo(inv.x + 4, inv.y + inv.h);
+        ctx.lineTo(inv.x, inv.y + 10);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#120422';
+        ctx.fillRect(inv.x + 5, inv.y + 6, inv.w - 10, inv.h - 14);
+
+        ctx.fillStyle = inv.hp === 3 ? '#00ffff' : (inv.hp === 2 ? '#ff007f' : '#ffffff');
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(inv.x + 2, inv.y);
+        ctx.lineTo(inv.x + 2, inv.y - 4);
+        ctx.moveTo(inv.x + inv.w - 2, inv.y);
+        ctx.lineTo(inv.x + inv.w - 2, inv.y - 4);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
     function drawSpace() {
-      // Ship (blink when damaged)
       if (player.invuln % 6 < 3) {
         ctx.fillStyle = '#00ffaa';
         ctx.beginPath();
@@ -614,20 +762,23 @@
       ctx.fillStyle = '#38bdf8';
       bullets.forEach((b) => ctx.fillRect(b.x, b.y, b.w, b.h));
 
+      enemyLasers.forEach((l) => {
+        ctx.fillStyle = l.color;
+        ctx.shadowColor = l.color;
+        ctx.shadowBlur = 8;
+        ctx.fillRect(l.x, l.y, l.w, l.h);
+      });
+      ctx.shadowBlur = 0;
+
       invaders.forEach((inv) => {
-        if (!inv.alive) return;
-        ctx.fillStyle = '#ff0055';
-        ctx.fillRect(inv.x, inv.y, inv.w, inv.h);
-        ctx.fillStyle = '#07090e';
-        ctx.fillRect(inv.x + 3, inv.y + 4, 4, 4);
-        ctx.fillRect(inv.x + inv.w - 7, inv.y + 4, 4, 4);
+        if (inv.alive) drawEnemy(inv);
       });
 
-      drawHUD(spaceScore, spaceStartTime, spaceLives, '#00ffaa');
+      drawHUD(spaceScore, spaceStartTime, spaceLives, '#00ffaa', spaceLevel);
     }
 
     // ==========================================
-    // 2. RETRO MAZE ENGINE (Accurate Pen Exit & Lives)
+    // 2. RETRO MAZE ENGINE (Bound-Corrected Teleports)
     // ==========================================
     const pac = {
       x: 60,
@@ -650,6 +801,7 @@
     let ghosts = [];
     let ghostPenGate = null;
     let penExitTile = { x: 0, y: 0 };
+    let mazeBounds = { left: 0, right: 0, tileSize: 20 };
     let pacScore = 0;
     let pacLives = 3;
     let pacStartTime = Date.now();
@@ -704,6 +856,13 @@
       const offsetX = Math.floor((width - cols * tileSize) / 2);
       const offsetY = Math.floor((height - rows * tileSize) / 2);
 
+      // Track exact maze side boundaries
+      mazeBounds = {
+        left: offsetX,
+        right: offsetX + cols * tileSize,
+        tileSize: tileSize
+      };
+
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const char = pacMapBlueprint[r][c];
@@ -714,7 +873,7 @@
             walls.push({ x, y, w: tileSize, h: tileSize });
           } else if (char === '-') {
             ghostPenGate = { x, y: y + tileSize / 2 - 2, w: tileSize, h: 4 };
-            penExitTile = { x: x, y: y - tileSize }; // Spot right outside the gate
+            penExitTile = { x: x, y: y - tileSize };
           } else if (char === '.') {
             pellets.push({ x: x + tileSize / 2, y: y + tileSize / 2, eaten: false });
           } else if (char === 'O') {
@@ -725,9 +884,14 @@
 
       pac.w = Math.max(16, tileSize - 4);
       pac.h = Math.max(16, tileSize - 4);
-      resetPacmanPos(offsetX, offsetY, tileSize);
+      pac.x = offsetX + 13.5 * tileSize - pac.w / 2;
+      pac.y = offsetY + 23 * tileSize + (tileSize - pac.h) / 2;
+      pac.dirX = -1;
+      pac.dirY = 0;
+      pac.nextDirX = -1;
+      pac.nextDirY = 0;
+      pac.invuln = 60;
 
-      // Ghosts initialized inside pen with release timers
       for (let i = 0; i < 4; i++) {
         ghosts.push({
           x: offsetX + (12.5 + (i % 2)) * tileSize,
@@ -738,26 +902,15 @@
           dirX: 0,
           dirY: -1,
           speed: 2.2,
-          state: 'in_pen', // 'in_pen', 'exiting', 'free'
-          releaseTimer: i * 80 // Staggered release: 0s, ~1.5s, ~3s, ~4.5s
+          state: 'in_pen',
+          releaseTimer: i * 80
         });
       }
-    }
-
-    function resetPacmanPos(offsetX, offsetY, tileSize) {
-      pac.x = offsetX + 13.5 * tileSize - pac.w / 2;
-      pac.y = offsetY + 23 * tileSize + (tileSize - pac.h) / 2;
-      pac.dirX = -1;
-      pac.dirY = 0;
-      pac.nextDirX = -1;
-      pac.nextDirY = 0;
-      pac.invuln = 60;
     }
 
     function updatePac() {
       if (pac.invuln > 0) pac.invuln--;
 
-      // Pacman Turns
       if (pac.nextDirX !== pac.dirX || pac.nextDirY !== pac.dirY) {
         const testBox = {
           x: pac.x + pac.nextDirX * pac.speed,
@@ -783,13 +936,16 @@
         pac.y += pac.dirY * pac.speed;
       }
 
-      if (pac.x < -pac.w) pac.x = width;
-      if (pac.x > width) pac.x = -pac.w;
+      // SIDE TUNNEL WRAP: Wrap instantly across maze edges
+      if (pac.x < mazeBounds.left - pac.w) {
+        pac.x = mazeBounds.right - 2;
+      } else if (pac.x > mazeBounds.right) {
+        pac.x = mazeBounds.left - pac.w + 2;
+      }
 
       pac.mouth += pac.mouthSpeed;
       if (pac.mouth > 1 || pac.mouth < 0) pac.mouthSpeed *= -1;
 
-      // Eat Pellets
       pellets.forEach((p) => {
         if (!p.eaten) {
           const dx = (pac.x + pac.w / 2) - p.x;
@@ -817,7 +973,6 @@
         powerPellets.forEach((p) => (p.eaten = false));
       }
 
-      // Ghosts AI (Pen Exit Logic & Navigation)
       const cardinalDirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
 
       ghosts.forEach((g) => {
@@ -825,7 +980,6 @@
           g.releaseTimer--;
           if (g.releaseTimer <= 0) g.state = 'exiting';
         } else if (g.state === 'exiting') {
-          // Guide ghost out through pen gate
           if (Math.abs(g.x - penExitTile.x) > 2) {
             g.x += (penExitTile.x > g.x ? 1 : -1) * 1.5;
           } else if (g.y > penExitTile.y) {
@@ -836,7 +990,6 @@
             g.dirY = 0;
           }
         } else {
-          // Free maze roaming
           const nextBox = { x: g.x + g.dirX * g.speed, y: g.y + g.dirY * g.speed, w: g.w, h: g.h };
           const blocked = walls.some((w) => checkRectCollision(nextBox, w));
 
@@ -855,11 +1008,14 @@
             g.y += g.dirY * g.speed;
           }
 
-          if (g.x < -g.w) g.x = width;
-          if (g.x > width) g.x = -g.w;
+          // Ghost Maze Tunnel Wrap
+          if (g.x < mazeBounds.left - g.w) {
+            g.x = mazeBounds.right - 2;
+          } else if (g.x > mazeBounds.right) {
+            g.x = mazeBounds.left - g.w + 2;
+          }
         }
 
-        // Ghost & Pacman collision
         if (checkRectCollision(pac, g) && pac.invuln <= 0) {
           pacLives--;
           pac.invuln = 60;
@@ -903,7 +1059,6 @@
         }
       });
 
-      // Draw Pacman (blink when damaged)
       if (pac.invuln % 6 < 3) {
         ctx.fillStyle = '#ffee00';
         ctx.save();
@@ -925,7 +1080,6 @@
         ctx.restore();
       }
 
-      // Draw Ghosts
       ghosts.forEach((g) => {
         ctx.fillStyle = g.color;
         ctx.beginPath();
@@ -950,7 +1104,7 @@
     }
 
     // ==========================================
-    // 3. SUNSET CHASER ENGINE (Detailed Cockpit, Wheel, Meteors)
+    // 3. SUNSET CHASER ENGINE
     // ==========================================
     const racer = {
       playerX: 0,
@@ -985,7 +1139,6 @@
     }
 
     function updateSynthRacer() {
-      // Steer smooth angle interpolation
       let targetSteer = 0;
       if (keys['ArrowLeft'] || keys['KeyA']) {
         racer.playerX = Math.max(-0.9, racer.playerX - 0.025);
@@ -1003,7 +1156,6 @@
       racer.roadOffset = (racer.roadOffset + racer.speed * 8) % 60;
       racerScore += Math.floor(racer.speed * 2);
 
-      // Random Cyan Shooting Stars / Meteors
       if (Math.random() < 0.035 && meteors.length < 3) {
         meteors.push({
           x: Math.random() * width,
@@ -1022,12 +1174,11 @@
         if (m.alpha <= 0) meteors.splice(i, 1);
       }
 
-      // Traffic updates
       trafficCars.forEach((car) => {
         car.z -= (racer.speed * 6 + car.speed * 2);
         if (car.z < 20) {
           if (Math.abs(car.x - racer.playerX) < 0.28) {
-            racer.speed = 0.5; // Crash penalty
+            racer.speed = 0.5;
             racerScore = Math.max(0, racerScore - 250);
           }
           car.z = 800 + Math.random() * 200;
@@ -1039,7 +1190,6 @@
     function drawSynthRacer() {
       const horizonY = height * 0.46;
 
-      // 1. Sky & Sun
       const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
       skyGrad.addColorStop(0, '#090214');
       skyGrad.addColorStop(0.7, '#240738');
@@ -1047,7 +1197,6 @@
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, width, horizonY);
 
-      // Cyan Meteors
       meteors.forEach((m) => {
         ctx.save();
         ctx.strokeStyle = `rgba(0, 255, 255, ${m.alpha})`;
@@ -1061,7 +1210,6 @@
         ctx.restore();
       });
 
-      // Sunset Sun
       const sunRadius = Math.min(width, height) * 0.18;
       const sunX = width / 2;
       const sunY = horizonY - 20;
@@ -1082,8 +1230,6 @@
         if (sliceY < horizonY) ctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
       }
 
-      // Detailed Multi-Ridge Mountains
-      // Background Range
       ctx.fillStyle = '#170529';
       ctx.beginPath();
       ctx.moveTo(0, horizonY);
@@ -1095,7 +1241,6 @@
       ctx.closePath();
       ctx.fill();
 
-      // Foreground Jagged Range with glowing edge
       ctx.fillStyle = '#0d0218';
       ctx.strokeStyle = 'rgba(255, 0, 128, 0.5)';
       ctx.lineWidth = 1.5;
@@ -1110,14 +1255,12 @@
       ctx.fill();
       ctx.stroke();
 
-      // 2. 3D Perspective Road
       const groundGrad = ctx.createLinearGradient(0, horizonY, 0, height);
       groundGrad.addColorStop(0, '#10021c');
       groundGrad.addColorStop(1, '#05000a');
       ctx.fillStyle = groundGrad;
       ctx.fillRect(0, horizonY, width, height - horizonY);
 
-      // Depth Lines
       ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)';
       ctx.lineWidth = 1.5;
       for (let z = 10; z < 600; z += 30) {
@@ -1132,7 +1275,6 @@
         }
       }
 
-      // Rails
       const roadCenterHorizon = width / 2 - (racer.playerX * 80);
       const roadBottomCenter = width / 2 - (racer.playerX * (width * 0.5));
       const roadBottomWidth = width * 1.1;
@@ -1161,7 +1303,6 @@
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Traffic
       trafficCars.forEach((c) => {
         if (c.z > 20 && c.z < 750) {
           const depthScale = 60 / c.z;
@@ -1183,8 +1324,6 @@
       });
       ctx.shadowBlur = 0;
 
-      // 3. First-Person Cockpit & Turning Steering Wheel
-      // Dash
       ctx.fillStyle = '#0a0314';
       ctx.strokeStyle = '#ff007f';
       ctx.lineWidth = 2;
@@ -1197,19 +1336,16 @@
       ctx.fill();
       ctx.stroke();
 
-      // Digital Neon Gauge
       ctx.fillStyle = '#00ffff';
       ctx.font = '9px "Press Start 2P", monospace';
       ctx.fillText(`SPEED: ${Math.round(racer.speed * 92)} MPH`, width * 0.22, height - 85);
 
-      // Rotating Sports Steering Wheel
       ctx.save();
       const wheelX = width / 2;
       const wheelY = height + 10;
       ctx.translate(wheelX, wheelY);
       ctx.rotate(racer.steerAngle);
 
-      // Wheel Rim
       ctx.strokeStyle = '#00ffff';
       ctx.shadowColor = 'rgba(0, 255, 255, 0.9)';
       ctx.shadowBlur = 10;
@@ -1218,7 +1354,6 @@
       ctx.arc(0, 0, 110, Math.PI * 0.85, Math.PI * 2.15);
       ctx.stroke();
 
-      // Center Hub & Spokes
       ctx.lineWidth = 6;
       ctx.strokeStyle = '#ff007f';
       ctx.beginPath();
@@ -1230,7 +1365,6 @@
       ctx.lineTo(0, 0);
       ctx.stroke();
 
-      // Center Hub Badge
       ctx.fillStyle = '#0d0218';
       ctx.beginPath();
       ctx.arc(0, 0, 28, 0, Math.PI * 2);
@@ -1263,12 +1397,12 @@
         currentTheme = 'space';
         themeNameLabel.textContent = 'SPACE INVASION';
         gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]';
-        initInvaders();
+        initInvaders(true);
       }
     });
 
     // Initialize Default Theme
-    initInvaders();
+    initInvaders(true);
 
     // Master Game Loop
     function loop() {
