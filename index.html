@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Addison Warner | Alid0n - Technical Artist & Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(13, 17, 27, 0.85);
+      --card-border: rgba(0, 255, 170, 0.25);
+      --accent: #00ffaa;
+      --accent-glow: rgba(0, 255, 170, 0.4);
+      --text: #f0f4f8;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Interactive Game Canvas */
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* Content Overlay */
+    .content-wrapper {
+      position: relative;
+      z-index: 10;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* Header */
+    .header-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .pixel-tag {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 6px;
+      color: var(--text);
+    }
+
+    .badge strong {
+      color: var(--accent);
+    }
+
+    /* Interactive Hint */
+    .game-hint {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-align: center;
+      opacity: 0.8;
+      padding: 6px;
+    }
+
+    /* Project Cards Grid */
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px var(--accent-glow);
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 18px;
+      flex-grow: 1;
+    }
+
+    .card-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #05100c;
+    }
+
+    .btn-primary:hover {
+      background: #33ffbb;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Links Bar */
+    .social-bar {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Space Invaders Canvas -->
+  <canvas id="bgCanvas"></canvas>
+
+  <div class="content-wrapper">
+    
+    <!-- Hero / Header -->
+    <header class="header-card">
+      <span class="pixel-tag">&gt; SYSTEM_ONLINE // ALID0N</span>
+      <h1>Addison Warner</h1>
+      <p class="subtitle">Technical Artist &amp; Unreal Engine Systems Specialist</p>
+      
+      <div class="status-bar">
+        <span class="badge"><strong>15M+</strong> Mod Downloads</span>
+        <span class="badge"><strong>UE4 / UE5</strong> Pipeline Focus</span>
+        <span class="badge">Discord: <strong>alid0n</strong></span>
+        <span class="badge">Email: <strong>AddisonWarner@gmail.com</strong></span>
+      </div>
+
+      <div class="social-bar" style="justify-content: flex-start; margin-top: 20px;">
+        <a href="https://www.fab.com" target="_blank" class="btn btn-primary">FAB Marketplace Profile</a>
+        <a href="https://youtube.com" target="_blank" class="btn btn-secondary">YouTube Demos</a>
+        <a href="mailto:AddisonWarner@gmail.com" class="btn btn-secondary">Contact Me</a>
+      </div>
+    </header>
+
+    <div class="game-hint">
+      [ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE &bull; SPACEBAR TO SHOOT ]
+    </div>
+
+    <!-- Systems & Fab Assets -->
+    <div class="section-title">ENGINE SYSTEMS &amp; MARKETPLACE ASSETS</div>
+    <div class="grid">
+      
+      <div class="card">
+        <div>
+          <h3>Advanced Swim Component</h3>
+          <p>Procedural swimming framework featuring dynamic water volume interaction, character buoyancy mechanics, and animation state machine transitions.</p>
+        </div>
+        <div class="card-links">
+          <a href="#" class="btn btn-secondary">View on Fab</a>
+          <a href="#" class="btn btn-secondary">Demo Video</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div>
+          <h3>Easy Taming Component</h3>
+          <p>Modular AI framework architected for creature interaction, dynamic taming states, behavioral transitions, and follower systems.</p>
+        </div>
+        <div class="card-links">
+          <a href="#" class="btn btn-secondary">View on Fab</a>
+          <a href="#" class="btn btn-secondary">Demo Video</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div>
+          <h3>Catalyst Dynamic Flame</h3>
+          <p>Real-time flammability and fire propagation component balanced for performance and draw-call efficiency across open environments.</p>
+        </div>
+        <div class="card-links">
+          <a href="#" class="btn btn-secondary">View on Fab</a>
+          <a href="#" class="btn btn-secondary">Demo Video</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div>
+          <h3>Mobile &amp; Cross-Platform Controls</h3>
+          <p>Flexible, modular input bindings and onscreen touch interfaces designed for responsive multi-platform cross-play.</p>
+        </div>
+        <div class="card-links">
+          <a href="#" class="btn btn-secondary">Product Link</a>
+          <a href="#" class="btn btn-secondary">Demo Video</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modding Architecture -->
+    <div class="section-title">MAJOR MODDING ARCHITECTURE</div>
+    <div class="card">
+      <h3>Alidon's Ultimate Armory &amp; Artifacts (Skyrim)</h3>
+      <p>Custom script-driven quest architecture, dynamic spell systems, and custom companion AI. Reached over 15,000,000+ multi-platform downloads across PC, Xbox, and PlayStation under strict platform memory limits.</p>
+      <div class="card-links">
+        <a href="#" class="btn btn-primary">Mod Hub Page</a>
+        <a href="#" class="btn btn-secondary">Walkthrough Showcase</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Interactive Space Invaders Engine -->
+  <script>
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      initInvaders();
+    });
+
+    // Player Ship
+    const player = {
+      x: width / 2,
+      y: height - 60,
+      w: 36,
+      h: 20,
+      speed: 7
+    };
+
+    let bullets = [];
+    let invaders = [];
+    let invaderDir = 1;
+    const invaderRows = 4;
+    const invaderCols = 10;
+    const invaderSize = 22;
+
+    function initInvaders() {
+      invaders = [];
+      const spacingX = Math.min(60, width / (invaderCols + 2));
+      const startX = (width - invaderCols * spacingX) / 2;
+      for (let r = 0; r < invaderRows; r++) {
+        for (let c = 0; c < invaderCols; c++) {
+          invaders.push({
+            x: startX + c * spacingX,
+            y: 80 + r * 45,
+            w: invaderSize,
+            h: invaderSize,
+            alive: true
+          });
+        }
+      }
+    }
+
+    initInvaders();
+
+    // Controls
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      // Prevent browser viewport from scrolling when playing
+      if (['Space', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+        e.preventDefault();
+      }
+      keys[e.code] = true;
+      if (e.code === 'Space') {
+        bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 10 });
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+    });
+
+    function update() {
+      // Move Player
+      if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
+      if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
+      player.x = Math.max(10, Math.min(width - player.w - 10, player.x));
+      player.y = height - 60;
+
+      // Update Bullets
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        bullets[i].y -= 9;
+        if (bullets[i].y < 0) bullets.splice(i, 1);
+      }
+
+      // Update Invaders
+      let edgeReached = false;
+      invaders.forEach((inv) => {
+        if (!inv.alive) return;
+        inv.x += invaderDir * 0.8;
+        if (inv.x + inv.w > width - 20 || inv.x < 20) edgeReached = true;
+      });
+
+      if (edgeReached) {
+        invaderDir *= -1;
+        invaders.forEach((inv) => {
+          inv.y += 15;
+          if (inv.y > height - 120) initInvaders();
+        });
+      }
+
+      // Bullet / Invader Collision
+      bullets.forEach((b, bIdx) => {
+        invaders.forEach((inv) => {
+          if (inv.alive && b.x < inv.x + inv.w && b.x + b.w > inv.x && b.y < inv.y + inv.h && b.y + b.h > inv.y) {
+            inv.alive = false;
+            bullets.splice(bIdx, 1);
+          }
+        });
+      });
+
+      // Respawn if all dead
+      if (invaders.length > 0 && invaders.every((inv) => !inv.alive)) {
+        setTimeout(initInvaders, 1000);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw Player Ship (Retro Polygon)
+      ctx.fillStyle = '#00ffaa';
+      ctx.beginPath();
+      ctx.moveTo(player.x + player.w / 2, player.y);
+      ctx.lineTo(player.x + player.w, player.y + player.h);
+      ctx.lineTo(player.x, player.y + player.h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw Bullets
+      ctx.fillStyle = '#38bdf8';
+      bullets.forEach((b) => {
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+      });
+
+      // Draw Invaders
+      invaders.forEach((inv) => {
+        if (!inv.alive) return;
+        ctx.fillStyle = '#ff0055';
+        ctx.fillRect(inv.x, inv.y, inv.w, inv.h);
+        // Retro invader pixel eyes
+        ctx.fillStyle = '#07090e';
+        ctx.fillRect(inv.x + 3, inv.y + 4, 4, 4);
+        ctx.fillRect(inv.x + inv.w - 7, inv.y + 4, 4, 4);
+      });
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>
