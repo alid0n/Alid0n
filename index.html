@@ -14,9 +14,16 @@ let width = (canvas.width = window.innerWidth);
 let height = (canvas.height = window.innerHeight);
 let isPlayingMobileGame = false;
 
+// FIX: single source of truth for "is there actually a game running right now".
+// Every place that dims the portfolio or fades in the canvas checks this first,
+// so the "boring" theme can never trigger the fade mechanic through any path.
+function isGameActive() {
+  return currentTheme !== 'boring';
+}
+
 mobileGameToggle.addEventListener('click', () => {
   // FIX: don't let the mobile toggle do anything in "boring" mode — there's no game to play.
-  if (currentTheme === 'boring') return;
+  if (!isGameActive()) return;
 
   isPlayingMobileGame = !isPlayingMobileGame;
   if (isPlayingMobileGame) {
@@ -100,7 +107,7 @@ window.addEventListener('keydown', (e) => {
   if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
     // FIX: only dim the portfolio if a real game is running (not "boring" mode) and
     // we're not already in dedicated mobile-game mode (which handles its own dimming).
-    if (!isPlayingMobileGame && currentTheme !== 'boring') {
+    if (!isPlayingMobileGame && isGameActive()) {
       contentWrapper.classList.add('dimmed');
       canvas.classList.remove('faded');
     }
@@ -911,6 +918,10 @@ themeSelect.addEventListener('change', (e) => {
     isPlayingMobileGame = false;
     restorePortfolioFocus();
   }
+
+  // FIX: there's nothing to play in "boring" mode, so hide the mobile play
+  // control entirely rather than leaving a button that silently does nothing.
+  mobileGameToggle.style.display = isGameActive() ? '' : 'none';
 });
 
 initInvaders(true);
