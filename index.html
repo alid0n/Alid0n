@@ -304,6 +304,132 @@
       padding: 4px 6px;
     }
 
+    .skills-row-wrap {
+      margin-top: 18px;
+    }
+
+    .skills-toggle-all {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      opacity: 0.75;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 8px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .skills-toggle-all:hover {
+      opacity: 1;
+    }
+
+    .skills-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .skill-tag {
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 5px;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      transition: width 0.35s ease, background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .skill-tag:hover {
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .skill-tag.expanded {
+      white-space: normal;
+      background: #38bdf8;
+      border-color: #38bdf8;
+      color: #051524;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.55);
+    }
+
+    .skill-tag .skill-icon {
+      margin-right: 5px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+    }
+
+    .skill-tag .skill-name {
+      font-weight: 700;
+    }
+
+    .skill-tag .skill-detail {
+      font-weight: 500;
+      margin-left: 6px;
+    }
+
+    /* Lazy-loaded video thumbnails: a static poster image + play button take
+       the place of the iframe until clicked, so pages with several embeds
+       don't pay YouTube's load cost for videos nobody watches. */
+    .yt-lazy {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      background: #000;
+    }
+
+    .yt-lazy .yt-thumb {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .yt-lazy .yt-play-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.65);
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+
+    .yt-lazy:hover .yt-play-btn {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #05100c;
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+
     .game-hint {
       font-family: 'Press Start 2P', monospace;
       font-size: 10px;
@@ -818,6 +944,23 @@
         <a href="https://www.youtube.com/@AlidonDev" target="_blank" class="btn btn-secondary">Developer YouTube</a>
         <a href="https://www.youtube.com/@Alidon" target="_blank" class="btn btn-secondary">Community YouTube</a>
         <a href="mailto:alid0ndev@gmail.com" class="btn btn-secondary">Contact Me</a>
+        <!-- TODO: replace Resume.pdf with the actual filename/path of your resume once it's uploaded alongside this page -->
+        <a href="Resume.pdf" download class="btn btn-primary">Download Resume</a>
+      </div>
+
+      <div class="skills-row-wrap">
+        <span class="pixel-tag">&gt; CORE SKILLS</span>
+        <button type="button" id="skillsToggleAll" class="skills-toggle-all">+ Tap to expand all Skills</button>
+        <div class="skills-row">
+          <span class="skill-tag" data-name="Unreal Engine" data-detail="C++ and Blueprint gameplay systems, actor components, and marketplace-ready tools built for the FAB marketplace."><span class="skill-icon">+</span><span class="skill-name">Unreal Engine</span></span>
+          <span class="skill-tag" data-name="Animation" data-detail="Proficient in animation state machines, procedural animation, and animation software such as akeytsu."><span class="skill-icon">+</span><span class="skill-name">Animation</span></span>
+          <span class="skill-tag" data-name="AI &amp; Gameplay Systems" data-detail="Behavior trees, state-driven AI, taming and companion systems, and modular gameplay components."><span class="skill-icon">+</span><span class="skill-name">AI &amp; Gameplay Systems</span></span>
+          <span class="skill-tag" data-name="Materials &amp; VFX" data-detail="Dynamic material parameters, vertex shader effects, and performance-conscious particle systems."><span class="skill-icon">+</span><span class="skill-name">Materials &amp; VFX</span></span>
+          <span class="skill-tag" data-name="Multiplayer &amp; Replication" data-detail="Networked gameplay systems architected for open-world and survival titles."><span class="skill-icon">+</span><span class="skill-name">Multiplayer &amp; Replication</span></span>
+          <span class="skill-tag" data-name="Papyrus Scripting" data-detail="Custom quest logic, activators, merchants, and companion AI built in Bethesda's Creation Kit."><span class="skill-icon">+</span><span class="skill-name">Papyrus Scripting</span></span>
+          <span class="skill-tag" data-name="Tools &amp; Hardware" data-detail="CAD design, 3D printing, and embedded Linux systems, including a fully custom cyberdeck build."><span class="skill-icon">+</span><span class="skill-name">Tools &amp; Hardware</span></span>
+          <span class="skill-tag" data-name="Cross-Platform Input" data-detail="Enhanced Input framework, adaptive touch UI, and multi-platform control schemes."><span class="skill-icon">+</span><span class="skill-name">Cross-Platform Input</span></span>
+        </div>
       </div>
     </header>
 
@@ -844,7 +987,10 @@
         </div>
         <div class="card-video-embed">
           <div class="video-frame-wrap">
-            <iframe src="https://www.youtube.com/embed/a446o9t0s6g" title="Advanced Swim Component Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div class="yt-lazy" data-video-id="a446o9t0s6g" data-title="Advanced Swim Component Demo">
+              <img class="yt-thumb" src="https://img.youtube.com/vi/a446o9t0s6g/hqdefault.jpg" alt="Advanced Swim Component Demo thumbnail" loading="lazy">
+              <div class="yt-play-btn">&#9658;</div>
+            </div>
           </div>
         </div>
         <div class="card-expanded-drawer">
@@ -859,13 +1005,16 @@
             <div class="drawer-media-item">
               <div class="video-frame-wrap">
                 <!-- TODO: swap YOUR_SECOND_VIDEO_ID for the second Swim Component demo's YouTube ID -->
-                <iframe src="https://www.youtube.com/embed/YOUR_SECOND_VIDEO_ID" title="Advanced Swim Component - Additional Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <div class="yt-lazy" data-video-id="0ANfFciSg38" data-title="Advanced Swim Component - Additional Demo">
+                  <img class="yt-thumb" src="https://www.youtube.com/embed/0ANfFciSg38?si=PmLp5JLp3syNEWVn&amp;start=125" alt="Advanced Swim Component - Additional Demo thumbnail" loading="lazy">
+                  <div class="yt-play-btn">&#9658;</div>
+                </div>
               </div>
               <div class="drawer-media-label">Additional Demo</div>
             </div>
             <div class="drawer-media-item">
               <!-- TODO: swap SwimComponent.gif for your actual gif filename -->
-              <img src="SwimComponent.gif" alt="Advanced Swim Component gameplay GIF" loading="lazy">
+              <img src="SwimAnim.gif" alt="Creating animations in Akeytsu" loading="lazy">
               <div class="drawer-media-label">Gameplay GIF</div>
             </div>
           </div>
@@ -888,7 +1037,10 @@
         </div>
         <div class="card-video-embed">
           <div class="video-frame-wrap">
-            <iframe src="https://www.youtube.com/embed/hm9g9Bye_yc" title="Easy Taming Component Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div class="yt-lazy" data-video-id="hm9g9Bye_yc" data-title="Easy Taming Component Demo">
+              <img class="yt-thumb" src="https://img.youtube.com/vi/hm9g9Bye_yc/hqdefault.jpg" alt="Easy Taming Component Demo thumbnail" loading="lazy">
+              <div class="yt-play-btn">&#9658;</div>
+            </div>
           </div>
         </div>
         <div class="card-expanded-drawer">
@@ -903,13 +1055,16 @@
             <div class="drawer-media-item">
               <div class="video-frame-wrap">
                 <!-- TODO: swap YOUR_SECOND_VIDEO_ID for the second Taming Component demo's YouTube ID -->
-                <iframe src="https://www.youtube.com/embed/YOUR_SECOND_VIDEO_ID" title="Easy Taming Component - Additional Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <!---div class="yt-lazy" data-video-id="YOUR_SECOND_VIDEO_ID" data-title="Easy Taming Component - Additional Demo">
+                  <img class="yt-thumb" src="https://img.youtube.com/vi/YOUR_SECOND_VIDEO_ID/hqdefault.jpg" alt="Easy Taming Component - Additional Demo thumbnail" loading="lazy">
+                  <div class="yt-play-btn">&#9658;</div>
+                </div>
               </div>
               <div class="drawer-media-label">Additional Demo</div>
             </div>
             <div class="drawer-media-item">
               <!-- TODO: swap TamingComponent.gif for your actual gif filename -->
-              <img src="TamingComponent.gif" alt="Easy Taming Component gameplay GIF" loading="lazy">
+              <img src="MountTame.gif" alt="Mountable Tame" loading="lazy">
               <div class="drawer-media-label">Gameplay GIF</div>
             </div>
           </div>
@@ -932,7 +1087,10 @@
         </div>
         <div class="card-video-embed">
           <div class="video-frame-wrap">
-            <iframe src="https://www.youtube.com/embed/nEdeVFSvEI4" title="Catalyst Dynamic Flame Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div class="yt-lazy" data-video-id="nEdeVFSvEI4" data-title="Catalyst Dynamic Flame Demo">
+              <img class="yt-thumb" src="https://img.youtube.com/vi/nEdeVFSvEI4/hqdefault.jpg" alt="Catalyst Dynamic Flame Demo thumbnail" loading="lazy">
+              <div class="yt-play-btn">&#9658;</div>
+            </div>
           </div>
         </div>
         <div class="card-expanded-drawer">
@@ -947,15 +1105,18 @@
             <div class="drawer-media-item">
               <div class="video-frame-wrap">
                 <!-- TODO: swap YOUR_SECOND_VIDEO_ID for the second Catalyst Dynamic Flame demo's YouTube ID -->
-                <iframe src="https://www.youtube.com/embed/YOUR_SECOND_VIDEO_ID" title="Catalyst Dynamic Flame - Additional Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <!--div class="yt-lazy" data-video-id="YOUR_SECOND_VIDEO_ID" data-title="Catalyst Dynamic Flame - Additional Demo">
+                  <img class="yt-thumb" src="https://img.youtube.com/vi/YOUR_SECOND_VIDEO_ID/hqdefault.jpg" alt="Catalyst Dynamic Flame - Additional Demo thumbnail" loading="lazy">
+                  <div class="yt-play-btn">&#9658;</div>
+                </div>
               </div>
               <div class="drawer-media-label">Additional Demo</div>
             </div>
             <div class="drawer-media-item">
               <!-- TODO: swap DynamicFlame.gif for your actual gif filename -->
-              <img src="DynamicFlame.gif" alt="Catalyst Dynamic Flame gameplay GIF" loading="lazy">
+              <!--img src="DynamicFlame.gif" alt="Catalyst Dynamic Flame gameplay GIF" loading="lazy">
               <div class="drawer-media-label">Gameplay GIF</div>
-            </div>
+              </div-->
           </div>
         </div>
       </div>
@@ -976,7 +1137,10 @@
         </div>
         <div class="card-video-embed">
           <div class="video-frame-wrap">
-            <iframe src="https://www.youtube.com/embed/-rIfqmx-ixo" title="Mobile Touch Controls Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div class="yt-lazy" data-video-id="-rIfqmx-ixo" data-title="Mobile Touch Controls Demo">
+              <img class="yt-thumb" src="https://img.youtube.com/vi/-rIfqmx-ixo/hqdefault.jpg" alt="Mobile Touch Controls Demo thumbnail" loading="lazy">
+              <div class="yt-play-btn">&#9658;</div>
+            </div>
           </div>
         </div>
         <div class="card-expanded-drawer">
@@ -991,13 +1155,16 @@
             <div class="drawer-media-item">
               <div class="video-frame-wrap">
                 <!-- TODO: swap YOUR_SECOND_VIDEO_ID for the second Mobile Touch Controls demo's YouTube ID -->
-                <iframe src="https://www.youtube.com/embed/YOUR_SECOND_VIDEO_ID" title="Mobile Touch Controls - Additional Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <div class="yt-lazy" data-video-id="kNEvKTPDR2w" data-title="Mobile Touch Controls - Additional Demo">
+                  <img class="yt-thumb" src="https://www.youtube.com/embed/kNEvKTPDR2w?si=u15maznYmlyjhkGG&amp;start=209" alt="Mobile Touch Controls - Additional Demo thumbnail" loading="lazy">
+                  <div class="yt-play-btn">&#9658;</div>
+                </div>
               </div>
               <div class="drawer-media-label">Additional Demo</div>
             </div>
             <div class="drawer-media-item">
               <!-- TODO: swap TouchControls.gif for your actual gif filename -->
-              <img src="TouchControls.gif" alt="Mobile Touch Controls gameplay GIF" loading="lazy">
+              <img src="MobileControlsDemo.gif" alt="Mobile Touch Controls Demo" loading="lazy">
               <div class="drawer-media-label">Gameplay GIF</div>
             </div>
           </div>
@@ -1006,9 +1173,9 @@
 
     </div>
 
-    <div class="section-title">OTHER PROJECTS</div>
+    <div class="section-title">FEATURED PROJECT</div>
     <div class="grid">
-      
+
       <!-- CARD 5: Skyrim Mod -->
       <div class="card card-with-video">
         <div class="card-info">
@@ -1025,7 +1192,10 @@
         </div>
         <div class="card-video-embed">
           <div class="video-frame-wrap">
-            <iframe src="https://www.youtube.com/embed/FScUhR7MjRw" title="Alidons Armory Mod" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div class="yt-lazy" data-video-id="FScUhR7MjRw" data-title="Alidons Armory Mod">
+              <img class="yt-thumb" src="https://img.youtube.com/vi/FScUhR7MjRw/hqdefault.jpg" alt="Alidons Armory Mod thumbnail" loading="lazy">
+              <div class="yt-play-btn">&#9658;</div>
+            </div>
           </div>
         </div>
         <div class="card-expanded-drawer">
@@ -1039,6 +1209,11 @@
           </ul>
         </div>
       </div>
+
+    </div>
+
+    <div class="section-title">OTHER PROJECTS</div>
+    <div class="grid">
 
       <!-- CARD 6: Custom Cyberdeck -->
       <div class="card card-with-video">
@@ -1073,15 +1248,16 @@
             <div class="drawer-media-item">
               <img src="CyberdeckCAD.JPG" alt="CAD Design" loading="lazy">
             </div>
-            <div class="drawer-gallery">
             <div class="drawer-media-item">
               <img src="CyberdeckTesting.JPG" alt="Early Testing" loading="lazy">
             </div>
-            
-            <!-- You can add more images or iframes here:
+            <!-- You can add more images or videos here, e.g.:
             <div class="drawer-media-item">
               <div class="video-frame-wrap">
-                <iframe src="https://www.youtube.com/embed/YOUR_ID" title="Cyberdeck Build Video" loading="lazy" allowfullscreen></iframe>
+                <div class="yt-lazy" data-video-id="YOUR_ID" data-title="Cyberdeck Build Video">
+                  <img class="yt-thumb" src="https://img.youtube.com/vi/YOUR_ID/hqdefault.jpg" alt="Cyberdeck Build Video thumbnail" loading="lazy">
+                  <div class="yt-play-btn">&#9658;</div>
+                </div>
               </div>
             </div> -->
           </div>
@@ -1107,6 +1283,84 @@
         btn.textContent = isOpen ? '[- Less Info]' : '[+ More Info]';
       });
     });
+
+    // Lazy-loaded video embeds: each .yt-lazy element shows a thumbnail +
+    // play button until clicked, at which point it's replaced with the real
+    // YouTube iframe (autoplaying). Keeps pages with several embeds from
+    // paying the load cost of every video up front.
+    document.querySelectorAll('.yt-lazy').forEach(el => {
+      el.addEventListener('click', function loadVideo() {
+        const id = el.dataset.videoId;
+        const title = el.dataset.title || 'Video';
+        el.outerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+      }, { once: true });
+    });
+
+    // Expandable skill tag handler: lock the tag at its current pixel
+    // width, swap the content, measure the new target width while still
+    // single-line, then animate the `width` property from old to new —
+    // that's what gives a smooth expansion/collapse instead of a jump.
+    document.querySelectorAll('.skill-tag').forEach(tag => {
+      const name = tag.dataset.name || tag.textContent.trim();
+      const detail = tag.dataset.detail || '';
+      const EXPANDED_CAP = 640;
+
+      tag.addEventListener('click', () => {
+        const expanding = !tag.classList.contains('expanded');
+        const startWidth = tag.getBoundingClientRect().width;
+
+        tag.style.width = startWidth + 'px';
+        tag.style.whiteSpace = 'nowrap';
+        void tag.offsetWidth; // force reflow so the width lock takes effect first
+
+        if (expanding) {
+          tag.innerHTML = `<span class="skill-icon">-</span><span class="skill-name">${name}:</span><span class="skill-detail">${detail}</span>`;
+        } else {
+          tag.innerHTML = `<span class="skill-icon">+</span><span class="skill-name">${name}</span>`;
+        }
+        tag.classList.toggle('expanded', expanding);
+
+        const targetWidth = Math.min(tag.scrollWidth, expanding ? EXPANDED_CAP : startWidth);
+        void tag.offsetWidth;
+        tag.style.width = targetWidth + 'px';
+
+        let finished = false;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          tag.removeEventListener('transitionend', onEnd);
+          tag.style.whiteSpace = expanding ? 'normal' : '';
+          if (!expanding) tag.style.width = '';
+        };
+        const onEnd = (e) => {
+          if (e.target !== tag || e.propertyName !== 'width') return;
+          finish();
+        };
+        tag.addEventListener('transitionend', onEnd);
+        // Fallback: if the start and target width happen to already match,
+        // no 'transitionend' event ever fires — finish cleanup anyway once
+        // the transition would have completed, so the tag never gets stuck.
+        setTimeout(finish, 400);
+      });
+    });
+
+    // Expand/minimize-all control: toggles every skill tag to match
+    // whichever state most of them aren't currently in, by re-using each
+    // tag's own click handler (and therefore its own smooth animation)
+    // rather than duplicating the expand/collapse logic here.
+    const skillsToggleAllBtn = document.getElementById('skillsToggleAll');
+    if (skillsToggleAllBtn) {
+      skillsToggleAllBtn.addEventListener('click', () => {
+        const tags = Array.from(document.querySelectorAll('.skill-tag'));
+        const shouldExpand = !tags.every(t => t.classList.contains('expanded'));
+        tags.forEach(t => {
+          if (t.classList.contains('expanded') !== shouldExpand) t.click();
+        });
+        skillsToggleAllBtn.textContent = shouldExpand
+          ? '- Tap to minimize all Skills'
+          : '+ Tap to expand all Skills';
+      });
+    }
 
     // Copy-to-clipboard button handler
     document.querySelectorAll('.copy-btn').forEach(btn => {
