@@ -1355,7 +1355,41 @@
 
   <script>
     // Expandable 'More Info' drawer toggles
+// Helper function to close a card's drawer
+    function closeCardDrawer(card) {
+      const drawer = card.querySelector('.card-expanded-drawer');
+      const btn = card.querySelector('.more-info-btn');
+      if (!drawer || !drawer.classList.contains('open')) return;
+
+      drawer.classList.remove('open');
+      if (btn) {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.textContent = '[+ More Info]';
+      }
+    }
+
+    // Toggle drawer on button click
     document.querySelectorAll('.more-info-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = btn.closest('.card');
+        const drawer = card.querySelector('.card-expanded-drawer');
+        if (!drawer) return;
+
+        const isOpen = drawer.classList.toggle('open');
+        btn.classList.toggle('active', isOpen);
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        btn.textContent = isOpen ? '[- Less Info]' : '[+ More Info]';
+      });
+    });
+
+    // Automatically collapse drawer when mouse leaves the card
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('mouseleave', () => {
+        closeCardDrawer(card);
+      });
+    });
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const card = btn.closest('.card');
