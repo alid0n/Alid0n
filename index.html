@@ -128,12 +128,6 @@
       transition: opacity 0.25s ease;
     }
 
-    .content-wrapper.fully-hidden {
-      opacity: 0 !important;
-      pointer-events: none;
-      transition: opacity 1s ease;
-    }
-
     .header-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -599,11 +593,8 @@
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
     let isPlayingMobileGame = false;
-    let activeGameTimer = null;
-    let totalGameTimeCounter = 0;
 
     mobileGameToggle.addEventListener('click', () => {
-      if (currentTheme === 'boring') return;
       isPlayingMobileGame = !isPlayingMobileGame;
       if (isPlayingMobileGame) {
         mobileGameToggle.textContent = 'QUIT';
@@ -611,38 +602,22 @@
         contentWrapper.classList.add('dimmed');
         canvas.classList.remove('faded');
         touchControls.classList.add('active');
-        startActiveGameTimer();
       } else {
         restorePortfolioFocus();
       }
     });
 
-    function startActiveGameTimer() {
-      clearInterval(activeGameTimer);
-      totalGameTimeCounter = 0;
-      activeGameTimer = setInterval(() => {
-        if (isPlayingMobileGame) {
-          totalGameTimeCounter++;
-          // If in game mode more than 10 seconds, totally fade the portfolio
-          if (totalGameTimeCounter >= 10) {
-            contentWrapper.classList.add('fully-hidden');
-          }
-        }
-      }, 1000);
-    }
-
     function restorePortfolioFocus() {
-      clearInterval(activeGameTimer);
-      totalGameTimeCounter = 0;
+      if (isPlayingMobileGame) return;
       isPlayingMobileGame = false;
       mobileGameToggle.textContent = 'PLAY GAME';
       mobileGameToggle.classList.remove('playing');
-      contentWrapper.classList.remove('dimmed', 'fully-hidden');
+      contentWrapper.classList.remove('dimmed');
       canvas.classList.add('faded');
       touchControls.classList.remove('active');
     }
 
-    // Mouse movement or scrolling sets game mode back to inactive and restores portfolio view
+    // Mouse movement or scrolling unfades the portfolio back to reading mode
     window.addEventListener('wheel', restorePortfolioFocus, { passive: true });
     window.addEventListener('scroll', restorePortfolioFocus, { passive: true });
     window.addEventListener('mousedown', restorePortfolioFocus, { passive: true });
@@ -696,6 +671,13 @@
     bindTouchButton('btnAction', 'Space');
 
     window.addEventListener('keydown', (e) => {
+      if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
+        if (!isPlayingMobileGame) {
+          contentWrapper.classList.add('dimmed');
+          canvas.classList.remove('faded');
+        }
+      }
+
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
         e.preventDefault();
       }
@@ -1185,72 +1167,36 @@
       racerScore += Math.floor(racer.speed * 3);
 
       if (Math.random() < 0.035 && meteors.length < 4) {
-        meteors.push({
-          x: Math.random() * width,
-          y: Math.random() * (height * 0.3),
-          len: 60 + Math.random() * 50,
-          speed: 12 + Math.random() * 8,
-          alpha: 1.0
-        });
+        meteors.push({ x: Math.random() * width, y: Math.random() * (height * 0.3), len: 80, speed: 16, alpha: 1.0 });
       }
-
       for (let i = meteors.length - 1; i >= 0; i--) {
-        const m = meteors[i];
-        m.x -= m.speed * 1.4;
-        m.y += m.speed * 0.7;
-        m.alpha -= 0.025;
+        const m = meteors[i]; m.x -= m.speed * 1.4; m.y += m.speed * 0.7; m.alpha -= 0.03;
         if (m.alpha <= 0) meteors.splice(i, 1);
       }
-
       trafficCars.forEach(car => {
-        car.z -= (racer.speed * 6 + car.speed * 2);
+        car.z -= (racer.speed * 7 + car.speed * 3);
         if (car.z < 20) {
-          if (Math.abs(car.x - racer.playerX) < 0.28) {
-            racer.speed = 0.5;
-            racerScore = Math.max(0, racerScore - 250);
-          }
-          car.z = 800 + Math.random() * 200;
-          car.x = (Math.random() * 1.6) - 0.8;
+          if (Math.abs(car.x - racer.playerX) < 0.3) { racer.speed = 0.8; racerScore = Math.max(0, racerScore - 150); }
+          car.z = 750 + Math.random() * 150; car.x = (Math.random() * 1.6) - 0.8;
         }
       });
     }
 
     function drawSynthRacer() {
       const horizonY = height * 0.46;
-
       const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
-      skyGrad.addColorStop(0, '#090214');
-      skyGrad.addColorStop(0.7, '#240738');
-      skyGrad.addColorStop(1, '#ff007f');
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, width, horizonY);
+      skyGrad.addColorStop(0, '#090214'); skyGrad.addColorStop(0.7, '#240738'); skyGrad.addColorStop(1, '#ff007f');
+      ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, width, horizonY);
 
-      meteors.forEach((m) => {
-        ctx.save();
-        ctx.strokeStyle = `rgba(0, 255, 255, ${m.alpha})`;
-        ctx.shadowColor = '#00ffff';
-        ctx.shadowBlur = 10;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(m.x, m.y);
-        ctx.lineTo(m.x + m.len, m.y - m.len * 0.5);
-        ctx.stroke();
-        ctx.restore();
+      meteors.forEach(m => {
+        ctx.save(); ctx.strokeStyle = `rgba(0, 255, 255, ${m.alpha})`; ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 10; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x + m.len, m.y - m.len * 0.5); ctx.stroke(); ctx.restore();
       });
 
-      const sunRadius = Math.min(width, height) * 0.18;
-      const sunX = width / 2;
-      const sunY = horizonY - 20;
-
+      const sunRadius = Math.min(width, height) * 0.18, sunX = width / 2, sunY = horizonY - 20;
       const sunGrad = ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
-      sunGrad.addColorStop(0, '#ffee55');
-      sunGrad.addColorStop(0.6, '#ff007f');
-      sunGrad.addColorStop(1, '#7900ff');
-
-      ctx.fillStyle = sunGrad;
-      ctx.beginPath();
-      ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
-      ctx.fill();
+      sunGrad.addColorStop(0, '#ffee55'); sunGrad.addColorStop(0.6, '#ff007f'); sunGrad.addColorStop(1, '#7900ff');
+      ctx.fillStyle = sunGrad; ctx.beginPath(); ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2); ctx.fill();
 
       ctx.fillStyle = '#090214';
       for (let i = 0; i < 7; i++) {
@@ -1258,146 +1204,58 @@
         if (sliceY < horizonY) ctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
       }
 
-      ctx.fillStyle = '#170529';
-      ctx.beginPath();
-      ctx.moveTo(0, horizonY);
-      for (let mx = 0; mx <= width; mx += 30) {
-        const peak = Math.sin(mx * 0.008) * 60 + Math.cos(mx * 0.02) * 30;
-        ctx.lineTo(mx, horizonY - Math.abs(peak));
-      }
-      ctx.lineTo(width, horizonY);
-      ctx.closePath();
-      ctx.fill();
+      ctx.fillStyle = '#170529'; ctx.beginPath(); ctx.moveTo(0, horizonY);
+      for (let mx = 0; mx <= width; mx += 30) { ctx.lineTo(mx, horizonY - Math.abs(Math.sin(mx * 0.008) * 60)); }
+      ctx.lineTo(width, horizonY); ctx.closePath(); ctx.fill();
 
-      ctx.fillStyle = '#0d0218';
-      ctx.strokeStyle = 'rgba(255, 0, 128, 0.5)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(0, horizonY);
-      for (let mx = 0; mx <= width; mx += 40) {
-        const peak = Math.sin(mx * 0.02) * 45 + Math.cos(mx * 0.05) * 20;
-        ctx.lineTo(mx, horizonY - Math.abs(peak));
-      }
-      ctx.lineTo(width, horizonY);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fillStyle = '#0d0218'; ctx.strokeStyle = 'rgba(255, 0, 128, 0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, horizonY);
+      for (let mx = 0; mx <= width; mx += 40) { ctx.lineTo(mx, horizonY - Math.abs(Math.sin(mx * 0.02) * 45)); }
+      ctx.lineTo(width, horizonY); ctx.closePath(); ctx.fill(); ctx.stroke();
 
       const groundGrad = ctx.createLinearGradient(0, horizonY, 0, height);
-      groundGrad.addColorStop(0, '#10021c');
-      groundGrad.addColorStop(1, '#05000a');
-      ctx.fillStyle = groundGrad;
-      ctx.fillRect(0, horizonY, width, height - horizonY);
+      groundGrad.addColorStop(0, '#10021c'); groundGrad.addColorStop(1, '#05000a');
+      ctx.fillStyle = groundGrad; ctx.fillRect(0, horizonY, width, height - horizonY);
 
-      ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)'; ctx.lineWidth = 1.5;
       for (let z = 10; z < 600; z += 30) {
         const effectiveZ = (z - racer.roadOffset + 600) % 600;
         if (effectiveZ <= 5) continue;
         const lineY = horizonY + (height - horizonY) * (40 / effectiveZ);
-        if (lineY > horizonY && lineY < height) {
-          ctx.beginPath();
-          ctx.moveTo(0, lineY);
-          ctx.lineTo(width, lineY);
-          ctx.stroke();
-        }
+        if (lineY > horizonY && lineY < height) { ctx.beginPath(); ctx.moveTo(0, lineY); ctx.lineTo(width, lineY); ctx.stroke(); }
       }
 
       const roadCenterHorizon = width / 2 - (racer.playerX * 80);
       const roadBottomCenter = width / 2 - (racer.playerX * (width * 0.5));
       const roadBottomWidth = width * 1.1;
 
-      ctx.strokeStyle = '#00ffff';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = '#00ffff';
-      ctx.shadowBlur = 10;
-
-      ctx.beginPath();
-      ctx.moveTo(roadCenterHorizon - 30, horizonY);
-      ctx.lineTo(roadBottomCenter - roadBottomWidth / 2, height);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(roadCenterHorizon + 30, horizonY);
-      ctx.lineTo(roadBottomCenter + roadBottomWidth / 2, height);
-      ctx.stroke();
-
-      ctx.strokeStyle = '#ff007f';
-      ctx.shadowColor = '#ff007f';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(roadCenterHorizon, horizonY);
-      ctx.lineTo(roadBottomCenter, height);
-      ctx.stroke();
+      ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 3; ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.moveTo(roadCenterHorizon - 30, horizonY); ctx.lineTo(roadBottomCenter - roadBottomWidth / 2, height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(roadCenterHorizon + 30, horizonY); ctx.lineTo(roadBottomCenter + roadBottomWidth / 2, height); ctx.stroke();
       ctx.shadowBlur = 0;
 
       trafficCars.forEach((c) => {
         if (c.z > 20 && c.z < 750) {
-          const depthScale = 60 / c.z;
-          const carY = horizonY + (height - horizonY) * depthScale;
+          const depthScale = 60 / c.z, carY = horizonY + (height - horizonY) * depthScale;
           const carScreenX = roadCenterHorizon + (c.x * width * 0.45 * depthScale);
-          const carW = 120 * depthScale;
-          const carH = 50 * depthScale;
-
+          const carW = 120 * depthScale, carH = 50 * depthScale;
           if (carY > horizonY && carY < height - 40) {
-            ctx.fillStyle = c.color;
-            ctx.shadowColor = c.color;
-            ctx.shadowBlur = 10;
+            ctx.fillStyle = c.color; ctx.shadowColor = c.color; ctx.shadowBlur = 10;
             ctx.fillRect(carScreenX - carW / 2, carY - carH, carW, carH);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(carScreenX - carW * 0.38, carY - carH * 0.4, carW * 0.2, carH * 0.3);
-            ctx.fillRect(carScreenX + carW * 0.18, carY - carH * 0.4, carW * 0.2, carH * 0.3);
           }
         }
       });
       ctx.shadowBlur = 0;
 
-      ctx.fillStyle = '#0a0314';
-      ctx.strokeStyle = '#ff007f';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, height);
-      ctx.lineTo(width * 0.2, height - 75);
-      ctx.lineTo(width * 0.8, height - 75);
-      ctx.lineTo(width, height);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fillStyle = '#0a0314'; ctx.strokeStyle = '#ff007f'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, height); ctx.lineTo(width * 0.2, height - 75); ctx.lineTo(width * 0.8, height - 75); ctx.lineTo(width, height); ctx.closePath(); ctx.fill(); ctx.stroke();
 
-      ctx.fillStyle = '#00ffff';
-      ctx.font = '9px "Press Start 2P", monospace';
+      ctx.fillStyle = '#00ffff'; ctx.font = '9px "Press Start 2P", monospace';
       ctx.fillText(`SPEED: ${Math.round(racer.speed * 92)} MPH`, width * 0.22, height - 85);
 
       ctx.save();
-      const wheelX = width / 2;
-      const wheelY = height + 10;
-      ctx.translate(wheelX, wheelY);
-      ctx.rotate(racer.steerAngle);
-
-      ctx.strokeStyle = '#00ffff';
-      ctx.shadowColor = 'rgba(0, 255, 255, 0.9)';
-      ctx.shadowBlur = 10;
-      ctx.lineWidth = 14;
-      ctx.beginPath();
-      ctx.arc(0, 0, 110, Math.PI * 0.85, Math.PI * 2.15);
-      ctx.stroke();
-
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = '#ff007f';
-      ctx.beginPath();
-      ctx.moveTo(-110, 0);
-      ctx.lineTo(0, 0);
-      ctx.moveTo(110, 0);
-      ctx.lineTo(0, 0);
-      ctx.moveTo(0, 110);
-      ctx.lineTo(0, 0);
-      ctx.stroke();
-
-      ctx.fillStyle = '#0d0218';
-      ctx.beginPath();
-      ctx.arc(0, 0, 28, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
+      ctx.translate(width / 2, height + 10); ctx.rotate(racer.steerAngle);
+      ctx.strokeStyle = '#00ffff'; ctx.shadowColor = 'rgba(0, 255, 255, 0.9)'; ctx.shadowBlur = 10; ctx.lineWidth = 14;
+      ctx.beginPath(); ctx.arc(0, 0, 110, Math.PI * 0.85, Math.PI * 2.15); ctx.stroke();
       ctx.restore();
 
       drawHUD(racerScore, racerStartTime, null, '#ff007f');
