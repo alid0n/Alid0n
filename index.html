@@ -245,7 +245,6 @@
       font-size: 0.85rem;
     }
 
-    /* Enables highlighting on text badges */
     .badge {
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -354,10 +353,47 @@
       box-shadow: 0 12px 30px var(--accent-glow);
     }
 
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
     .card h3 {
       font-size: 1.15rem;
-      margin-bottom: 8px;
       color: #fff;
+      margin: 0;
+    }
+
+    .more-info-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 6px 9px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .more-info-btn:hover {
+      background: var(--accent);
+      color: #05100c;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .more-info-btn.active {
+      background: #ff0055;
+      border-color: #ff0055;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
     }
 
     .card p {
@@ -418,6 +454,85 @@
     }
 
     .card-video-embed iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    /* Expandable drawer styling */
+    .card-expanded-drawer {
+      width: 100%;
+      flex-basis: 100%;
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      animation: drawerSlide 0.25s ease-out;
+    }
+
+    .card-expanded-drawer.open {
+      display: flex;
+    }
+
+    @keyframes drawerSlide {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .drawer-subtitle {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .drawer-details-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .drawer-details-list li strong {
+      color: var(--text);
+    }
+
+    .drawer-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .drawer-media-item {
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #000;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    }
+
+    .drawer-media-item img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .drawer-media-item .video-frame-wrap {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+    }
+
+    .drawer-media-item iframe {
       position: absolute;
       top: 0;
       left: 0;
@@ -702,10 +817,14 @@
     <div class="section-title">ENGINE SYSTEMS &amp; MARKETPLACE ASSETS</div>
     <div class="grid">
       
+      <!-- CARD 1: Advanced Swim Component -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
-            <h3>Advanced Swim Component</h3>
+            <div class="card-header-row">
+              <h3>Advanced Swim Component</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
             <p>Procedural swimming framework featuring dynamic water volume interaction, character buoyancy mechanics, and animation state machine transitions.</p>
           </div>
           <div class="card-links">
@@ -717,12 +836,24 @@
             <iframe src="https://www.youtube.com/embed/a446o9t0s6g" title="Advanced Swim Component Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
+        <div class="card-expanded-drawer">
+          <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
+          <ul class="drawer-details-list">
+            <li><strong>Buoyancy Simulation:</strong> Physics-based water surface volume detection with smooth entry/exit spline curves.</li>
+            <li><strong>Animation Integration:</strong> Pre-rigged blend spaces and state transitions for treading water, diving, sprinting, and vertical surfacing.</li>
+            <li><strong>Modular Design:</strong> Actor component architecture allowing drag-and-drop addition onto any standard character actor.</li>
+          </ul>
+        </div>
       </div>
 
+      <!-- CARD 2: Easy Taming Component -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
-            <h3>Easy Taming Component</h3>
+            <div class="card-header-row">
+              <h3>Easy Taming Component</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
             <p>Modular AI framework architected for creature interaction, dynamic taming states, behavioral transitions, and follower systems.</p>
           </div>
           <div class="card-links">
@@ -734,12 +865,24 @@
             <iframe src="https://www.youtube.com/embed/hm9g9Bye_yc" title="Easy Taming Component Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
+        <div class="card-expanded-drawer">
+          <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
+          <ul class="drawer-details-list">
+            <li><strong>AI State Controller:</strong> Wild, passive, aggressive, feeding, following, and commanded behavior trees.</li>
+            <li><strong>Taming Mechanics:</strong> Feed prompts, unconscious progression timers, and customizable affinity stats.</li>
+            <li><strong>Replication Ready:</strong> Built with multiplayer network sync in mind for open-world survival gameplay.</li>
+          </ul>
+        </div>
       </div>
 
+      <!-- CARD 3: Catalyst Dynamic Flame -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
-            <h3>Catalyst Dynamic Flame</h3>
+            <div class="card-header-row">
+              <h3>Catalyst Dynamic Flame</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
             <p>Real-time flammability and fire propagation component balanced for performance and draw-call efficiency across open environments.</p>
           </div>
           <div class="card-links">
@@ -751,12 +894,24 @@
             <iframe src="https://www.youtube.com/embed/nEdeVFSvEI4" title="Catalyst Dynamic Flame Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
+        <div class="card-expanded-drawer">
+          <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
+          <ul class="drawer-details-list">
+            <li><strong>Spread Mechanics:</strong> Proximity surface calculation with wind vector direction influencing ignition speed.</li>
+            <li><strong>Dynamic Materials:</strong> Vertex shader burning parameters and progressive procedural charring.</li>
+            <li><strong>Optimization:</strong> Batch particle handling and distance-culling draw calls for high-density foliage.</li>
+          </ul>
+        </div>
       </div>
 
+      <!-- CARD 4: Mobile Touch Controls -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
-            <h3>Mobile Touch Controls</h3>
+            <div class="card-header-row">
+              <h3>Mobile Touch Controls</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
             <p>Flexible, modular input bindings and onscreen touch interfaces designed for responsive multi-platform cross-play.</p>
           </div>
           <div class="card-links">
@@ -768,16 +923,28 @@
             <iframe src="https://www.youtube.com/embed/-rIfqmx-ixo" title="Mobile Touch Controls Demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
+        <div class="card-expanded-drawer">
+          <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
+          <ul class="drawer-details-list">
+            <li><strong>Adaptive UI:</strong> Dynamic floating joysticks, fixed D-pads, multi-touch gestures, and contextual action buttons.</li>
+            <li><strong>Input Subsystem:</strong> Built natively on Unreal Engine's Enhanced Input framework.</li>
+          </ul>
+        </div>
       </div>
 
     </div>
 
     <div class="section-title">OTHER PROJECTS</div>
     <div class="grid">
+      
+      <!-- CARD 5: Skyrim Mod -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
-            <h3>Alidon's Ultimate Armory &amp; Artifacts: Skyrim Mod</h3>
+            <div class="card-header-row">
+              <h3>Alidon's Ultimate Armory &amp; Artifacts: Skyrim Mod</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
             <p>Flagship gameplay mod featuring custom Papyrus scripting, responsive companion AI behaviors, dynamic activators, and interactive environments built in Bethesda's Creation Kit. Officially verified Bethesda Creation Club creator with over 15 million cross-platform downloads across PC, Xbox, and PlayStation.</p>
           </div>
           <div class="card-links">
@@ -789,16 +956,28 @@
             <iframe src="https://www.youtube.com/embed/FScUhR7MjRw" title="Alidons Armory Mod" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
+        <div class="card-expanded-drawer">
+          <span class="drawer-subtitle">&gt; MOD SPECIFICATIONS &amp; SCALE</span>
+          <ul class="drawer-details-list">
+            <li><strong>Downloads:</strong> Over 15,000,000+ downloads across Bethesda.net on PC, Xbox One/Series, and PlayStation 4/5.</li>
+            <li><strong>Custom Scripting:</strong> Complex Papyrus state logic driving custom merchant hubs, teleportation grids, transformation spells, and follower recruitment AI.</li>
+            <li><strong>World Design:</strong> Entirely bespoke subterranean realm housing organized weapon showcases, dynamic stat-boosting shrines, and test chambers.</li>
+          </ul>
+        </div>
       </div>
 
+      <!-- CARD 6: Custom Cyberdeck -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
-            <h3>Custom Cyberdeck PC</h3>
+            <div class="card-header-row">
+              <h3>Custom Cyberdeck PC</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
             <p>Custom portable field terminal engineered inside an Apache protective case, currently running Linux Pop!_OS. Built on the x86 LattePanda Sigma single-board computer, featuring custom 3D-printed internal chassis frames to house a dedicated battery hat, active cooling, trackball mouse, keyboard, and an onboard display. Includes exterior chassis breakouts that expose the USB, DC power, and even HDMI output for driving external monitors and projectors.</p>
           </div>
           <div class="card-links">
-            <!-- Add links if desired -->
+            <!-- Add any primary/secondary links here if desired -->
           </div>
         </div>
         <div class="card-video-embed">
@@ -806,12 +985,50 @@
             <img src="Cyberdeck.JPG" alt="Custom LattePanda Cyberdeck PC" loading="lazy" />
           </div>
         </div>
+        <div class="card-expanded-drawer">
+          <span class="drawer-subtitle">&gt; HARDWARE SPECIFICATIONS &amp; FABRICATION</span>
+          <ul class="drawer-details-list">
+            <li><strong>Compute:</strong> LattePanda Sigma (x86 architecture) running Linux Pop!_OS.</li>
+            <li><strong>Enclosure &amp; Chassis:</strong> Rugged Apache 2800 weather-resistant hard shell with custom CAD-designed 3D-printed internal support brackets.</li>
+            <li><strong>Peripherals:</strong> Integrated mechanical ortholinear keyboard, optical trackball mouse module, and integrated secondary status displays.</li>
+            <li><strong>I/O Breakouts:</strong> Chassis-mounted flush ports for HDMI 2.1, dual USB 3.0, Gigabit Ethernet, 3.5mm AUX, and barrel jack charging.</li>
+          </ul>
+          <!-- Placeholder gallery showing how to add more photos or videos into the drawer -->
+          <span class="drawer-subtitle" style="margin-top: 6px;">&gt; MEDIA &amp; CAD VIEWS</span>
+          <div class="drawer-gallery">
+            <div class="drawer-media-item">
+              <img src="Cyberdeck.JPG" alt="Chassis Internal Detail" loading="lazy">
+            </div>
+            <!-- You can add more images or iframes here:
+            <div class="drawer-media-item">
+              <div class="video-frame-wrap">
+                <iframe src="https://www.youtube.com/embed/YOUR_ID" title="Cyberdeck Build Video" loading="lazy" allowfullscreen></iframe>
+              </div>
+            </div> -->
+          </div>
+        </div>
       </div>
+
     </div>
 
   </div>
 
   <script>
+    // Expandable 'More Info' drawer toggles
+    document.querySelectorAll('.more-info-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = btn.closest('.card');
+        const drawer = card.querySelector('.card-expanded-drawer');
+        if (!drawer) return;
+
+        const isOpen = drawer.classList.toggle('open');
+        btn.classList.toggle('active', isOpen);
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        btn.textContent = isOpen ? '[- Less Info]' : '[+ More Info]';
+      });
+    });
+
     // Copy-to-clipboard button handler
     document.querySelectorAll('.copy-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
