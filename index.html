@@ -3,22 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Addison Warner | Alid0n - Technical Artist & Systems</title>
+  <title>Addison Warner | Alid0n - Technical Artist &amp; Systems</title>
 
-  <!-- FIX (suggestion): basic SEO + social preview tags were missing entirely,
-       so shared links showed no description/preview on Discord, Twitter, etc.
-       Replace the og:url / og:image values with your real deployed URL and a
-       hosted screenshot once this is live — og:image in particular must be a
-       real hosted image URL, not a data URI, for most crawlers to pick it up. -->
-  <meta name="description" content="Addison Warner (Alid0n) — Technical Artist & Unreal Engine Systems Specialist. Interactive portfolio with playable background games, marketplace assets, and modding work with 15M+ downloads.">
+  <meta name="description" content="Addison Warner (Alid0n) — Technical Artist &amp; Unreal Engine Systems Specialist. Interactive portfolio with playable background games, marketplace assets, and modding work with 15M+ downloads.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Addison Warner | Alid0n - Technical Artist & Systems">
+  <meta property="og:title" content="Addison Warner | Alid0n - Technical Artist &amp; Systems">
   <meta property="og:description" content="Interactive digital portfolio featuring playable background games, Unreal Engine marketplace assets, and modding work with 15M+ downloads.">
   <meta property="og:url" content="https://your-domain-here.com">
   <meta property="og:image" content="https://your-domain-here.com/preview.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Addison Warner | Alid0n - Technical Artist & Systems">
-  <meta name="twitter:description" content="Interactive digital portfolio featuring playable background games & previews of my work">
+  <meta name="twitter:title" content="Addison Warner | Alid0n - Technical Artist &amp; Systems">
+  <meta name="twitter:description" content="Interactive digital portfolio featuring playable background games &amp; previews of my work">
   <meta name="theme-color" content="#07090e">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2307090e'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' fill='%2300ffaa' text-anchor='middle'%3E%3E%3C/text%3E%3C/svg%3E">
 
@@ -146,16 +141,11 @@
       transition: opacity 0.25s ease;
     }
 
-    /* FIX (new feature): after 5s of sustained play, fade the portfolio the
-       rest of the way to fully invisible, on a slower/smoother transition
-       than the initial dim so it reads as a deliberate "fully in the game
-       now" moment rather than a snap. */
     .content-wrapper.fully-hidden {
       opacity: 0 !important;
       transition: opacity 1.2s ease;
     }
 
-    /* FIX (suggestion): accessible skip link, hidden until keyboard-focused */
     .skip-link {
       position: absolute;
       top: -60px;
@@ -255,17 +245,64 @@
       font-size: 0.85rem;
     }
 
+    /* Enables highlighting on text badges */
     .badge {
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      padding: 6px 12px;
+      padding: 6px 10px 6px 12px;
       border-radius: 6px;
       color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     .badge strong {
       color: var(--accent);
       transition: color 0.3s;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--accent);
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 6px;
+      font-size: 10px;
+      line-height: 1;
+      transition: all 0.15s ease;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent);
+      color: #05100c;
+      border-color: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .copy-btn svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
+      pointer-events: none;
+    }
+
+    .copy-btn.copied {
+      background: #00ffaa;
+      color: #05100c;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 4px 6px;
     }
 
     .game-hint {
@@ -337,10 +374,6 @@
       flex-wrap: wrap;
     }
 
-    /* FIX (requested): cards that include an embedded demo video span the
-       full grid row and lay their info + the embed out side-by-side
-       instead of stacking a link button, so the video is genuinely "next
-       to" the card content rather than one click away. */
     .card-with-video {
       grid-column: 1 / -1;
       flex-direction: row;
@@ -381,7 +414,7 @@
     .card-video-embed .video-frame-wrap {
       position: relative;
       width: 100%;
-      padding-top: 56.25%; /* 16:9 */
+      padding-top: 56.25%;
     }
 
     .card-video-embed iframe {
@@ -481,9 +514,6 @@
       display: none !important;
     }
 
-    /* FIX (requested): a level/wave jump control for testing, shown above
-       where the canvas HUD draws "SCORE:" (top-left) for the games that
-       have discrete levels. Hidden by default; JS shows it per-theme. */
     #levelSelector {
       position: fixed;
       top: 16px;
@@ -500,9 +530,6 @@
       backdrop-filter: blur(8px);
       box-shadow: 0 4px 20px rgba(0,0,0,0.6);
       display: none;
-      /* FIX (requested): grayed out/dim until actually interacted with, so
-         it doesn't compete for attention with the game; hovering or
-         focusing it (i.e. actually using it) brings it to full brightness. */
       opacity: 0.4;
       filter: grayscale(0.6);
       transition: opacity 0.2s ease, filter 0.2s ease;
@@ -608,20 +635,9 @@
 </head>
 <body>
 
-  <!-- FIX (suggestion): skip link for keyboard/screen-reader users so they
-       aren't forced to tab through the game toggle/touch controls first -->
   <a href="#contentWrapper" class="skip-link">Skip to portfolio content</a>
-
-  <!-- FIX (suggestion): the canvas is a decorative animated background (the
-       actual game interactions happen via global keyboard/button listeners,
-       not the canvas element itself), so it's hidden from assistive tech
-       and out of the tab order -->
   <canvas id="bgCanvas" class="faded" aria-hidden="true" tabindex="-1"></canvas>
-
   <button id="mobileGameToggle">PLAY GAME</button>
-
-  <!-- FIX (requested): level/wave jump selector for testing, shown for
-       Space Invasion, Retro Maze, Fantasy Quest, and Jungle Rumble only -->
   <select id="levelSelector" aria-label="Jump to level"></select>
 
   <div id="touchControls">
@@ -657,8 +673,18 @@
       <p class="subtitle">Technical Artist &amp; Unreal Engine Systems Specialist</p>
       
       <div class="status-bar">
-        <span class="badge">Discord: <strong>alid0n</strong></span>
-        <span class="badge">Email: <strong>alid0ndev@gmail.com</strong></span>
+        <span class="badge">
+          Discord: <strong id="discordHandle">alid0n</strong>
+          <button class="copy-btn" data-copy="alid0n" title="Copy Discord" aria-label="Copy Discord Handle">
+            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          </button>
+        </span>
+        <span class="badge">
+          Email: <strong id="emailAddress">alid0ndev@gmail.com</strong>
+          <button class="copy-btn" data-copy="alid0ndev@gmail.com" title="Copy Email" aria-label="Copy Email Address">
+            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          </button>
+        </span>
       </div>
 
       <div class="social-bar" style="justify-content: flex-start; margin-top: 20px;">
@@ -746,7 +772,7 @@
 
     </div>
 
-<div class="section-title">OTHER PROJECTS</div>
+    <div class="section-title">OTHER PROJECTS</div>
     <div class="grid">
       <div class="card card-with-video">
         <div class="card-info">
@@ -764,16 +790,15 @@
           </div>
         </div>
       </div>
-    </div>
 
-<div class="card card-with-video">
+      <div class="card card-with-video">
         <div class="card-info">
           <div>
             <h3>Custom Cyberdeck PC</h3>
             <p>Custom portable field terminal engineered inside an Apache protective case, currently running Linux Pop!_OS. Built on the x86 LattePanda Sigma single-board computer, featuring custom 3D-printed internal chassis frames to house a dedicated battery hat, active cooling, trackball mouse, keyboard, and an onboard display. Includes exterior chassis breakouts that expose the USB, DC power, and even HDMI output for driving external monitors and projectors.</p>
           </div>
           <div class="card-links">
-            <!-- Add any links if desired, or remove this div if not needed -->
+            <!-- Add links if desired -->
           </div>
         </div>
         <div class="card-video-embed">
@@ -782,9 +807,31 @@
           </div>
         </div>
       </div>
+    </div>
+
   </div>
 
   <script>
+    // Copy-to-clipboard button handler
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const text = btn.getAttribute('data-copy');
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+          const original = btn.innerHTML;
+          btn.classList.add('copied');
+          btn.textContent = 'COPIED!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = original;
+          }, 1500);
+        }).catch(err => {
+          console.error('Copy failed:', err);
+        });
+      });
+    });
+
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
     const contentWrapper = document.getElementById('contentWrapper');
@@ -794,27 +841,13 @@
     const touchControls = document.getElementById('touchControls');
     const levelSelector = document.getElementById('levelSelector');
 
-    // FIX (requested): shared 4-second "GAME OVER" freeze before a game
-    // resets, used by Space Invasion, Retro Maze, Fantasy Quest, and
-    // Jungle Rumble. triggerGameOver() schedules the reset rather than
-    // running it immediately; the main loop() checks gameOverTimer before
-    // running any game's update/draw and shows the overlay instead while
-    // it's counting down. triggerVictory() reuses the same freeze/overlay
-    // machinery for beating the final level, just with a different message.
-    // FIX (requested): each game's "final level" now matches where its own
-    // story actually ends, rather than one shared arbitrary number. Space
-    // Invasion and Retro Maze don't have bosses, so they keep the original
-    // level 10 cap; Fantasy Quest ends with the wizard (wave 7), and
-    // Jungle Rumble ends with the quetzalcoatlus, its last and biggest
-    // introduced dinosaur (level 4) — otherwise both would just keep
-    // repeating their final boss's level indefinitely with nothing new.
     const SPACE_FINAL_LEVEL = 10;
     const PAC_FINAL_LEVEL = 10;
     const RPG_FINAL_LEVEL = 7;
     const DINO_FINAL_LEVEL = 4;
     let gameOverTimer = 0, gameOverPendingReset = null, gameOverIsVictory = false, gameOverScore = 0;
     function triggerGameOver(resetFn) {
-      gameOverTimer = 240; // 4s at 60fps
+      gameOverTimer = 240;
       gameOverPendingReset = resetFn;
       gameOverIsVictory = false;
     }
@@ -857,16 +890,10 @@
     let height = (canvas.height = window.innerHeight);
     let isPlayingMobileGame = false;
 
-    // FIX: single source of truth for "is a game actually running right now".
-    // Every path that can dim the portfolio / bring the canvas forward checks
-    // this first, so the "boring" theme can never trigger the fade effect.
     function isGameActive() {
       return currentTheme !== 'boring';
     }
 
-    // FIX (new feature): tracks how long the portfolio has been dimmed so it
-    // can fade all the way to fully transparent after 5s of sustained play,
-    // rather than staying at the partial "dimmed" opacity forever.
     let gameFocusTimer = null;
 
     function enterGameFocus() {
@@ -874,9 +901,6 @@
         contentWrapper.classList.add('dimmed');
         canvas.classList.remove('faded');
       }
-      // Only start the countdown once per continuous play session — repeated
-      // calls (e.g. holding a key, or the keydown handler firing on every
-      // keystroke) must NOT keep pushing the 5s mark back.
       if (!gameFocusTimer) {
         gameFocusTimer = setTimeout(() => {
           contentWrapper.classList.add('fully-hidden');
@@ -886,8 +910,6 @@
     }
 
     mobileGameToggle.addEventListener('click', () => {
-      // FIX: no game to play in boring mode (CSS already hides this button then,
-      // but guard here too in case that ever changes).
       if (!isGameActive()) return;
 
       isPlayingMobileGame = !isPlayingMobileGame;
@@ -896,19 +918,12 @@
         mobileGameToggle.classList.add('playing');
         touchControls.classList.add('active');
         enterGameFocus();
-        // FIX (suggestion): lock background scrolling and swallow touchmove
-        // while actively playing on mobile — previously, dragging on the
-        // canvas (anywhere off the touch buttons) could scroll the page out
-        // from under the game.
         document.body.style.overflow = 'hidden';
       } else {
         restorePortfolioFocus();
       }
     });
 
-    // FIX (suggestion): companion to the overflow lock above — without this,
-    // a touchmove on the canvas itself could still scroll the page even with
-    // body overflow hidden on some mobile browsers.
     window.addEventListener('touchmove', (e) => {
       if (isPlayingMobileGame) e.preventDefault();
     }, { passive: false });
@@ -925,7 +940,6 @@
       if (gameFocusTimer) { clearTimeout(gameFocusTimer); gameFocusTimer = null; }
     }
 
-    // Mouse movement or scrolling unfades the portfolio back to reading mode
     window.addEventListener('wheel', restorePortfolioFocus, { passive: true });
     window.addEventListener('scroll', restorePortfolioFocus, { passive: true });
     window.addEventListener('mousedown', restorePortfolioFocus, { passive: true });
@@ -979,42 +993,16 @@
     bindTouchButton('btnAction', 'Space');
 
     window.addEventListener('keydown', (e) => {
-      // FIX: this is the real cause of the game randomly kicking back to
-      // Space Invasion. preventDefault() below stops most default browser
-      // key behavior, but a still-*focused* <select> element's native
-      // arrow-key value cycling isn't reliably cancelable that way in every
-      // browser (it's often handled as native OS list-box behavior rather
-      // than a standard cancelable default action). If the theme dropdown
-      // still had focus — e.g. right after picking a theme — pressing
-      // arrow keys to play could silently cycle it back toward "SPACE
-      // INVASION" and fire its change event. Blurring it the moment any
-      // game key is pressed removes that possibility at the source.
       if (document.activeElement === themeSelect) {
         themeSelect.blur();
       }
 
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
-        // FIX: previously dimmed the portfolio on any movement/action key press
-        // regardless of theme, so "BORING" mode (which has no active game) was
-        // still fading the portfolio away for nothing. Now it only dims when a
-        // real game is active. Routed through enterGameFocus() so this also
-        // starts the 5s-to-fully-transparent countdown.
         if (!isPlayingMobileGame && isGameActive()) {
           enterGameFocus();
         }
       }
 
-      // FIX: this is the real cause of the reported "died and it jumped to
-      // Space Invasion, then Sunset Chaser" bug. The blur-guard above only
-      // helps once an accidental change has already started; the actual
-      // trigger is the browser's native "type-ahead" behavior on a focused
-      // <select> — pressing a letter key jumps it to the next option whose
-      // label starts with that letter. RPG movement uses WASD, and "S" is
-      // the first letter of both "SPACE INVASION" and "SUNSET CHASER" —
-      // pressing S twice while panic-mashing keys during a death cycles
-      // through exactly that sequence. preventDefault() previously only
-      // covered Space/arrows, never the WASD keys, so this was never
-      // actually blocked before it could fire.
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
         e.preventDefault();
       }
@@ -1122,10 +1110,6 @@
         bullets.push({ x: cx - 6, y: player.y, w: 5, h: 10, vx: -2.5, vy: -9.5, damage: 1, color: '#00ffff' });
         bullets.push({ x: cx + 2, y: player.y, w: 5, h: 10, vx: 2.5, vy: -9.5, damage: 1, color: '#00ffff' });
       } else if (player.weapon === 'laser') {
-        // FIX (requested): the laser used to fire two thin bullets that
-        // traveled up the screen. Replaced with a single wide beam that
-        // spans the full height instantly and lingers for a few frames —
-        // a proper "burst" rather than a pair of fast-moving pellets.
         bullets.push({ x: cx - 5, y: 0, w: 10, h: player.y, vx: 0, vy: 0, damage: 1, color: '#ffee00', pierce: true, beam: true, life: 8 });
       } else if (player.weapon === 'plasma') {
         bullets.push({ x: cx - 5, y: player.y - 4, w: 10, h: 14, vx: 0, vy: -8, damage: 2, color: '#ff00ff' });
@@ -1133,15 +1117,11 @@
     }
 
     function spawnPowerup(x, y) {
-      // FIX (requested): spawn rate cut by 50% (0.35 -> 0.175).
       if (Math.random() > 0.175) return;
       const roll = Math.random();
       let kind = 'weapon', label = 'W', color = '#00ffff';
       if (roll < 0.15) { kind = 'life'; label = '+'; color = '#ff0055'; }
       else if (roll < 0.35) { kind = 'score'; label = '$'; color = '#ffeb3b'; }
-      // FIX (requested): new dedicated laser-beam powerup — distinct from
-      // the existing random weapon drop, always grants the laser, and only
-      // lasts 3.5s (210 frames at 60fps) before reverting to standard.
       else if (roll < 0.55) { kind = 'laserbeam'; label = 'L'; color = '#ffee00'; }
       powerups.push({ x, y, w: 20, h: 20, vy: 2.2, kind, label, color });
     }
@@ -1158,9 +1138,6 @@
       for (let i = bullets.length - 1; i >= 0; i--) {
         const b = bullets[i];
         b.x += b.vx || 0; b.y += b.vy;
-        // FIX: the beam bullet doesn't travel (vy: 0) since it already spans
-        // the full height on creation — it needs its own lifetime countdown
-        // instead of the usual off-screen check to know when to disappear.
         if (b.life !== undefined) {
           b.life--;
           if (b.life <= 0) { bullets.splice(i, 1); continue; }
@@ -1181,7 +1158,7 @@
             spaceScore += 150;
           } else if (p.kind === 'laserbeam') {
             player.weapon = 'laser';
-            player.weaponTimer = 210; // 3.5s at 60fps
+            player.weaponTimer = 210;
             spaceScore += 150;
           }
           powerups.splice(i, 1);
@@ -1252,8 +1229,6 @@
       }
 
       if (invaders.length > 0 && invaders.every(inv => !inv.alive)) {
-        // FIX (requested): beating the final level shows a Victory screen
-        // with the final score instead of continuing to spawn harder waves.
         if (spaceLevel >= SPACE_FINAL_LEVEL) {
           triggerVictory(() => initInvaders(true), spaceScore + 1000);
         } else {
@@ -1296,9 +1271,6 @@
       }
       bullets.forEach(b => {
         if (b.beam) {
-          // FIX (requested): render the new laser as a single glowing beam
-          // that fades out over its short lifetime, instead of a plain flat
-          // rectangle — reads more like a "burst" than a bullet.
           ctx.save();
           ctx.globalAlpha = Math.max(0.15, b.life / 8);
           ctx.fillStyle = b.color || '#ffee00';
@@ -1330,7 +1302,7 @@
 
     const pacMapBlueprint = [
       "############################",
-      "#............##............#",
+      "#.###########.##.#####.####.#",
       "#.####.#####.##.#####.####.#",
       "#O####.#####.##.#####.####O#",
       "#.####.#####.##.#####.####.#",
@@ -1389,10 +1361,6 @@
       const offsetX = Math.floor((width - cols * tileSize) / 2), offsetY = Math.floor((height - rows * tileSize) / 2);
       mazeBounds = { left: offsetX, right: offsetX + cols * tileSize, tileSize };
 
-      // FIX: the blueprint's ghost-pen gate is two cells wide ("--"), so
-      // gate cells are collected and merged into one wide gate below instead
-      // of letting the second cell silently overwrite the first (which was
-      // leaving only half the intended gate placed).
       let gateCells = [];
 
       for (let r = 0; r < rows; r++) {
@@ -1440,8 +1408,6 @@
           ghosts.forEach(g => { if (g.state === 'free') { g.dirX *= -1; g.dirY *= -1; } });
         }
       });
-      // FIX (requested): beating the final level shows a Victory screen
-      // with the final score instead of continuing to harder mazes.
       if (pellets.length > 0 && pellets.every(p => p.eaten)) {
         if (pacLevel >= PAC_FINAL_LEVEL) {
           triggerVictory(() => initPacGame(true), pacScore + 1000);
@@ -1549,15 +1515,9 @@
       if (fullReset) { racerScore = 0; racerStartTime = Date.now(); }
       racer.playerX = 0; racer.speed = 1.2; racer.roadOffset = 0; racer.steerAngle = 0; racer.crashInvuln = 0;
       trafficCars = []; meteors = [];
-      // FIX (performance, requested): fewer simultaneous traffic cars —
-      // each one costs a shadowBlur glow draw every frame, so cutting the
-      // count directly reduces per-frame cost.
       for (let i = 0; i < 3; i++) {
         trafficCars.push({ x: (Math.random() * 1.6) - 0.8, z: 200 + i * 220, color: i % 2 === 0 ? '#00e5ff' : '#ff007f', speed: 0.7 + Math.random() * 0.5 });
       }
-      // FIX (performance): gauge radius scales with canvas width, so a
-      // resize needs a freshly-sized cached bitmap rather than reusing (or
-      // endlessly accumulating) stale ones.
       gaugeFaceCache.clear();
     }
 
@@ -1565,8 +1525,6 @@
       if (racer.crashInvuln > 0) racer.crashInvuln--;
 
       let targetSteer = 0;
-      // FIX: widened steering rate slightly (0.035 -> 0.045) so lane changes
-      // are quick enough to actually dodge traffic once it's closing in fast.
       if (keys['ArrowLeft'] || keys['KeyA']) { racer.playerX = Math.max(-0.9, racer.playerX - 0.045); targetSteer = -0.5; }
       if (keys['ArrowRight'] || keys['KeyD']) { racer.playerX = Math.min(0.9, racer.playerX + 0.045); targetSteer = 0.5; }
       racer.steerAngle += (targetSteer - racer.steerAngle) * 0.18;
@@ -1584,23 +1542,11 @@
         if (m.alpha <= 0) meteors.splice(i, 1);
       }
       trafficCars.forEach(car => {
-        // FIX: this is the actual cause of "speed resets when it maxes out".
-        // Closing speed scaled directly with racer.speed * 7, so right as you
-        // approached the 2.8 cap, oncoming cars rushed in fast enough that
-        // dodging within the shrinking reaction window became close to
-        // impossible — you'd crash right as you hit top speed, every time.
-        // Toning down the scaling here gives a real, survivable window even
-        // at max speed.
         car.z -= (racer.speed * 5 + car.speed * 2.5);
         if (car.z < 20) {
           if (racer.crashInvuln <= 0 && Math.abs(car.x - racer.playerX) < 0.3) {
-            // FIX: a proportional penalty instead of a hard reset to a fixed
-            // floor, so a graze at high speed costs you speed but doesn't
-            // always feel like starting over from scratch.
             racer.speed = Math.max(0.8, racer.speed - 1.5);
             racerScore = Math.max(0, racerScore - 150);
-            // FIX: brief grace window so a tight cluster of oncoming cars
-            // can't chain-trigger multiple resets within the same moment.
             racer.crashInvuln = 45;
           }
           car.z = 750 + Math.random() * 150; car.x = (Math.random() * 1.6) - 0.8;
@@ -1608,16 +1554,6 @@
       });
     }
 
-    // FIX (performance): the gauges and wheel below use several shadowBlur
-    // glow effects — one of the most expensive operations in Canvas2D — and
-    // were being fully re-stroked/re-gradiented every single frame even
-    // though almost none of that geometry (bezel, tick marks, labels, rim,
-    // spokes) ever actually changes. This was the cause of the lag reported
-    // after the detail pass. Both are now rendered ONCE to small offscreen
-    // canvases and simply blitted (a cheap bitmap copy) each frame — only
-    // the moving needle and the live number readout are drawn fresh per
-    // frame, and without shadow blur, since they're small and simple enough
-    // not to need it.
     let gaugeFaceCache = new Map();
 
     function buildGaugeFace(radius, maxValue, label, accentColor) {
@@ -1676,9 +1612,6 @@
       return face;
     }
 
-    // A reusable retro analog gauge — circular bezel, tick marks, sweeping
-    // needle, and a digital readout underneath. Used for both the main
-    // speedometer and the decorative RPM gauge.
     function drawRetroGauge(cx, cy, radius, value, maxValue, label, accentColor) {
       const face = getGaugeFace(radius, maxValue, label, accentColor);
       ctx.drawImage(face, cx - face.width / 2, cy - face.height / 2);
@@ -1760,10 +1693,6 @@
       return off;
     }
 
-    // A proper 3-spoke steering wheel — layered rim (dark base + neon glow +
-    // chrome highlight), stitched grip texture, spokes converging on a lit
-    // hub with a small emblem. The static artwork is cached (see above);
-    // only the rotation changes per frame.
     function drawSteeringWheelDetailed(cx, cy, radius, angle) {
       if (!wheelFaceCache || wheelFaceCache.radius !== radius) {
         wheelFaceCache = { radius, canvas: buildWheelFace(radius) };
@@ -1810,12 +1739,6 @@
       groundGrad.addColorStop(0, '#10021c'); groundGrad.addColorStop(1, '#05000a');
       ctx.fillStyle = groundGrad; ctx.fillRect(0, horizonY, width, height - horizonY);
 
-      // FIX: the ground grid used a "40" depth constant while the cars below
-      // used "60" for the same z-to-screen-Y projection. That mismatch meant
-      // a car and a grid line at the *same* simulated distance didn't land
-      // at the same screen height — the cars looked mis-anchored to the
-      // road surface (like they were sinking beneath it) instead of resting
-      // on it. Pulling this into one shared constant used by both fixes that.
       const ROAD_DEPTH_K = 40;
 
       ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)'; ctx.lineWidth = 1.5;
@@ -1841,9 +1764,6 @@
           const carScreenX = roadCenterHorizon + (c.x * width * 0.45 * depthScale);
           const carW = 120 * depthScale, carH = 50 * depthScale;
           if (carY > horizonY && carY < height - 40) {
-            // FIX (performance, requested): trimmed the glow — shadowBlur
-            // cost scales with blur radius, so 10 -> 3 keeps a hint of glow
-            // at a fraction of the cost, across up to 3 cars every frame.
             ctx.fillStyle = c.color; ctx.shadowColor = c.color; ctx.shadowBlur = 3;
             ctx.fillRect(carScreenX - carW / 2, carY - carH, carW, carH);
           }
@@ -1851,12 +1771,6 @@
       });
       ctx.shadowBlur = 0;
 
-      // FIX (requested detail pass): the cockpit was just a flat dashboard
-      // shape, a line of plain text for speed, and a single bare arc for
-      // the wheel. Replaced with a textured dashboard (trim line, vents,
-      // blinking indicators, brand plaque), a real retro analog speedometer
-      // with tick marks and a needle, a matching decorative RPM gauge for
-      // symmetry, and a proper detailed steering wheel.
       const dashTopY = height - 75;
       ctx.fillStyle = '#0a0314'; ctx.strokeStyle = '#ff007f'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(0, height); ctx.lineTo(width * 0.2, dashTopY); ctx.lineTo(width * 0.8, dashTopY); ctx.lineTo(width, height); ctx.closePath(); ctx.fill(); ctx.stroke();
@@ -1880,7 +1794,6 @@
       drawRetroGauge(width * 0.22, height - 40, gaugeRadius * 0.7, racer.speed * 1900, 5000, 'RPM', '#ff007f');
 
       drawSteeringWheelDetailed(width / 2, height + 10, 110, racer.steerAngle);
-
       drawHUD(racerScore, racerStartTime, null, '#ff007f');
     }
 
@@ -1895,10 +1808,6 @@
 
     let obstacles = [], bridge = null, npcs = [], heroProjectiles = [], enemyProjectiles = [];
     let lootDrops = [], meleeSlash = null, groundDetails = [];
-    // FIX (requested): ground-targeted lightning strikes for the wizard —
-    // these are stationary telegraphed hazards rather than moving
-    // projectiles, so they get their own array instead of reusing
-    // enemyProjectiles.
     let lightningStrikes = [];
     let rpgScore = 0, rpgLives = 3, rpgWave = 1, rpgStartTime = Date.now(), rpgTicks = 0;
 
@@ -1956,17 +1865,7 @@
       if (rpgWave === 3) npcs.push({ type: 'spider', x: width * 0.78, y: height * 0.35, w: 48, h: 42, hp: 8, maxHp: 8, speed: 2.2, aggroRadius: 300, state: 'wander', webCooldown: 90, wanderDir: { x: -1, y: 0 }, wanderTimer: 60 });
       if (rpgWave === 4) npcs.push({ type: 'cyclops', x: width * 0.8, y: height * 0.4, w: 52, h: 56, hp: 12, maxHp: 12, speed: 1.3, aggroRadius: 320, smashCooldown: 100, state: 'wander', wanderDir: { x: -1, y: 0 }, wanderTimer: 80 });
       if (rpgWave === 5) npcs.push({ type: 'dragon', x: width * 0.75, y: height * 0.4, w: 74, h: 62, hp: 18, maxHp: 18, speed: 2.3, aggroRadius: 360, state: 'wander', isFlying: true, flightToggleTimer: 220, fireCooldown: 90, breathingFire: 0, facingX: -1, wanderDir: { x: -1, y: 0 }, wanderTimer: 90 });
-      // FIX (requested): the worm was the "final tier" boss (persisting
-      // from wave 6 onward) before the wizard was added as a new level
-      // after it — restricted to exactly wave 6 so the wizard has its own
-      // dedicated slot from wave 7 on, matching the one-boss-per-wave
-      // pattern used by spider/cyclops/dragon above.
       if (rpgWave === 6) npcs.push({ type: 'worm', x: width * 0.75, y: height * 0.45, w: 46, h: 46, hp: 20 + (rpgWave * 2), maxHp: 20 + (rpgWave * 2), speed: 2.4, aggroRadius: 400, state: 'emerged', burrowTimer: 140, surfaceTimer: 0, isBurrowed: false, animState: 'idle', animTimer: 0, facingX: -1, wanderDir: { x: -1, y: 0 }, wanderTimer: 70 });
-      // FIX (requested): new level after the worm — an evil wizard with
-      // four abilities on independent cooldowns: fireballs (frequent),
-      // healing (periodic, only when hurt), raising skeletons (rare,
-      // capped so it can't flood the field), and a lightning strike
-      // targeted at the player's position (rarest of the four).
       if (rpgWave >= 7) npcs.push({
         type: 'wizard', x: width * 0.78, y: height * 0.4, w: 30, h: 46,
         hp: 24, maxHp: 24, speed: 1.6, aggroRadius: 340, state: 'wander',
@@ -2068,11 +1967,6 @@
         if (l.lifetime <= 0) lootDrops.splice(i, 1);
       }
 
-      // FIX (requested): the wizard's lightning strike — a fixed
-      // ground-targeted hazard rather than a moving projectile. Telegraphs
-      // for ~0.65s at the spot the player was standing when it was cast,
-      // then damages them if they're still in the radius at the moment it
-      // actually strikes, then fades out.
       for (let i = lightningStrikes.length - 1; i >= 0; i--) {
         const ls = lightningStrikes[i];
         if (ls.state === 'telegraph') {
@@ -2103,10 +1997,6 @@
           npc.webCooldown = 100;
         }
 
-        // FIX: cyclops had an unused smashCooldown field with no attack
-        // behind it. It now winds up a telegraphed ground-slam when the hero
-        // gets close, then deals an AoE hit — dodgeable if you move away
-        // during the wind-up.
         if (npc.type === 'cyclops') {
           if (npc.smashState === 'telegraph') {
             if (--npc.smashTimer <= 0) {
@@ -2124,14 +2014,6 @@
           }
         }
 
-        // FIX: the dragon boss had fireCooldown/breathingFire/flightToggleTimer
-        // fields, and drawRPG() already knew how to render a "dragon_fire"
-        // projectile and draw the grounded-vs-flying color states — but
-        // nothing ever used these fields, so the ranged attack never fired
-        // and the dragon never landed. This wires up a brief wind-up
-        // (breathingFire) before it breathes fire, and a periodic toggle
-        // between flying and grounded (which also lets it collide with
-        // ground obstacles while landed, per the existing obstacle check).
         if (npc.type === 'dragon') {
           if (--npc.flightToggleTimer <= 0) {
             npc.isFlying = !npc.isFlying;
@@ -2149,14 +2031,6 @@
           }
         }
 
-        // FIX (requested): the evil wizard boss — four abilities, each on
-        // its own independent cooldown, only while it's aggro'd:
-        //   1. Fireballs — a straightforward ranged projectile.
-        //   2. Healing — only triggers if actually missing HP.
-        //   3. Raising skeletons — capped so it can't flood the field.
-        //   4. Lightning strike — its rarest ability by far (longest
-        //      cooldown), a telegraphed ground-targeted AoE at wherever
-        //      the player is standing when it's cast.
         if (npc.type === 'wizard') {
           if (npc.healFlashTimer > 0) npc.healFlashTimer--;
 
@@ -2202,19 +2076,10 @@
           } else {
             npc.speed = 3.6;
             if (npc.animState === 'burying' && --npc.animTimer <= 0) npc.animState = 'underground';
-            // FIX (suggestion): telegraph the worm's upcoming surface point.
-            // Previously it homed in at full speed underground with zero
-            // warning, making it hard to read/dodge compared to the other
-            // bosses. It now slows slightly and sets a flag (used by
-            // drawRPG to draw a warning ring tracking its position) during
-            // the last ~0.4s before it erupts.
             npc.telegraphing = npc.surfaceTimer <= 25;
             if (npc.telegraphing) npc.speed = 2.0;
             const tdx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), tdy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), tdist = Math.hypot(tdx, tdy) || 1;
             npc.x += (tdx / tdist) * npc.speed; npc.y += (tdy / tdist) * npc.speed;
-            // FIX (requested): remember which way it was homing so that
-            // when it resurfaces, its toothy maw faces the direction it
-            // was actually charging in rather than always facing one way.
             if (Math.abs(tdx) > 1) npc.facingX = tdx >= 0 ? 1 : -1;
             if (--npc.surfaceTimer <= 0) {
               npc.isBurrowed = false; npc.animState = 'unburying'; npc.animTimer = 35; npc.burrowTimer = 200; npc.telegraphing = false;
@@ -2224,9 +2089,6 @@
         }
 
         let moveX = 0, moveY = 0;
-        // FIX: without this, the cyclops would keep walking mid-slam, making
-        // the telegraph meaningless since its position wouldn't match where
-        // the impact ring lands.
         const cyclopsWindingUp = npc.type === 'cyclops' && (npc.smashState === 'telegraph' || npc.smashState === 'impact');
         if (!(npc.type === 'worm' && npc.isBurrowed) && npc.type !== 'worm' && !cyclopsWindingUp) {
           if (npc.state === 'aggro') {
@@ -2240,11 +2102,6 @@
             }
             moveX = npc.wanderDir.x * (npc.speed * 0.5); moveY = npc.wanderDir.y * (npc.speed * 0.5);
           }
-          // FIX (requested): the dragon always drew facing the same way
-          // regardless of whether it was chasing or wandering left. Now it
-          // (and the wizard, for consistency) mirrors to face whichever
-          // way it's actually moving — which, since both attack from their
-          // head/staff side, is also the direction they attack in.
           if ((npc.type === 'dragon' || npc.type === 'wizard') && Math.abs(moveX) > 0.05) {
             npc.facingX = moveX > 0 ? 1 : -1;
           }
@@ -2285,8 +2142,6 @@
         }
       }
 
-      // FIX (requested): beating the final level shows a Victory screen
-      // with the final score instead of continuing to harder waves.
       if (npcs.length === 0) {
         if (rpgWave >= RPG_FINAL_LEVEL) {
           triggerVictory(() => initRPGGame(true), rpgScore + 800);
@@ -2399,9 +2254,6 @@
           ctx.fillStyle = '#78350f'; ctx.fillRect(m.x + 28, m.y + 8, 3, 22);
           ctx.fillStyle = '#94a3b8'; ctx.fillRect(m.x + 26, m.y + 6, 7, 8);
         } else if (m.type === 'spider') {
-          // FIX (requested): legs made much longer, given a bent knee joint
-          // for a more spider-like silhouette, and animated with a
-          // staggered walking wave (per-leg phase offset) tied to rpgTicks.
           const cx = m.x + m.w / 2, cy = m.y + m.h / 2;
           const bodyRx = m.w / 2.6, bodyRy = m.h / 2.8;
 
@@ -2439,10 +2291,6 @@
           ctx.beginPath(); ctx.arc(cx - 4, cy - bodyRy * 0.55, 2, 0, Math.PI * 2); ctx.fill();
           ctx.beginPath(); ctx.arc(cx + 4, cy - bodyRy * 0.55, 2, 0, Math.PI * 2); ctx.fill();
         } else if (m.type === 'cyclops') {
-          // FIX (requested): replaced the single flat rectangle + eye with
-          // a proper humanoid silhouette — legs, a broader-shouldered
-          // torso, arms, a distinct head with a brow, one large eye, and
-          // tusks.
           const bx = m.x, by = m.y, bw = m.w, bh = m.h;
           ctx.fillStyle = '#5c2f0f';
           ctx.fillRect(bx + bw * 0.18, by + bh - 12, bw * 0.22, 12);
@@ -2494,11 +2342,6 @@
             ctx.restore();
           }
         } else if (m.type === 'dragon') {
-          // FIX (requested): now mirrors via m.facingX to actually face the
-          // direction it's moving/attacking, instead of always drawing
-          // facing the same way regardless of travel direction. Converted
-          // to local coordinates (translate + scale) to make that mirror
-          // possible.
           const bodyColor = m.isFlying ? '#dc2626' : '#991b1b';
           const wingColor = m.isFlying ? '#b91c1c' : '#7f1d1d';
           const bw = m.w, bh = m.h, hw = bw / 2, hh = bh / 2;
@@ -2576,10 +2419,6 @@
               ctx.restore();
             }
           } else {
-            // FIX (requested): now mirrors via m.facingX (set from its last
-            // homing direction while burrowed) so the toothy maw actually
-            // faces the direction it emerged/charged toward, instead of
-            // always pointing the same way.
             ctx.save();
             ctx.translate(m.x + m.w / 2, m.y + m.h / 2);
             ctx.scale(m.facingX || 1, 1);
@@ -2609,9 +2448,6 @@
             ctx.restore();
           }
         } else if (m.type === 'wizard') {
-          // FIX (requested): the new boss — a robed figure with a red
-          // pointy hat, a beard, and a staff whose orb glows purple
-          // normally and flashes green on the frames it heals itself.
           const w = m.w, h = m.h, hw = w / 2, hh = h / 2;
           ctx.save();
           ctx.translate(m.x + hw, m.y + hh);
@@ -2655,9 +2491,6 @@
         ctx.restore();
       });
 
-      // FIX (requested): the wizard's lightning strike visual — an
-      // expanding warning ring during the telegraph, then a jagged bolt
-      // from offscreen plus a fading flash at the moment it lands.
       lightningStrikes.forEach(ls => {
         if (ls.state === 'telegraph') {
           const t = 1 - (ls.timer / 40);
@@ -2703,11 +2536,6 @@
     // ==========================================
     // 5. JUNGLE RUMBLE ENGINE (DINO PLATFORMER)
     // ==========================================
-    // A simple single-screen platformer: gravity, jumping, and static
-    // platforms. Raptors actively hunt the monkey once it's nearby; the
-    // stegosaurus always just wanders its own platform back and forth
-    // regardless of where the player is, but still hurts on contact — a
-    // pure environmental hazard rather than a hunter.
     const monkey = {
       x: 60, y: 100, w: 28, h: 30, vx: 0, vy: 0,
       speed: 4, jumpPower: 12.5, onGround: false,
@@ -2719,24 +2547,11 @@
 
     function generateDinoLevel() {
       dinoPlatforms = [];
-      // Ground spans the full width
       const ground = { x: 0, y: height - 40, w: width, h: 40 };
       dinoPlatforms.push(ground);
 
-      // FIX (requested): each level up to level 4 adds more platform tiers
-      // (capped there — level 5+ keeps level 4's amount rather than
-      // growing indefinitely).
       const levelForPlatforms = Math.min(dinoWave, 4);
       const tiers = 2 + levelForPlatforms;
-      // FIX (bug): platforms above tier 0 used to be placed completely
-      // independently of what was below them, so a platform could
-      // occasionally land somewhere with no reachable platform underneath
-      // it at all — any banana placed there was then permanently
-      // uncollectable, which is why the level sometimes wouldn't progress
-      // even after grabbing every banana you could actually reach. Each
-      // tier is now anchored to a platform from the tier directly below
-      // (within actual jump range), guaranteeing a path exists from the
-      // ground all the way up.
       let previousTier = [ground];
       for (let t = 0; t < tiers; t++) {
         const platY = height - 130 - t * 95;
@@ -2747,13 +2562,12 @@
           const platW = 130 + Math.random() * 90;
           let platX;
           if (t === 0) {
-            // Reachable from anywhere along the full-width ground
             const slot = width / platCount;
             platX = Math.min(width - platW - 20, slot * p + Math.random() * Math.max(20, slot - platW));
           } else {
             const anchor = previousTier[Math.floor(Math.random() * previousTier.length)];
             const anchorCenter = anchor.x + anchor.w / 2;
-            const maxReach = 130; // within the monkey's actual jump arc
+            const maxReach = 130;
             platX = anchorCenter - platW / 2 + (Math.random() * maxReach * 2 - maxReach);
           }
           platX = Math.max(10, Math.min(width - platW - 10, platX));
@@ -2765,8 +2579,6 @@
       }
     }
 
-    // Fisher-Yates shuffle of platform indices, used to assign enemies to
-    // distinct platforms without repeats.
     function shuffledPlatformIndices() {
       const arr = dinoPlatforms.map((_, i) => i);
       for (let i = arr.length - 1; i > 0; i--) {
@@ -2776,29 +2588,16 @@
       return arr;
     }
 
-    // FIX (bug): this previously compared platform *centers*, which broke
-    // badly for the ground — since the ground spans the entire screen
-    // width, its "center" is just the screen's horizontal midpoint, so any
-    // elevated platform not near that exact point got wrongly marked
-    // unreachable even though the monkey can walk anywhere along the
-    // ground before jumping. In testing, this was excluding nearly every
-    // platform on every level, which is why levels could complete (or
-    // appear to) almost instantly — bananas.length started at/near 0, so
-    // the game could race through several levels in a fraction of a
-    // second before you even saw them, looking like it "started on some
-    // other level." Switched to actual edge-to-edge gap distance (0 if the
-    // two platforms' x-ranges overlap at all), which is what actually
-    // determines the jump distance needed.
     function horizontalGap(p, q) {
       const pLeft = p.x, pRight = p.x + p.w;
       const qLeft = q.x, qRight = q.x + q.w;
       if (pRight < qLeft) return qLeft - pRight;
       if (qRight < pLeft) return pLeft - qRight;
-      return 0; // overlapping ranges — no horizontal gap to cross
+      return 0;
     }
 
     function computeReachablePlatforms() {
-      const reachable = new Set([0]); // the ground is always reachable
+      const reachable = new Set([0]);
       const maxHorizontal = 170, maxRise = 120;
       let changed = true;
       while (changed) {
@@ -2809,7 +2608,7 @@
           for (const j of reachable) {
             const q = dinoPlatforms[j];
             const gap = horizontalGap(p, q);
-            const rise = q.y - p.y; // positive if p sits above q
+            const rise = q.y - p.y;
             if (gap <= maxHorizontal && rise <= maxRise) {
               reachable.add(i);
               changed = true;
@@ -2823,22 +2622,15 @@
 
     function spawnBananasAndEnemies() {
       dinoEnemies = []; bananas = []; hearts = [];
-
-      // FIX (bug): bananas (and the heart below) are now only ever placed
-      // on platforms proven reachable from the ground, instead of any
-      // platform regardless of whether a path to it actually exists.
       const reachable = computeReachablePlatforms();
 
       dinoPlatforms.forEach((plat, idx) => {
-        if (idx === 0 || !reachable.has(idx)) return; // skip the ground and any unreachable platform
+        if (idx === 0 || !reachable.has(idx)) return;
         if (Math.random() < 0.7) {
           bananas.push({ x: plat.x + plat.w / 2 - 6, y: plat.y - 20, w: 12, h: 12 });
         }
       });
 
-      // FIX (requested): a life heart always spawns on the topmost
-      // *reachable* platform tier each level, rewarding players who climb
-      // all the way up (rather than possibly landing on an unreachable one).
       const reachableNonGround = dinoPlatforms
         .map((p, idx) => ({ p, idx }))
         .filter(o => o.idx !== 0 && reachable.has(o.idx));
@@ -2849,21 +2641,12 @@
         hearts.push({ x: heartPlat.x + heartPlat.w / 2 - 8, y: heartPlat.y - 24, w: 16, h: 16 });
       }
 
-      // FIX (requested): no platform can have more than one dinosaur on it
-      // (raptor or stego) — previously each was assigned a fully random
-      // platform independently, so two could occasionally land on the same
-      // one. Platforms are now handed out from a shuffled, non-repeating
-      // pool, and counts are capped to however many distinct platforms are
-      // actually available.
       const usedPlatformIdx = new Set();
       const shuffled = shuffledPlatformIndices();
       const nonGroundShuffled = shuffled.filter(i => i !== 0);
 
       const maxRaptors = Math.max(1, Math.floor(dinoPlatforms.length * 0.8));
       let raptorCount = 1 + Math.floor(Math.random() * maxRaptors);
-      // FIX (requested): raptor count cut in half for every level after
-      // level 2, so the platform-bound dinosaur density stays reasonable
-      // as levels (and platform counts) grow.
       if (dinoWave > 2) raptorCount = Math.max(1, Math.floor(raptorCount / 2));
       raptorCount = Math.min(raptorCount, nonGroundShuffled.length);
       for (let i = 0; i < raptorCount; i++) {
@@ -2879,8 +2662,6 @@
         });
       }
 
-      // FIX (requested): stego capped at 2 per level (was up to 3), and
-      // now also respects the one-dinosaur-per-platform rule above.
       const availableForStego = shuffled.filter(i => !usedPlatformIdx.has(i));
       const stegoCount = Math.min(2, dinoWave === 1 ? 1 : Math.floor(dinoWave / 2) + 1, availableForStego.length);
       for (let i = 0; i < stegoCount; i++) {
@@ -2895,10 +2676,6 @@
         });
       }
 
-      // FIX (requested): the special dinosaurs now phase out instead of
-      // stacking indefinitely once introduced — each only appears on its
-      // own specific level, and levels afterward go back to just
-      // raptors + stego.
       if (dinoWave === 2) {
         const pterodonCount = 2 + Math.floor(Math.random() * 2);
         for (let i = 0; i < pterodonCount; i++) {
@@ -2951,8 +2728,6 @@
       monkey.vy = -6; monkey.vx = -monkey.facingX * 4;
     }
 
-    // Shared flight AI for pterodon/quetzal: patrol with a gentle hover
-    // when the monkey is out of range, or fly directly at it once close.
     function updateAirborneEnemy(en) {
       const dx = (monkey.x + monkey.w / 2) - (en.x + en.w / 2);
       const dy = (monkey.y + monkey.h / 2) - (en.y + en.h / 2);
@@ -2981,9 +2756,6 @@
       dinoTicks++;
       if (monkey.invuln > 0) monkey.invuln--;
 
-      // FIX (requested): while the quetzalcoatlus is carrying the monkey,
-      // normal movement/jump input and gravity are suspended — its
-      // position is driven entirely by the enemy update below instead.
       if (!monkey.grabbed) {
         if (keys['ArrowLeft'] || keys['KeyA']) { monkey.vx = -monkey.speed; monkey.facingX = -1; }
         else if (keys['ArrowRight'] || keys['KeyD']) { monkey.vx = monkey.speed; monkey.facingX = 1; }
@@ -3011,7 +2783,6 @@
           }
         });
 
-        // Falling off the bottom of the level costs a life and respawns on the ground
         if (monkey.y > height + 60) {
           takeMonkeyDamage();
           monkey.x = 60; monkey.y = height - 40 - monkey.h; monkey.vx = 0; monkey.vy = 0;
@@ -3023,7 +2794,6 @@
         return true;
       });
 
-      // FIX (requested): life heart pickup, spawned on the top platform.
       hearts = hearts.filter(h => {
         if (checkRectCollision(monkey, h)) {
           if (dinoLives < 5) dinoLives++;
@@ -3045,10 +2815,6 @@
           }
 
           if (en.type === 'raptor') {
-            // Raptors only notice the monkey if it's in front of them (in
-            // whichever direction they're currently facing/moving) and
-            // within a small distance — not simply "within range"
-            // regardless of direction.
             const facingDir = en.vx >= 0 ? 1 : -1;
             const dx = (monkey.x + monkey.w / 2) - (en.x + en.w / 2);
             const dy = Math.abs((monkey.y + monkey.h / 2) - (en.y + en.h / 2));
@@ -3067,11 +2833,6 @@
           updateAirborneEnemy(en);
           if (checkRectCollision(monkey, en)) takeMonkeyDamage();
         } else if (en.type === 'trex') {
-          // FIX (requested): unlike raptors/stego, the T-Rex isn't bound to
-          // one assigned platform — it uses the same full gravity +
-          // all-platforms collision as the monkey, and periodically jumps
-          // while grounded, so it can actually hop between platforms while
-          // chasing rather than pacing back and forth on just one.
           const dx = (monkey.x + monkey.w / 2) - (en.x + en.w / 2);
           en.facingX = dx >= 0 ? 1 : -1;
           en.vx = en.facingX * en.speed;
@@ -3107,8 +2868,6 @@
           if (en.grabCooldown > 0) en.grabCooldown--;
 
           if (en.carrying) {
-            // FIX (requested): while carrying, the monkey's position is
-            // fully driven here rather than by its own input/gravity.
             en.grabTimer--;
             en.x += en.vx;
             en.y = Math.max(30, en.y - 0.5);
@@ -3119,10 +2878,6 @@
               monkey.grabbed = false;
               monkey.vy = 2;
               en.grabCooldown = 150;
-              // FIX (requested): "when the player falls from this they
-              // take damage" — applied at the moment of release, which
-              // reads as fall damage from the drop without needing to
-              // separately track the subsequent landing impact.
               takeMonkeyDamage();
             }
           } else {
@@ -3136,11 +2891,6 @@
         }
       });
 
-      // The monkey has no attack, so raptors (like the stegosaurus and the
-      // new dinosaurs) are never defeated — a wave clears purely by
-      // collecting every banana, dodging the dinosaurs along the way.
-      // FIX (requested): beating the final level shows a Victory screen
-      // with the final score instead of continuing to harder levels.
       if (bananas.length === 0) {
         if (dinoWave >= DINO_FINAL_LEVEL) {
           triggerVictory(() => initDinoGame(true), dinoScore + 500);
@@ -3170,25 +2920,18 @@
 
       dinoEnemies.forEach(en => {
         if (en.type === 'raptor') {
-          // FIX (requested): a proper dinosaur silhouette instead of a
-          // plain rectangle — curved torso, snout with a jaw line, a small
-          // forearm, a trailing tail, and clawed feet. Color is fixed
-          // regardless of state (see request); only the "!" below marks
-          // that it has spotted the monkey.
           const dir = en.vx >= 0 ? 1 : -1;
           const bodyColor = '#4d7c3f', bellyColor = '#cfe0b8', darkAccent = '#2f4d27';
           ctx.save();
           ctx.translate(en.x + en.w / 2, en.y + en.h / 2);
           ctx.scale(dir, 1);
 
-          // Tail, trailing behind
           ctx.strokeStyle = bodyColor; ctx.lineWidth = 6; ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(-en.w / 2 + 2, 2);
           ctx.quadraticCurveTo(-en.w / 2 - 14, -4, -en.w / 2 - 20, -16);
           ctx.stroke();
 
-          // Legs + clawed feet
           ctx.fillStyle = bodyColor;
           ctx.fillRect(-4, en.h / 2 - 12, 6, 12);
           ctx.fillRect(en.w / 2 - 10, en.h / 2 - 10, 5, 10);
@@ -3196,24 +2939,19 @@
           ctx.fillRect(-6, en.h / 2 - 2, 9, 3);
           ctx.fillRect(en.w / 2 - 12, en.h / 2 - 1, 7, 3);
 
-          // Torso
           ctx.fillStyle = bodyColor;
           ctx.beginPath(); ctx.ellipse(0, -2, en.w / 2 - 2, en.h / 2 - 4, 0, 0, Math.PI * 2); ctx.fill();
 
-          // Belly patch
           ctx.fillStyle = bellyColor;
           ctx.beginPath(); ctx.ellipse(-2, 4, en.w / 2 - 8, en.h / 2 - 10, 0, 0, Math.PI * 2); ctx.fill();
 
-          // Back spots
           ctx.fillStyle = darkAccent;
           ctx.beginPath(); ctx.arc(-4, -10, 2.5, 0, Math.PI * 2); ctx.fill();
           ctx.beginPath(); ctx.arc(4, -11, 2.2, 0, Math.PI * 2); ctx.fill();
 
-          // Small forearm
           ctx.strokeStyle = bodyColor; ctx.lineWidth = 3;
           ctx.beginPath(); ctx.moveTo(en.w / 2 - 6, 0); ctx.lineTo(en.w / 2 + 2, 4); ctx.stroke();
 
-          // Head + snout
           ctx.fillStyle = bodyColor;
           ctx.beginPath();
           ctx.moveTo(en.w / 2 - 6, -8);
@@ -3222,11 +2960,9 @@
           ctx.lineTo(en.w / 2 - 4, 2);
           ctx.closePath(); ctx.fill();
 
-          // Jaw line
           ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1;
           ctx.beginPath(); ctx.moveTo(en.w / 2, -1); ctx.lineTo(en.w / 2 + 14, -2); ctx.stroke();
 
-          // Eye
           ctx.fillStyle = '#fff176';
           ctx.beginPath(); ctx.arc(en.w / 2 + 4, -6, 2, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = '#1a1a1a';
@@ -3243,10 +2979,6 @@
             ctx.restore();
           }
         } else if (en.type === 'stego') {
-          // FIX (requested): bigger, mirrors to face its direction of
-          // travel (like the raptor), animates a walking leg-swing, and
-          // has a real tapering tail with spikes at the tip instead of a
-          // small stub rectangle.
           const dir = en.vx >= 0 ? 1 : -1;
           const bodyColor = '#556b2f', plateColor = '#3f5124', bellyColor = '#7c9463';
           const legSwing = Math.sin(dinoTicks * 0.15 + en.animPhase) * 4;
@@ -3255,7 +2987,6 @@
           ctx.translate(en.x + en.w / 2, en.y + en.h / 2);
           ctx.scale(dir, 1);
 
-          // Tail, tapering with spikes at the tip
           ctx.strokeStyle = bodyColor; ctx.lineWidth = 10; ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(-en.w / 2 + 6, 4);
@@ -3269,14 +3000,12 @@
           ctx.moveTo(-en.w / 2 - 30, 2); ctx.lineTo(-en.w / 2 - 42, 4); ctx.lineTo(-en.w / 2 - 26, 6);
           ctx.closePath(); ctx.fill();
 
-          // Legs, swinging opposite front/back to sell a walk cycle
           ctx.fillStyle = bodyColor;
           ctx.fillRect(-en.w / 2 + 8, en.h / 2 - 14 + legSwing, 8, 14);
           ctx.fillRect(-en.w / 2 + 20, en.h / 2 - 14 - legSwing, 8, 14);
           ctx.fillRect(en.w / 2 - 26, en.h / 2 - 12 - legSwing, 7, 12);
           ctx.fillRect(en.w / 2 - 14, en.h / 2 - 12 + legSwing, 7, 12);
 
-          // Body, arched back sloping down to a low head
           ctx.fillStyle = bodyColor;
           ctx.beginPath();
           ctx.moveTo(-en.w / 2, en.h / 2 - 10);
@@ -3285,17 +3014,14 @@
           ctx.lineTo(-en.w / 2, en.h / 2 - 10);
           ctx.closePath(); ctx.fill();
 
-          // Belly
           ctx.fillStyle = bellyColor;
           ctx.beginPath(); ctx.ellipse(0, en.h / 4, en.w / 2.4, en.h / 5, 0, 0, Math.PI * 2); ctx.fill();
 
-          // Low head + eye
           ctx.fillStyle = bodyColor;
           ctx.beginPath(); ctx.ellipse(en.w / 2 + 4, en.h / 4, 8, 6, 0, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = '#1a1a1a';
           ctx.beginPath(); ctx.arc(en.w / 2 + 7, en.h / 4 - 2, 1.5, 0, Math.PI * 2); ctx.fill();
 
-          // Plates along the arched back, staggered like the real animal
           ctx.fillStyle = plateColor;
           const plateCount = 5;
           for (let p = 0; p < plateCount; p++) {
@@ -3311,9 +3037,6 @@
           ctx.restore();
         } else if (en.type === 'pterodon') {
           const dir = en.vx >= 0 ? 1 : -1;
-          // FIX (requested): wings were barely wider than the body — now a
-          // proper wide membrane shape (with a wrist bend) that actually
-          // reads as a pterodon's wingspan instead of small stubby flaps.
           const flap = Math.sin(dinoTicks * 0.3 + en.phase) * 14;
           const bodyColor = '#78716c', wingColor = '#57534e';
           ctx.save();
@@ -3443,12 +3166,6 @@
         }
       });
 
-      // FIX (bug): bananas/hearts previously drew *before* the dinosaurs,
-      // so a raptor or stego patrolling over one could completely hide it
-      // from view — the player would think they'd collected everything
-      // and be stuck wondering why the level wouldn't advance. Drawing
-      // them after (on top of) the dinosaurs means they stay visible no
-      // matter what's standing near them.
       bananas.forEach(b => {
         ctx.save();
         ctx.fillStyle = '#ffe066'; ctx.shadowColor = '#ffe066'; ctx.shadowBlur = 4;
@@ -3519,29 +3236,14 @@
       } else if (selected === 'boring') {
         currentTheme = 'boring'; document.body.classList.add('theme-boring');
         gameHint.textContent = '[ BORING MODE: SELECT A THEME TO PLAY A GAME ]';
-        // FIX: force the portfolio back into full focus if the user switches to
-        // "boring" mode while a game was actively dimming it (e.g. was mid-keypress
-        // or mid mobile-play when the theme changed).
         isPlayingMobileGame = false;
         restorePortfolioFocus();
       }
 
-      // FIX: the select otherwise keeps keyboard focus right after picking
-      // a theme — which is the main way arrow keys ended up reaching it
-      // during gameplay in the first place (see the keydown handler above).
       themeSelect.blur();
-
-      // FIX (requested): show/populate the level jump selector for the
-      // games that have discrete levels; hidden for Sunset Chaser/Boring.
       updateLevelSelector();
     });
 
-    // FIX (requested): a small testing tool — jump directly to any level
-    // for the games that have them, shown "above the score" (i.e. near
-    // where the canvas HUD draws SCORE: at the top-left).
-    //
-    // Set this to true to bring the level selector back for testing later
-    // — nothing else needs to change, all the underlying logic stays intact.
     const LEVEL_SELECTOR_ENABLED = false;
     const LEVEL_SELECTOR_GAMES = ['space', 'pac', 'rpg', 'dino'];
     const LEVEL_SELECTOR_MAX = 10;
@@ -3569,16 +3271,6 @@
       levelSelector.style.display = 'block';
     }
 
-    // FIX (bug): updateLevelSelector() (which sets the dropdown's shown
-    // value) was only ever called on a theme switch or page load — never
-    // when the level changed through actual gameplay (leveling up
-    // naturally, or a death resetting back to level 1). The dropdown's
-    // displayed value could then silently drift out of sync with the real
-    // game state — e.g. dying with "LEVEL 7" showing would reset the game
-    // to level 1 but leave the dropdown still reading 7. This runs a cheap
-    // check every frame and only touches the dropdown when the real level
-    // has actually changed, so it stays accurate no matter which of the
-    // three paths (dropdown, natural progression, or a reset) caused it.
     function syncLevelSelectorDisplay() {
       if (!LEVEL_SELECTOR_ENABLED || !LEVEL_SELECTOR_GAMES.includes(currentTheme)) return;
       let current = 1;
@@ -3588,8 +3280,6 @@
       else if (currentTheme === 'dino') current = dinoWave;
 
       if (current > levelSelector.options.length) {
-        // The current level has grown past the existing option list (e.g.
-        // progressed past LEVEL 10) — rebuild with a wider range.
         updateLevelSelector();
       } else if (parseInt(levelSelector.value, 10) !== current) {
         levelSelector.value = String(current);
@@ -3616,7 +3306,6 @@
       levelSelector.blur();
     });
 
-    // Initialize Space Invasion game variables on start
     initInvaders(true);
     updateLevelSelector();
 
