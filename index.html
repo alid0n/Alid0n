@@ -38,16 +38,6 @@
       --muted: #d094b8;
     }
 
-    body.theme-nightrider {
-      --bg: #020408;
-      --card-bg: rgba(3, 7, 18, 0.95);
-      --card-border: rgba(0, 229, 255, 0.5);
-      --accent: #00e5ff;
-      --accent-glow: rgba(0, 229, 255, 0.6);
-      --text: #f0f9ff;
-      --muted: #7dd3fc;
-    }
-
     body.theme-rpg {
       --bg: #080c08;
       --card-bg: rgba(16, 22, 16, 0.94);
@@ -106,7 +96,6 @@
 
     body.theme-pac-cube #bgCanvas { opacity: 0.85; }
     body.theme-synthwave #bgCanvas { opacity: 0.92; }
-    body.theme-nightrider #bgCanvas { opacity: 0.95; }
     body.theme-rpg #bgCanvas { opacity: 0.95; }
     body.theme-boring #bgCanvas { opacity: 0.15; }
 
@@ -314,7 +303,6 @@
 
     body.theme-pac-cube .btn-primary,
     body.theme-synthwave .btn-primary,
-    body.theme-nightrider .btn-primary,
     body.theme-rpg .btn-primary {
       color: #ffffff;
     }
@@ -464,7 +452,7 @@
     }
   </style>
 </head>
-<body class="theme-boring">
+<body>
 
   <canvas id="bgCanvas" class="faded"></canvas>
 
@@ -490,12 +478,11 @@
       <div class="header-top-row">
         <span class="pixel-tag" id="pixelTag">&gt; DIGITAL_PORTFOLIO // ALID0N</span>
         <select class="theme-select" id="themeSelect" aria-label="Select Theme">
-          <option value="boring" selected>BORING</option>
-          <option value="space">SPACE INVASION</option>
+          <option value="space" selected>SPACE INVASION</option>
           <option value="pac">RETRO MAZE</option>
           <option value="synth">SUNSET CHASER</option>
-          <option value="nightrider">NIGHT RIDER</option>
           <option value="rpg">FANTASY QUEST</option>
+          <option value="boring">BORING</option>
         </select>
       </div>
 
@@ -516,7 +503,7 @@
     </header>
 
     <div class="game-hint" id="gameHint">
-      [ BORING MODE: NO ACTIVE GAME ]
+      [ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]
     </div>
 
     <div class="section-title">ENGINE SYSTEMS &amp; MARKETPLACE ASSETS</div>
@@ -589,10 +576,13 @@
     const mobileGameToggle = document.getElementById('mobileGameToggle');
     const touchControls = document.getElementById('touchControls');
 
-    let currentTheme = 'boring';
+    let currentTheme = 'space';
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
     let isPlayingMobileGame = false;
+
+    // Initialize default theme game on load
+    initInviders(true);
 
     mobileGameToggle.addEventListener('click', () => {
       isPlayingMobileGame = !isPlayingMobileGame;
@@ -629,7 +619,6 @@
       if (currentTheme === 'space') initInvaders(false);
       if (currentTheme === 'pac') initPacGame(false);
       if (currentTheme === 'synth') initSynthRacer(false);
-      if (currentTheme === 'nightrider') initNightRider(false);
       if (currentTheme === 'rpg') initRPGGame(false);
     });
 
@@ -1262,82 +1251,7 @@
     }
 
     // ==========================================
-    // 4. NIGHT RIDER ENGINE
-    // ==========================================
-    const nr = { x: 0, speed: 1.8, roadOffset: 0, angle: 0 };
-    let nrScore = 0, nrStart = Date.now(), nrBuildingsL = [], nrBuildingsR = [];
-
-    function initNightRider(fullReset = true) {
-      if (fullReset) { nrScore = 0; nrStart = Date.now(); }
-      nr.x = 0; nr.speed = 1.8; nr.roadOffset = 0; nr.angle = 0;
-      nrBuildingsL = []; nrBuildingsR = [];
-      for (let i = 0; i < 12; i++) {
-        nrBuildingsL.push({ z: i * 80, h: 120 + Math.random() * 180, w: 70 });
-        nrBuildingsR.push({ z: i * 80, h: 120 + Math.random() * 180, w: 70 });
-      }
-    }
-
-    function updateNightRider() {
-      if (keys['ArrowLeft'] || keys['KeyA']) nr.angle -= 0.015;
-      else if (keys['ArrowRight'] || keys['KeyD']) nr.angle += 0.015;
-
-      nr.roadOffset = (nr.roadOffset + nr.speed * 12) % 80;
-      nrScore += 15;
-
-      nrBuildingsL.forEach(b => { b.z -= nr.speed * 4; if (b.z < 10) b.z = 960; });
-      nrBuildingsR.forEach(b => { b.z -= nr.speed * 4; if (b.z < 10) b.z = 960; });
-    }
-
-    function drawNightRider() {
-      const horizonY = height * 0.46;
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
-      skyGrad.addColorStop(0, '#05021a'); skyGrad.addColorStop(1, '#2c0442');
-      ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, width, horizonY);
-
-      const sunR = Math.min(width, height) * 0.22, sunX = width / 2 - (nr.angle * 250), sunY = horizonY - 15;
-      const sunGrad = ctx.createLinearGradient(sunX, sunY - sunR, sunX, sunY + sunR);
-      sunGrad.addColorStop(0, '#ffcc00'); sunGrad.addColorStop(0.5, '#ff3300'); sunGrad.addColorStop(1, '#ff0066');
-      ctx.fillStyle = sunGrad; ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2); ctx.fill();
-
-      ctx.fillStyle = '#05021a';
-      for (let sY = sunY + 5; sY < sunY + sunR; sY += 8) { ctx.fillRect(sunX - sunR - 10, sY, (sunR * 2) + 20, 3); }
-
-      ctx.fillStyle = '#000000'; ctx.fillRect(0, horizonY, width, height - horizonY);
-
-      ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.5; ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 10;
-      for (let gx = -width * 1.5; gx <= width * 2.5; gx += 80) {
-        const topX = width / 2 + (gx - width / 2 - nr.angle * 400) * 0.08;
-        const botX = width / 2 + (gx - width / 2);
-        ctx.beginPath(); ctx.moveTo(topX, horizonY); ctx.lineTo(botX, height); ctx.stroke();
-      }
-      for (let gz = 20; gz < 800; gz += 60) {
-        const effZ = (gz - nr.roadOffset + 800) % 800, scale = 50 / effZ, gy = horizonY + (height - horizonY) * scale;
-        if (gy > horizonY && gy < height) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(width, gy); ctx.stroke(); }
-      }
-      ctx.shadowBlur = 0;
-
-      nrBuildingsL.forEach(b => {
-        if (b.z > 10 && b.z < 900) {
-          const scale = 60 / b.z, bw = b.w * scale * 2.2, bh = b.h * scale * 2.5;
-          const bx = width * 0.25 - (b.z * 0.35) - (nr.angle * 300), by = horizonY - bh;
-          ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 8;
-          ctx.strokeRect(bx, by, bw, bh); ctx.shadowBlur = 0;
-        }
-      });
-      nrBuildingsR.forEach(b => {
-        if (b.z > 10 && b.z < 900) {
-          const scale = 60 / b.z, bw = b.w * scale * 2.2, bh = b.h * scale * 2.5;
-          const bx = width * 0.75 + (b.z * 0.35) - bw - (nr.angle * 300), by = horizonY - bh;
-          ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 8;
-          ctx.strokeRect(bx, by, bw, bh); ctx.shadowBlur = 0;
-        }
-      });
-
-      drawHUD(nrScore, nrStart, null, '#00e5ff', null, 'NIGHT RIDER');
-    }
-
-    // ==========================================
-    // 5. FANTASY QUEST ENGINE
+    // 4. FANTASY QUEST ENGINE
     // ==========================================
     const hero = {
       x: 100, y: 100, w: 26, h: 32, speed: 3.8,
@@ -1729,12 +1643,9 @@
     // ==========================================
     themeSelect.addEventListener('change', (e) => {
       const selected = e.target.value;
-      document.body.classList.remove('theme-pac-cube', 'theme-synthwave', 'theme-nightrider', 'theme-boring', 'theme-rpg');
+      document.body.classList.remove('theme-pac-cube', 'theme-synthwave', 'theme-boring', 'theme-rpg');
 
-      if (selected === 'boring') {
-        currentTheme = 'boring'; document.body.classList.add('theme-boring');
-        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
-      } else if (selected === 'space') {
+      if (selected === 'space') {
         currentTheme = 'space';
         gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]';
         initInvaders(true);
@@ -1746,14 +1657,13 @@
         currentTheme = 'synth'; document.body.classList.add('theme-synthwave');
         gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT TO STEER ]';
         initSynthRacer(true);
-      } else if (selected === 'nightrider') {
-        currentTheme = 'nightrider'; document.body.classList.add('theme-nightrider');
-        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON 3D CITY DRIVE • LEFT/RIGHT TO TURN CAMERA ]';
-        initNightRider(true);
       } else if (selected === 'rpg') {
         currentTheme = 'rpg'; document.body.classList.add('theme-rpg');
         gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD TO EXPLORE • SPACEBAR TO ATTACK ]';
         initRPGGame(true);
+      } else if (selected === 'boring') {
+        currentTheme = 'boring'; document.body.classList.add('theme-boring');
+        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
       }
     });
 
@@ -1763,7 +1673,6 @@
       if (currentTheme === 'space') { updateSpace(); drawSpace(); }
       else if (currentTheme === 'pac') { updatePac(); drawPac(); }
       else if (currentTheme === 'synth') { updateSynthRacer(); drawSynthRacer(); }
-      else if (currentTheme === 'nightrider') { updateNightRider(); drawNightRider(); }
       else if (currentTheme === 'rpg') { updateRPG(); drawRPG(); }
       else if (currentTheme === 'boring') { /* No active game */ }
 
