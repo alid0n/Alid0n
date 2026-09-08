@@ -581,9 +581,6 @@
     let height = (canvas.height = window.innerHeight);
     let isPlayingMobileGame = false;
 
-    // Initialize default theme game on load
-    initInvaders(true);
-
     mobileGameToggle.addEventListener('click', () => {
       isPlayingMobileGame = !isPlayingMobileGame;
       if (isPlayingMobileGame) {
@@ -953,13 +950,13 @@
       "#......##....##....##......#",
       "######.##### ## #####.######",
       "     #.##### ## #####.#     ",
-      "     #.##          ##.#     ",
+      "     #.##         ##.#     ",
       "     #.## ###--### ##.#     ",
       "######.## #      # ##.######",
-      "      .   #      #   .      ",
+      "       .  #      #  .       ",
       "######.## #      # ##.######",
       "     #.## ######## ##.#     ",
-      "     #.##          ##.#     ",
+      "     #.##         ##.#     ",
       "     #.## ######## ##.#     ",
       "######.## ######## ##.######",
       "#............##............#",
@@ -1666,6 +1663,9 @@
         gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
       }
     });
+
+    // Initialize Space Invasion game variables on start
+    initInvaders(true);
 
     function loop() {
       ctx.clearRect(0, 0, width, height);
