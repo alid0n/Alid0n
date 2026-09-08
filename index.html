@@ -2669,19 +2669,30 @@
       return arr;
     }
 
-    // FIX (bug): the previous fix only anchored each platform to be
-    // *probabilistically* near a platform below it, which still allowed
-    // occasional disconnected platforms (tight margins, an unlucky anchor
-    // choice) with an unreachable banana on them — bananas.length would
-    // then never hit 0 and the level could never advance. This computes
-    // actual reachability from the ground via a fixed-point graph
-    // traversal (not just anchoring), giving a real guarantee rather than
-    // a good chance. Distances are kept comfortably inside the monkey's
-    // actual jump arc (max height ~130px, max horizontal ~166px at full
-    // speed) with margin to spare.
+    // FIX (bug): this previously compared platform *centers*, which broke
+    // badly for the ground — since the ground spans the entire screen
+    // width, its "center" is just the screen's horizontal midpoint, so any
+    // elevated platform not near that exact point got wrongly marked
+    // unreachable even though the monkey can walk anywhere along the
+    // ground before jumping. In testing, this was excluding nearly every
+    // platform on every level, which is why levels could complete (or
+    // appear to) almost instantly — bananas.length started at/near 0, so
+    // the game could race through several levels in a fraction of a
+    // second before you even saw them, looking like it "started on some
+    // other level." Switched to actual edge-to-edge gap distance (0 if the
+    // two platforms' x-ranges overlap at all), which is what actually
+    // determines the jump distance needed.
+    function horizontalGap(p, q) {
+      const pLeft = p.x, pRight = p.x + p.w;
+      const qLeft = q.x, qRight = q.x + q.w;
+      if (pRight < qLeft) return qLeft - pRight;
+      if (qRight < pLeft) return pLeft - qRight;
+      return 0; // overlapping ranges — no horizontal gap to cross
+    }
+
     function computeReachablePlatforms() {
       const reachable = new Set([0]); // the ground is always reachable
-      const maxHorizontal = 150, maxRise = 120;
+      const maxHorizontal = 170, maxRise = 120;
       let changed = true;
       while (changed) {
         changed = false;
@@ -2690,9 +2701,9 @@
           const p = dinoPlatforms[i];
           for (const j of reachable) {
             const q = dinoPlatforms[j];
-            const dx = Math.abs((p.x + p.w / 2) - (q.x + q.w / 2));
+            const gap = horizontalGap(p, q);
             const rise = q.y - p.y; // positive if p sits above q
-            if (dx <= maxHorizontal && rise <= maxRise) {
+            if (gap <= maxHorizontal && rise <= maxRise) {
               reachable.add(i);
               changed = true;
               break;
