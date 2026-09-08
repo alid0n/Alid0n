@@ -38,16 +38,6 @@
       --muted: #d094b8;
     }
 
-    body.theme-nightrider {
-      --bg: #020408;
-      --card-bg: rgba(3, 7, 18, 0.95);
-      --card-border: rgba(0, 229, 255, 0.5);
-      --accent: #00e5ff;
-      --accent-glow: rgba(0, 229, 255, 0.6);
-      --text: #f0f9ff;
-      --muted: #7dd3fc;
-    }
-
     body.theme-rpg {
       --bg: #080c08;
       --card-bg: rgba(16, 22, 16, 0.94);
@@ -106,7 +96,6 @@
 
     body.theme-pac-cube #bgCanvas { opacity: 0.85; }
     body.theme-synthwave #bgCanvas { opacity: 0.92; }
-    body.theme-nightrider #bgCanvas { opacity: 0.95; }
     body.theme-rpg #bgCanvas { opacity: 0.95; }
     body.theme-boring #bgCanvas { opacity: 0.15; }
 
@@ -320,7 +309,6 @@
 
     body.theme-pac-cube .btn-primary,
     body.theme-synthwave .btn-primary,
-    body.theme-nightrider .btn-primary,
     body.theme-rpg .btn-primary {
       color: #ffffff;
     }
@@ -594,12 +582,66 @@
     const mobileGameToggle = document.getElementById('mobileGameToggle');
     const touchControls = document.getElementById('touchControls');
 
-    let currentTheme = localStorage.getItem('alidon_theme') || 'space';
+    let currentTheme = 'space';
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
     let isPlayingMobileGame = false;
     let activeGameTimer = null;
     let totalGameTimeCounter = 0;
+
+    // ==========================================
+    // 7. BORING ENGINE (Declared first to avoid reference errors)
+    // ==========================================
+    let boringScore = 0, boringStartTime = Date.now(), boringBlocks = [], boringPlayer = { x: 100, y: height / 2, w: 20, h: 20, speed: 5 };
+    let boringProjectiles = [];
+
+    function initBoringGame(fullReset = true) {
+      if (fullReset) { boringScore = 0; boringStartTime = Date.now(); }
+      boringPlayer.x = 100; boringPlayer.y = height / 2;
+      boringBlocks = []; boringProjectiles = [];
+      for (let i = 0; i < 5; i++) {
+        boringBlocks.push({ x: width + Math.random() * 400, y: Math.random() * (height - 40), w: 20, h: 20, speed: 2 + Math.random() * 2 });
+      }
+    }
+
+    function fireBoringWeapon() {
+      boringProjectiles.push({ x: boringPlayer.x + boringPlayer.w, y: boringPlayer.y + boringPlayer.h/2 - 2, w: 10, h: 4, vx: 8 });
+    }
+
+    function updateBoring() {
+      if (keys['ArrowLeft'] || keys['KeyA']) boringPlayer.x -= boringPlayer.speed;
+      if (keys['ArrowRight'] || keys['KeyD']) boringPlayer.x += boringPlayer.speed;
+      if (keys['ArrowUp'] || keys['KeyW']) boringPlayer.y -= boringPlayer.speed;
+      if (keys['ArrowDown'] || keys['KeyS']) boringPlayer.y += boringPlayer.speed;
+
+      boringPlayer.x = Math.max(0, Math.min(width - boringPlayer.w, boringPlayer.x));
+      boringPlayer.y = Math.max(0, Math.min(height - boringPlayer.h, boringPlayer.y));
+
+      for (let i = boringProjectiles.length - 1; i >= 0; i--) {
+        const bp = boringProjectiles[i]; bp.x += bp.vx;
+        if (bp.x > width) boringProjectiles.splice(i, 1);
+      }
+
+      boringBlocks.forEach((bb, idx) => {
+        bb.x -= bb.speed;
+        if (bb.x < -30) { bb.x = width + Math.random() * 200; bb.y = Math.random() * (height - 40); }
+        boringProjectiles.forEach((bp, bpIdx) => {
+          if (checkRectCollision(bp, bb)) {
+            boringScore += 100; boringProjectiles.splice(bpIdx, 1);
+            bb.x = width + Math.random() * 200; bb.y = Math.random() * (height - 150);
+          }
+        });
+      });
+    }
+
+    function drawBoring() {
+      ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(boringPlayer.x, boringPlayer.y, boringPlayer.w, boringPlayer.h);
+      boringProjectiles.forEach(bp => { ctx.fillRect(bp.x, bp.y, bp.w, bp.h); });
+      boringBlocks.forEach(bb => { ctx.strokeRect(bb.x, bb.y, bb.w, bb.h); ctx.fillRect(bb.x + 4, bb.y + 4, bb.w - 8, bb.h - 8); });
+      drawHUD(boringScore, boringStartTime, null, '#ffffff', null, 'BORING MODE');
+    }
 
     function applyTheme(theme, persist = true) {
       currentTheme = theme;
@@ -627,11 +669,14 @@
       } else if (theme === 'boring') {
         document.body.classList.add('theme-boring');
         gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
+        initBoringGame(true);
         restorePortfolioFocus();
       }
     }
 
-    applyTheme(currentTheme, false);
+    // Load persisted theme or default to 'space'
+    const savedTheme = localStorage.getItem('alidon_theme') || 'space';
+    applyTheme(savedTheme, false);
 
     mobileGameToggle.addEventListener('click', () => {
       if (currentTheme === 'boring') return;
@@ -672,7 +717,7 @@
       touchControls.classList.remove('active');
     }
 
-    // Mouse movement or scrolling sets game mode back to inactive and restores portfolio view
+    // Mouse movement, clicks or scrolling set game mode back to inactive and restore portfolio view
     window.addEventListener('wheel', restorePortfolioFocus, { passive: true });
     window.addEventListener('scroll', restorePortfolioFocus, { passive: true });
     window.addEventListener('mousedown', restorePortfolioFocus, { passive: true });
@@ -685,6 +730,7 @@
       if (currentTheme === 'pac') initPacGame(false);
       if (currentTheme === 'synth') initSynthRacer(false);
       if (currentTheme === 'rpg') initRPGGame(false);
+      if (currentTheme === 'boring') initBoringGame(false);
     });
 
     function checkRectCollision(r1, r2) {
@@ -706,6 +752,7 @@
         el.classList.add('pressed');
         if (code === 'Space' && currentTheme === 'space') firePlayerWeapon();
         if (code === 'Space' && currentTheme === 'rpg') performHeroAttack();
+        if (code === 'Space' && currentTheme === 'boring') fireBoringWeapon();
       };
       const pressOff = (e) => {
         e.preventDefault();
@@ -725,7 +772,6 @@
     bindTouchButton('btnAction', 'Space');
 
     window.addEventListener('keydown', (e) => {
-      // Prevent page scrolling on arrow keys or spacebar only when playing mobile game or interacting directly
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
         if (isPlayingMobileGame) {
           e.preventDefault();
@@ -735,6 +781,7 @@
 
       if (currentTheme === 'space' && e.code === 'Space') firePlayerWeapon();
       if (currentTheme === 'rpg' && e.code === 'Space') performHeroAttack();
+      if (currentTheme === 'boring' && e.code === 'Space') fireBoringWeapon();
 
       if (currentTheme === 'pac') {
         if (e.code === 'ArrowLeft' || e.code === 'KeyA') { pac.nextDirX = -1; pac.nextDirY = 0; }
@@ -856,7 +903,6 @@
       if (player.invuln > 0) player.invuln--;
       if (player.weaponTimer > 0 && --player.weaponTimer <= 0) player.weapon = 'standard';
 
-      // Support D-pad and arrow/WASD inputs correctly
       if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
       if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
       player.x = Math.max(10, Math.min(width - player.w - 10, player.x));
@@ -996,7 +1042,7 @@
     }
 
     // ==========================================
-    // 2. RETRO MAZE ENGINE (Pac-Man Touch Controls Fixed)
+    // 2. RETRO MAZE ENGINE
     // ==========================================
     const pac = { x: 60, y: 60, w: 22, h: 22, speed: 3.2, dirX: 1, dirY: 0, nextDirX: 1, nextDirY: 0, mouth: 0, mouthSpeed: 0.18, invuln: 0 };
     let walls = [], pellets = [], powerPellets = [], ghosts = [], ghostPenGate = null, penExitTile = { x: 0, y: 0 }, mazeBounds = { left: 0, right: 0, tileSize: 20 };
@@ -1080,13 +1126,6 @@
     function updatePac() {
       if (pac.invuln > 0) pac.invuln--;
       if (frightTimer > 0) frightTimer--;
-
-      // Direct Touch / Keyboard direction queueing
-      if (keys['ArrowLeft'] || keys['KeyA']) { pac.nextDirX = -1; pac.nextDirY = 0; }
-      if (keys['ArrowRight'] || keys['KeyD']) { pac.nextDirX = 1; pac.nextDirY = 0; }
-      if (keys['ArrowUp'] || keys['KeyW']) { pac.nextDirX = 0; pac.nextDirY = -1; }
-      if (keys['ArrowDown'] || keys['KeyS']) { pac.nextDirX = 0; pac.nextDirY = 1; }
-
       if (pac.nextDirX !== pac.dirX || pac.nextDirY !== pac.dirY) {
         const testBox = { x: pac.x + pac.nextDirX * pac.speed, y: pac.y + pac.nextDirY * pac.speed, w: pac.w, h: pac.h };
         if (!walls.some(w => checkRectCollision(testBox, w))) { pac.dirX = pac.nextDirX; pac.dirY = pac.nextDirY; }
