@@ -443,6 +443,18 @@
       backdrop-filter: blur(8px);
       box-shadow: 0 4px 20px rgba(0,0,0,0.6);
       display: none;
+      /* FIX (requested): grayed out/dim until actually interacted with, so
+         it doesn't compete for attention with the game; hovering or
+         focusing it (i.e. actually using it) brings it to full brightness. */
+      opacity: 0.4;
+      filter: grayscale(0.6);
+      transition: opacity 0.2s ease, filter 0.2s ease;
+    }
+
+    #levelSelector:hover,
+    #levelSelector:focus {
+      opacity: 1;
+      filter: grayscale(0);
     }
 
     #levelSelector option {
@@ -2226,18 +2238,30 @@
           ctx.fillStyle = '#78350f'; ctx.fillRect(m.x + 28, m.y + 8, 3, 22);
           ctx.fillStyle = '#94a3b8'; ctx.fillRect(m.x + 26, m.y + 6, 7, 8);
         } else if (m.type === 'spider') {
-          // FIX (requested): the old near-black fill (#18181b) was almost
-          // invisible against the equally dark ground. Lightened the body,
-          // added legs so it actually reads as a spider silhouette, and
-          // marked it with a red X on the back as requested.
+          // FIX (requested): legs made much longer, given a bent knee joint
+          // for a more spider-like silhouette, and animated with a
+          // staggered walking wave (per-leg phase offset) tied to rpgTicks.
           const cx = m.x + m.w / 2, cy = m.y + m.h / 2;
           const bodyRx = m.w / 2.6, bodyRy = m.h / 2.8;
 
-          ctx.strokeStyle = '#71717a'; ctx.lineWidth = 3;
+          ctx.strokeStyle = '#71717a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
           for (let i = 0; i < 4; i++) {
             const yOff = -bodyRy * 0.6 + i * (bodyRy * 0.4);
-            ctx.beginPath(); ctx.moveTo(cx - bodyRx * 0.6, cy); ctx.lineTo(cx - bodyRx - 14, cy + yOff); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(cx + bodyRx * 0.6, cy); ctx.lineTo(cx + bodyRx + 14, cy + yOff); ctx.stroke();
+            const walk = Math.sin(rpgTicks * 0.25 + i * 1.3) * 6;
+            const kneeY = cy + yOff + walk * 0.4;
+            const footY = cy + yOff * 1.4 + walk;
+
+            ctx.beginPath();
+            ctx.moveTo(cx - bodyRx * 0.6, cy);
+            ctx.lineTo(cx - bodyRx * 0.9 - 10, kneeY);
+            ctx.lineTo(cx - bodyRx - 28, footY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(cx + bodyRx * 0.6, cy);
+            ctx.lineTo(cx + bodyRx * 0.9 + 10, kneeY);
+            ctx.lineTo(cx + bodyRx + 28, footY);
+            ctx.stroke();
           }
 
           ctx.fillStyle = '#71717a';
@@ -2591,22 +2615,64 @@
       return arr;
     }
 
+    // FIX (bug): the previous fix only anchored each platform to be
+    // *probabilistically* near a platform below it, which still allowed
+    // occasional disconnected platforms (tight margins, an unlucky anchor
+    // choice) with an unreachable banana on them — bananas.length would
+    // then never hit 0 and the level could never advance. This computes
+    // actual reachability from the ground via a fixed-point graph
+    // traversal (not just anchoring), giving a real guarantee rather than
+    // a good chance. Distances are kept comfortably inside the monkey's
+    // actual jump arc (max height ~130px, max horizontal ~166px at full
+    // speed) with margin to spare.
+    function computeReachablePlatforms() {
+      const reachable = new Set([0]); // the ground is always reachable
+      const maxHorizontal = 150, maxRise = 120;
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (let i = 0; i < dinoPlatforms.length; i++) {
+          if (reachable.has(i)) continue;
+          const p = dinoPlatforms[i];
+          for (const j of reachable) {
+            const q = dinoPlatforms[j];
+            const dx = Math.abs((p.x + p.w / 2) - (q.x + q.w / 2));
+            const rise = q.y - p.y; // positive if p sits above q
+            if (dx <= maxHorizontal && rise <= maxRise) {
+              reachable.add(i);
+              changed = true;
+              break;
+            }
+          }
+        }
+      }
+      return reachable;
+    }
+
     function spawnBananasAndEnemies() {
       dinoEnemies = []; bananas = []; hearts = [];
 
+      // FIX (bug): bananas (and the heart below) are now only ever placed
+      // on platforms proven reachable from the ground, instead of any
+      // platform regardless of whether a path to it actually exists.
+      const reachable = computeReachablePlatforms();
+
       dinoPlatforms.forEach((plat, idx) => {
-        if (idx === 0) return; // skip the ground, bias bananas toward climbing
+        if (idx === 0 || !reachable.has(idx)) return; // skip the ground and any unreachable platform
         if (Math.random() < 0.7) {
           bananas.push({ x: plat.x + plat.w / 2 - 6, y: plat.y - 20, w: 12, h: 12 });
         }
       });
 
       // FIX (requested): a life heart always spawns on the topmost
-      // platform tier each level, rewarding players who climb all the way up.
-      const nonGroundPlats = dinoPlatforms.slice(1);
-      if (nonGroundPlats.length > 0) {
-        const topY = Math.min(...nonGroundPlats.map(p => p.y));
-        const topPlats = nonGroundPlats.filter(p => p.y === topY);
+      // *reachable* platform tier each level, rewarding players who climb
+      // all the way up (rather than possibly landing on an unreachable one).
+      const reachableNonGround = dinoPlatforms
+        .map((p, idx) => ({ p, idx }))
+        .filter(o => o.idx !== 0 && reachable.has(o.idx));
+      if (reachableNonGround.length > 0) {
+        const topY = Math.min(...reachableNonGround.map(o => o.p.y));
+        const topPlats = reachableNonGround.filter(o => o.p.y === topY).map(o => o.p);
         const heartPlat = topPlats[Math.floor(Math.random() * topPlats.length)];
         hearts.push({ x: heartPlat.x + heartPlat.w / 2 - 8, y: heartPlat.y - 24, w: 16, h: 16 });
       }
@@ -2780,6 +2846,16 @@
         return true;
       });
 
+      // FIX (requested): life heart pickup, spawned on the top platform.
+      hearts = hearts.filter(h => {
+        if (checkRectCollision(monkey, h)) {
+          if (dinoLives < 5) dinoLives++;
+          dinoScore += 100;
+          return false;
+        }
+        return true;
+      });
+
       dinoEnemies.forEach(en => {
         if (en.type === 'raptor' || en.type === 'stego') {
           en.vy = Math.min(18, en.vy + DINO_GRAVITY);
@@ -2907,17 +2983,6 @@
         ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
         ctx.fillStyle = '#2e7d32';
         ctx.fillRect(plat.x, plat.y, plat.w, 6);
-      });
-
-      bananas.forEach(b => {
-        ctx.save();
-        ctx.fillStyle = '#ffe066'; ctx.shadowColor = '#ffe066'; ctx.shadowBlur = 4;
-        ctx.beginPath();
-        ctx.moveTo(b.x, b.y + b.h);
-        ctx.quadraticCurveTo(b.x + b.w / 2, b.y - 4, b.x + b.w, b.y + b.h * 0.3);
-        ctx.quadraticCurveTo(b.x + b.w * 0.6, b.y + b.h, b.x, b.y + b.h);
-        ctx.fill();
-        ctx.restore();
       });
 
       dinoEnemies.forEach(en => {
@@ -3063,15 +3128,28 @@
           ctx.restore();
         } else if (en.type === 'pterodon') {
           const dir = en.vx >= 0 ? 1 : -1;
-          const flap = Math.sin(dinoTicks * 0.3 + en.phase) * 10;
+          // FIX (requested): wings were barely wider than the body — now a
+          // proper wide membrane shape (with a wrist bend) that actually
+          // reads as a pterodon's wingspan instead of small stubby flaps.
+          const flap = Math.sin(dinoTicks * 0.3 + en.phase) * 14;
           const bodyColor = '#78716c', wingColor = '#57534e';
           ctx.save();
           ctx.translate(en.x + en.w / 2, en.y + en.h / 2);
           ctx.scale(dir, 1);
 
           ctx.fillStyle = wingColor;
-          ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(-en.w / 2 - 6, -flap - 4); ctx.lineTo(4, 3); ctx.closePath(); ctx.fill();
-          ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(en.w / 2 + 6, -flap - 4); ctx.lineTo(-4, 3); ctx.closePath(); ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(-4, 0);
+          ctx.lineTo(-en.w * 0.9, -flap - 6);
+          ctx.lineTo(-en.w * 0.55, -flap * 0.5);
+          ctx.lineTo(4, 4);
+          ctx.closePath(); ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(4, 0);
+          ctx.lineTo(en.w * 0.9, -flap - 6);
+          ctx.lineTo(en.w * 0.55, -flap * 0.5);
+          ctx.lineTo(-4, 4);
+          ctx.closePath(); ctx.fill();
 
           ctx.fillStyle = bodyColor;
           ctx.beginPath(); ctx.ellipse(0, 0, en.w / 4, en.h / 3, 0, 0, Math.PI * 2); ctx.fill();
@@ -3182,6 +3260,31 @@
         }
       });
 
+      // FIX (bug): bananas/hearts previously drew *before* the dinosaurs,
+      // so a raptor or stego patrolling over one could completely hide it
+      // from view — the player would think they'd collected everything
+      // and be stuck wondering why the level wouldn't advance. Drawing
+      // them after (on top of) the dinosaurs means they stay visible no
+      // matter what's standing near them.
+      bananas.forEach(b => {
+        ctx.save();
+        ctx.fillStyle = '#ffe066'; ctx.shadowColor = '#ffe066'; ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.moveTo(b.x, b.y + b.h);
+        ctx.quadraticCurveTo(b.x + b.w / 2, b.y - 4, b.x + b.w, b.y + b.h * 0.3);
+        ctx.quadraticCurveTo(b.x + b.w * 0.6, b.y + b.h, b.x, b.y + b.h);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      hearts.forEach(h => {
+        ctx.save();
+        ctx.fillStyle = '#ff0055'; ctx.shadowColor = '#ff0055'; ctx.shadowBlur = 6;
+        ctx.font = `${h.w}px "Press Start 2P", monospace`;
+        ctx.fillText('♥', h.x, h.y + h.h);
+        ctx.restore();
+      });
+
       if (monkey.invuln % 6 < 3) {
         ctx.save();
         ctx.translate(monkey.x + monkey.w / 2, monkey.y + monkey.h / 2);
@@ -3232,7 +3335,7 @@
         initDinoGame(true);
       } else if (selected === 'boring') {
         currentTheme = 'boring'; document.body.classList.add('theme-boring');
-        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
+        gameHint.textContent = '[ WELCOME TO MY DIGITAL PORTFOLIO ]';
         // FIX: force the portfolio back into full focus if the user switches to
         // "boring" mode while a game was actively dimming it (e.g. was mid-keypress
         // or mid mobile-play when the theme changed).
@@ -3279,6 +3382,33 @@
       levelSelector.style.display = 'block';
     }
 
+    // FIX (bug): updateLevelSelector() (which sets the dropdown's shown
+    // value) was only ever called on a theme switch or page load — never
+    // when the level changed through actual gameplay (leveling up
+    // naturally, or a death resetting back to level 1). The dropdown's
+    // displayed value could then silently drift out of sync with the real
+    // game state — e.g. dying with "LEVEL 7" showing would reset the game
+    // to level 1 but leave the dropdown still reading 7. This runs a cheap
+    // check every frame and only touches the dropdown when the real level
+    // has actually changed, so it stays accurate no matter which of the
+    // three paths (dropdown, natural progression, or a reset) caused it.
+    function syncLevelSelectorDisplay() {
+      if (!LEVEL_SELECTOR_GAMES.includes(currentTheme)) return;
+      let current = 1;
+      if (currentTheme === 'space') current = spaceLevel;
+      else if (currentTheme === 'pac') current = pacLevel;
+      else if (currentTheme === 'rpg') current = rpgWave;
+      else if (currentTheme === 'dino') current = dinoWave;
+
+      if (current > levelSelector.options.length) {
+        // The current level has grown past the existing option list (e.g.
+        // progressed past LEVEL 10) — rebuild with a wider range.
+        updateLevelSelector();
+      } else if (parseInt(levelSelector.value, 10) !== current) {
+        levelSelector.value = String(current);
+      }
+    }
+
     levelSelector.addEventListener('change', (e) => {
       const lvl = parseInt(e.target.value, 10);
       if (currentTheme === 'space') {
@@ -3320,6 +3450,7 @@
       else if (currentTheme === 'dino') { updateDino(); drawDino(); }
       else if (currentTheme === 'boring') { /* No active game */ }
 
+      syncLevelSelectorDisplay();
       requestAnimationFrame(loop);
     }
 
