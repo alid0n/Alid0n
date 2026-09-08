@@ -590,6 +590,248 @@
     let totalGameTimeCounter = 0;
 
     // ==========================================
+    // 7. BORING ENGINE
+    // ==========================================
+    let boringScore = 0, boringStartTime = Date.now(), boringBlocks = [], boringPlayer = { x: 100, y: height / 2, w: 20, h: 20, speed: 5 };
+    let boringProjectiles = [];
+
+    function initBoringGame(fullReset = true) {
+      if (fullReset) { boringScore = 0; boringStartTime = Date.now(); }
+      boringPlayer.x = 100; boringPlayer.y = height / 2;
+      boringBlocks = []; boringProjectiles = [];
+      for (let i = 0; i < 5; i++) {
+        boringBlocks.push({ x: width + Math.random() * 400, y: Math.random() * (height - 40), w: 20, h: 20, speed: 2 + Math.random() * 2 });
+      }
+    }
+
+    function fireBoringWeapon() {
+      boringProjectiles.push({ x: boringPlayer.x + boringPlayer.w, y: boringPlayer.y + boringPlayer.h/2 - 2, w: 10, h: 4, vx: 8 });
+    }
+
+    function updateBoring() {
+      if (keys['ArrowLeft'] || keys['KeyA']) boringPlayer.x -= boringPlayer.speed;
+      if (keys['ArrowRight'] || keys['KeyD']) boringPlayer.x += boringPlayer.speed;
+      if (keys['ArrowUp'] || keys['KeyW']) boringPlayer.y -= boringPlayer.speed;
+      if (keys['ArrowDown'] || keys['KeyS']) boringPlayer.y += boringPlayer.speed;
+
+      boringPlayer.x = Math.max(0, Math.min(width - boringPlayer.w, boringPlayer.x));
+      boringPlayer.y = Math.max(0, Math.min(height - boringPlayer.h, boringPlayer.y));
+
+      for (let i = boringProjectiles.length - 1; i >= 0; i--) {
+        const bp = boringProjectiles[i]; bp.x += bp.vx;
+        if (bp.x > width) boringProjectiles.splice(i, 1);
+      }
+
+      boringBlocks.forEach((bb, idx) => {
+        bb.x -= bb.speed;
+        if (bb.x < -30) { bb.x = width + Math.random() * 200; bb.y = Math.random() * (height - 40); }
+        boringProjectiles.forEach((bp, bpIdx) => {
+          if (checkRectCollision(bp, bb)) {
+            boringScore += 100; boringProjectiles.splice(bpIdx, 1);
+            bb.x = width + Math.random() * 200; bb.y = Math.random() * (height - 150);
+          }
+        });
+      });
+    }
+
+    function drawBoring() {
+      ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(boringPlayer.x, boringPlayer.y, boringPlayer.w, boringPlayer.h);
+      boringProjectiles.forEach(bp => { ctx.fillRect(bp.x, bp.y, bp.w, bp.h); });
+      boringBlocks.forEach(bb => { ctx.strokeRect(bb.x, bb.y, bb.w, bb.h); ctx.fillRect(bb.x + 4, bb.y + 4, bb.w - 8, bb.h - 8); });
+      drawHUD(boringScore, boringStartTime, null, '#ffffff', null, 'BORING MODE');
+    }
+
+    function applyTheme(theme, persist = true) {
+      currentTheme = theme;
+      if (persist) {
+        localStorage.setItem('alidon_theme', theme);
+      }
+      themeSelect.value = theme;
+      document.body.classList.remove('theme-pac-cube', 'theme-synthwave', 'theme-boring', 'theme-rpg');
+
+      if (theme === 'space') {
+        gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS • SPACEBAR TO SHOOT ]';
+        initInvaders(true);
+      } else if (theme === 'pac') {
+        document.body.classList.add('theme-pac-cube');
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD • EAT POWER PELLETS ]';
+        initPacGame(true);
+      } else if (theme === 'synth') {
+        document.body.classList.add('theme-synthwave');
+        gameHint.textContent = '[ PLAY THE BACKGROUND: COCKPIT • LEFT/RIGHT TO STEER ]';
+        initSynthRacer(true);
+      } else if (theme === 'rpg') {
+        document.body.classList.add('theme-rpg');
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD • SPACEBAR TO ATTACK ]';
+        initRPGGame(true);
+      } else if (theme === 'boring') {
+        document.body.classList.add('theme-boring');
+        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
+        initBoringGame(true);
+        restorePortfolioFocus();
+      }
+    }
+
+    // Load persisted theme or default to 'space'
+    const savedTheme = localStorage.getItem('alidon_theme') || 'space';
+    applyTheme(savedTheme, false);
+
+    mobileGameToggle.addEventListener('click', () => {
+      if (currentTheme === 'boring') return;
+      isPlayingMobileGame = !isPlayingMobileGame;
+      if (isPlayingMobileGame) {
+        mobileGameToggle.textContent = 'QUIT';
+        mobileGameToggle.classList.add('playing');
+        contentWrapper.classList.add('dimmed');
+        canvas.classList.remove('faded');
+        touchControls.classList.add('active');
+        startActiveGameTimer();
+      } else {
+        restorePortfolioFocus();
+      }
+    });
+
+    function startActiveGameTimer() {
+      clearInterval(activeGameTimer);
+      totalGameTimeCounter = 0;
+      activeGameTimer = setInterval(() => {
+        if (isPlayingMobileGame) {
+          totalGameTimeCounter++;
+          if (totalGameTimeCounter >= 10) {
+            contentWrapper.classList.add('fully-hidden');
+          }
+        }
+      }, 1000);
+    }
+
+    function restorePortfolioFocus() {
+      clearInterval(activeGameTimer);
+      totalGameTimeCounter = 0;
+      isPlayingMobileGame = false;
+      mobileGameToggle.textContent = 'PLAY GAME';
+      mobileGameToggle.classList.remove('playing');
+      contentWrapper.classList.remove('dimmed', 'fully-hidden');
+      canvas.classList.add('faded');
+      touchControls.classList.remove('active');
+    }
+
+    window.addEventListener('wheel', restorePortfolioFocus, { passive: true });
+    window.addEventListener('scroll', restorePortfolioFocus, { passive: true });
+    window.addEventListener('mousedown', restorePortfolioFocus, { passive: true });
+    window.addEventListener('mousemove', restorePortfolioFocus, { passive: true });
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      if (currentTheme === 'space') initInvaders(false);
+      if (currentTheme === 'pac') initPacGame(false);
+      if (currentTheme === 'synth') initSynthRacer(false);
+      if (currentTheme === 'rpg') initRPGGame(false);
+      if (currentTheme === 'boring') initBoringGame(false);
+    });
+
+    function checkRectCollision(r1, r2) {
+      return (
+        r1.x < r2.x + r2.w &&
+        r1.x + r1.w > r2.x &&
+        r1.y < r2.y + r2.h &&
+        r1.y + r1.h > r2.y
+      );
+    }
+
+    const keys = {};
+    function bindTouchButton(id, code) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const pressOn = (e) => {
+        e.preventDefault();
+        keys[code] = true;
+        el.classList.add('pressed');
+        if (code === 'Space' && currentTheme === 'space') firePlayerWeapon();
+        if (code === 'Space' && currentTheme === 'rpg') performHeroAttack();
+        if (code === 'Space' && currentTheme === 'boring') fireBoringWeapon();
+      };
+      const pressOff = (e) => {
+        e.preventDefault();
+        keys[code] = false;
+        el.classList.remove('pressed');
+      };
+      el.addEventListener('touchstart', pressOn, { passive: false });
+      el.addEventListener('touchend', pressOff, { passive: false });
+      el.addEventListener('mousedown', pressOn);
+      el.addEventListener('mouseup', pressOff);
+    }
+
+    bindTouchButton('btnUp', 'ArrowUp');
+    bindTouchButton('btnDown', 'ArrowDown');
+    bindTouchButton('btnLeft', 'ArrowLeft');
+    bindTouchButton('btnRight', 'ArrowRight');
+    bindTouchButton('btnAction', 'Space');
+
+    window.addEventListener('keydown', (e) => {
+      if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
+        if (isPlayingMobileGame) {
+          e.preventDefault();
+        }
+      }
+      keys[e.code] = true;
+
+      if (currentTheme === 'space' && e.code === 'Space') firePlayerWeapon();
+      if (currentTheme === 'rpg' && e.code === 'Space') performHeroAttack();
+      if (currentTheme === 'boring' && e.code === 'Space') fireBoringWeapon();
+
+      if (currentTheme === 'pac') {
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') { pac.nextDirX = -1; pac.nextDirY = 0; }
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') { pac.nextDirX = 1; pac.nextDirY = 0; }
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') { pac.nextDirX = 0; pac.nextDirY = -1; }
+        if (e.code === 'ArrowDown' || e.code === 'KeyS') { pac.nextDirX = 0; pac.nextDirY = 1; }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+    });
+
+    function drawHUD(score, startTime, lives = null, accentColor = '#00ffaa', wave = null, extraText = null) {
+      const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
+      const m = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+      const s = String(elapsedSec % 60).padStart(2, '0');
+
+      ctx.save();
+      ctx.font = '10px "Press Start 2P", monospace';
+      ctx.fillStyle = accentColor;
+      ctx.shadowColor = accentColor;
+      ctx.shadowBlur = 6;
+
+      ctx.fillText(`SCORE: ${score}`, 25, 35);
+      ctx.fillText(`TIME: ${m}:${s}`, 25, 55);
+
+      let offsetY = 75;
+      if (wave !== null) {
+        ctx.fillText(`LEVEL: ${wave}`, 25, offsetY);
+        offsetY += 20;
+      }
+
+      if (lives !== null) {
+        let heartStr = '';
+        for (let i = 0; i < lives; i++) heartStr += '♥ ';
+        ctx.fillStyle = '#ff0055';
+        ctx.shadowColor = '#ff0055';
+        ctx.fillText(`LIVES: ${heartStr}`, 25, offsetY);
+        offsetY += 20;
+      }
+
+      if (extraText) {
+        ctx.fillStyle = accentColor;
+        ctx.shadowColor = accentColor;
+        ctx.fillText(extraText, 25, offsetY);
+      }
+      ctx.restore();
+    }
+
+    // ==========================================
     // 1. SPACE INVADERS ENGINE
     // ==========================================
     const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7.5, invuln: 0, weapon: 'standard', weaponTimer: 0 };
@@ -629,30 +871,6 @@
           invaders.push({ x: startX + c * spacingX, y: 90 + r * 50, w: invaderSize, h: invaderSize, row: r, col: c, type, hp, alive: true, cooldown });
         }
       }
-    }
-
-    function firePlayerWeapon() {
-      const cx = player.x + player.w / 2;
-      if (player.weapon === 'standard') bullets.push({ x: cx - 2, y: player.y, w: 4, h: 10, vx: 0, vy: -10, damage: 1, color: '#38bdf8' });
-      else if (player.weapon === 'spread') {
-        bullets.push({ x: cx - 2, y: player.y, w: 5, h: 10, vx: 0, vy: -10, damage: 1, color: '#00ffff' });
-        bullets.push({ x: cx - 6, y: player.y, w: 5, h: 10, vx: -2.5, vy: -9.5, damage: 1, color: '#00ffff' });
-        bullets.push({ x: cx + 2, y: player.y, w: 5, h: 10, vx: 2.5, vy: -9.5, damage: 1, color: '#00ffff' });
-      } else if (player.weapon === 'laser') {
-        bullets.push({ x: player.x + 4, y: player.y - 4, w: 3, h: 18, vx: 0, vy: -15, damage: 1, color: '#ffee00', pierce: true });
-        bullets.push({ x: player.x + player.w - 7, y: player.y - 4, w: 3, h: 18, vx: 0, vy: -15, damage: 1, color: '#ffee00', pierce: true });
-      } else if (player.weapon === 'plasma') {
-        bullets.push({ x: cx - 5, y: player.y - 4, w: 10, h: 14, vx: 0, vy: -8, damage: 2, color: '#ff00ff' });
-      }
-    }
-
-    function spawnPowerup(x, y) {
-      if (Math.random() > 0.35) return;
-      const roll = Math.random();
-      let kind = 'weapon', label = 'W', color = '#00ffff';
-      if (roll < 0.20) { kind = 'life'; label = '+'; color = '#ff0055'; }
-      else if (roll < 0.45) { kind = 'score'; label = '$'; color = '#ffeb3b'; }
-      powerups.push({ x, y, w: 20, h: 20, vy: 2.2, kind, label, color });
     }
 
     function updateSpace() {
@@ -804,7 +1022,6 @@
     const pac = { x: 60, y: 60, w: 22, h: 22, speed: 3.2, dirX: 1, dirY: 0, nextDirX: 1, nextDirY: 0, mouth: 0, mouthSpeed: 0.18, invuln: 0 };
     let walls = [], pellets = [], powerPellets = [], ghosts = [], ghostPenGate = null, penExitTile = { x: 0, y: 0 }, mazeBounds = { left: 0, right: 0, tileSize: 20 };
     let pacScore = 0, pacLives = 3, pacLevel = 1, pacStartTime = Date.now(), frightTimer = 0, ghostsEatenChain = 0;
-    const ghostColors = ['#ff0000', '#00ffff', '#ffb8de', '#ffb852'];
 
     const pacMapBlueprint = [
       "############################",
@@ -1185,327 +1402,41 @@
       if (rpgWave >= 6) npcs.push({ type: 'worm', x: width * 0.75, y: height * 0.45, w: 46, h: 46, hp: 20 + (rpgWave * 2), maxHp: 20 + (rpgWave * 2), speed: 2.4, aggroRadius: 400, state: 'emerged', burrowTimer: 140, surfaceTimer: 0, isBurrowed: false, animState: 'idle', animTimer: 0, wanderDir: { x: -1, y: 0 }, wanderTimer: 70 });
     }
 
-    function performHeroAttack() {
-      if (hero.attackCooldown > 0) return;
-      const cx = hero.x + hero.w / 2, cy = hero.y + hero.h / 2;
-      let fx = hero.facingX, fy = hero.facingY;
-      if (fx === 0 && fy === 0) fx = 1;
-      const norm = Math.hypot(fx, fy) || 1; fx /= norm; fy /= norm;
-      hero.attackAnimTimer = 14;
+    function applyTheme(theme, persist = true) {
+      currentTheme = theme;
+      if (persist) {
+        localStorage.setItem('alidon_theme', theme);
+      }
+      themeSelect.value = theme;
+      document.body.classList.remove('theme-pac-cube', 'theme-synthwave', 'theme-boring', 'theme-rpg');
 
-      if (hero.weapon === 'sword') {
-        meleeSlash = { x: cx + fx * 20 - 16, y: cy + fy * 20 - 16, w: 32, h: 32, damage: 1, life: 10, type: 'sword' };
-        hero.attackCooldown = 17;
-      } else if (hero.weapon === 'bow') {
-        heroProjectiles.push({ x: cx, y: cy, vx: fx * 9.5, vy: fy * 9.5, w: 8, h: 8, damage: 1, type: 'arrow', life: 75 });
-        hero.attackCooldown = 22;
-      } else if (hero.weapon === 'staff') {
-        heroProjectiles.push({ x: cx, y: cy, vx: fx * 7.5, vy: fy * 7.5, w: 12, h: 12, damage: 2, type: 'fireball', life: 80 });
-        hero.attackCooldown = 16;
-      } else if (hero.weapon === 'axe') {
-        meleeSlash = { x: cx + fx * 26 - 24, y: cy + fy * 26 - 24, w: 48, h: 48, damage: 3, life: 14, type: 'axe' };
-        hero.attackCooldown = 28;
+      if (theme === 'space') {
+        gameHint.textContent = '[ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS • SPACEBAR TO SHOOT ]';
+        initInvaders(true);
+      } else if (theme === 'pac') {
+        document.body.classList.add('theme-pac-cube');
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE • EAT POWER PELLETS ]';
+        initPacGame(true);
+      } else if (theme === 'synth') {
+        document.body.classList.add('theme-synthwave');
+        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT TO STEER ]';
+        initSynthRacer(true);
+      } else if (theme === 'rpg') {
+        document.body.classList.add('theme-rpg');
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD TO EXPLORE • SPACEBAR TO ATTACK ]';
+        initRPGGame(true);
+      } else if (theme === 'boring') {
+        document.body.classList.add('theme-boring');
+        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
+        initBoringGame(true);
+        restorePortfolioFocus();
       }
     }
 
-    function takeHeroDamage() {
-      if (hero.invuln > 0) return;
-      if (hero.shields > 0) hero.shields--;
-      else if (--rpgLives <= 0) { initRPGGame(true); return; }
-      hero.invuln = 70;
-    }
+    // Load persisted theme or default to 'space'
+    const savedTheme = localStorage.getItem('alidon_theme') || 'space';
+    applyTheme(savedTheme, false);
 
-    function updateRPG() {
-      rpgTicks++;
-      if (hero.invuln > 0) hero.invuln--;
-      if (hero.attackCooldown > 0) hero.attackCooldown--;
-      if (hero.attackAnimTimer > 0) hero.attackAnimTimer--;
-
-      let mx = 0, my = 0;
-      if (keys['ArrowLeft'] || keys['KeyA']) mx -= 1;
-      if (keys['ArrowRight'] || keys['KeyD']) mx += 1;
-      if (keys['ArrowUp'] || keys['KeyW']) my -= 1;
-      if (keys['ArrowDown'] || keys['KeyS']) my += 1;
-
-      if (mx !== 0 || my !== 0) {
-        hero.facingX = mx; hero.facingY = my;
-        const norm = Math.hypot(mx, my);
-        const nextX = hero.x + (mx / norm) * hero.speed;
-        const nextY = hero.y + (my / norm) * hero.speed;
-        if (!obstacles.some(ob => checkRectCollision({ x: nextX, y: hero.y, w: hero.w, h: hero.h }, ob))) hero.x = nextX;
-        if (!obstacles.some(ob => checkRectCollision({ x: hero.x, y: nextY, w: hero.w, h: hero.h }, ob))) hero.y = nextY;
-      }
-      hero.x = Math.max(10, Math.min(width - hero.w - 10, hero.x));
-      hero.y = Math.max(10, Math.min(height - hero.h - 10, hero.y));
-
-      for (let i = heroProjectiles.length - 1; i >= 0; i--) {
-        const p = heroProjectiles[i]; p.x += p.vx; p.y += p.vy; p.life--;
-        for (let m of npcs) {
-          if (m.hp > 0 && !(m.type === 'worm' && m.isBurrowed) && checkRectCollision({ x: p.x, y: p.y, w: p.w, h: p.h }, m)) {
-            m.hp -= p.damage; m.state = 'aggro'; heroProjectiles.splice(i, 1); break;
-          }
-        }
-        if (p.life <= 0) heroProjectiles.splice(i, 1);
-      }
-
-      for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
-        const ep = enemyProjectiles[i]; ep.x += ep.vx; ep.y += ep.vy; ep.life--;
-        if (checkRectCollision({ x: ep.x, y: ep.y, w: ep.w || 8, h: ep.h || 8 }, hero)) {
-          enemyProjectiles.splice(i, 1); takeHeroDamage(); continue;
-        }
-        if (ep.life <= 0) enemyProjectiles.splice(i, 1);
-      }
-
-      if (meleeSlash) {
-        meleeSlash.life--;
-        for (let m of npcs) {
-          if (m.hp > 0 && !(m.type === 'worm' && m.isBurrowed) && checkRectCollision(meleeSlash, m)) {
-            m.hp -= meleeSlash.damage; m.state = 'aggro'; m.x += hero.facingX * 14; m.y += hero.facingY * 14;
-          }
-        }
-        if (meleeSlash.life <= 0) meleeSlash = null;
-      }
-
-      for (let i = lootDrops.length - 1; i >= 0; i--) {
-        const l = lootDrops[i]; l.lifetime--;
-        if (checkRectCollision(hero, l)) {
-          if (l.dropType === 'health') { if (rpgLives < 5) rpgLives++; rpgScore += 100; }
-          else if (l.dropType === 'armor') { hero.shields = Math.min(3, hero.shields + 1); rpgScore += 150; }
-          else { hero.weapon = l.weaponType; rpgScore += 200; }
-          lootDrops.splice(i, 1); continue;
-        }
-        if (l.lifetime <= 0) lootDrops.splice(i, 1);
-      }
-
-      npcs.forEach(npc => {
-        const distToHero = Math.hypot((hero.x + hero.w / 2) - (npc.x + npc.w / 2), (hero.y + hero.h / 2) - (npc.y + npc.h / 2));
-        if (distToHero < npc.aggroRadius) npc.state = 'aggro';
-        else if (distToHero > npc.aggroRadius * 1.5) npc.state = 'wander';
-
-        if (npc.type === 'skeleton_bow' && npc.state === 'aggro' && --npc.shootCooldown <= 0) {
-          const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), norm = Math.hypot(dx, dy) || 1;
-          enemyProjectiles.push({ x: npc.x + npc.w / 2, y: npc.y + npc.h / 2, vx: (dx / norm) * 5.5, vy: (dy / norm) * 5.5, w: 6, h: 6, type: 'bone_arrow', life: 75 });
-          npc.shootCooldown = 110 + Math.floor(Math.random() * 40);
-        }
-
-        if (npc.type === 'spider' && npc.state === 'aggro' && --npc.webCooldown <= 0) {
-          const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), norm = Math.hypot(dx, dy) || 1;
-          enemyProjectiles.push({ x: npc.x + npc.w / 2, y: npc.y + npc.h / 2, vx: (dx / norm) * 6, vy: (dy / norm) * 6, w: 10, h: 10, type: 'web', life: 70 });
-          npc.webCooldown = 100;
-        }
-
-        if (npc.type === 'worm') {
-          if (!npc.isBurrowed) {
-            npc.speed = 0;
-            if (!npc.animTimer) { npc.animState = 'biting'; npc.animTimer = 40; }
-            else { npc.animTimer--; if (npc.animTimer <= 0) npc.animState = 'idle'; }
-            if (checkRectCollision({ x: npc.x - 6, y: npc.y - 6, w: npc.w + 12, h: npc.h + 12 }, hero)) takeHeroDamage();
-            if (--npc.burrowTimer <= 0) { npc.isBurrowed = true; npc.animState = 'burying'; npc.animTimer = 35; npc.surfaceTimer = 140; }
-          } else {
-            npc.speed = 3.6;
-            if (npc.animState === 'burying' && --npc.animTimer <= 0) npc.animState = 'underground';
-            const tdx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), tdy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), tdist = Math.hypot(tdx, tdy) || 1;
-            npc.x += (tdx / tdist) * npc.speed; npc.y += (tdy / tdist) * npc.speed;
-            if (--npc.surfaceTimer <= 0) {
-              npc.isBurrowed = false; npc.animState = 'unburying'; npc.animTimer = 35; npc.burrowTimer = 200;
-              if (checkRectCollision({ x: npc.x - 12, y: npc.y - 12, w: npc.w + 24, h: npc.h + 24 }, hero)) takeHeroDamage();
-            }
-          }
-        }
-
-        let moveX = 0, moveY = 0;
-        if (!(npc.type === 'worm' && npc.isBurrowed) && npc.type !== 'worm') {
-          if (npc.state === 'aggro') {
-            const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), norm = Math.hypot(dx, dy) || 1;
-            moveX = (dx / norm) * npc.speed; moveY = (dy / norm) * npc.speed;
-          } else {
-            if (--npc.wanderTimer <= 0) {
-              const angle = Math.random() * Math.PI * 2;
-              npc.wanderDir = { x: Math.cos(angle), y: Math.sin(angle) };
-              npc.wanderTimer = 60 + Math.floor(Math.random() * 80);
-            }
-            moveX = npc.wanderDir.x * (npc.speed * 0.5); moveY = npc.wanderDir.y * (npc.speed * 0.5);
-          }
-        }
-
-        if (!(npc.type === 'worm' && npc.isBurrowed)) {
-          const nextNpcBox = { x: npc.x + moveX, y: npc.y + moveY, w: npc.w, h: npc.h };
-          const hitsObstacle = (npc.type === 'dragon' && npc.isFlying) ? false : obstacles.some(ob => checkRectCollision(nextNpcBox, ob));
-          if (!hitsObstacle) { npc.x += moveX; npc.y += moveY; } else { npc.wanderTimer = 0; }
-        }
-        npc.x = Math.max(10, Math.min(width - npc.w - 10, npc.x));
-        npc.y = Math.max(10, Math.min(height - npc.h - 10, npc.y));
-
-        if (checkRectCollision(hero, npc) && !(npc.type === 'worm' && npc.isBurrowed)) takeHeroDamage();
-      });
-
-      for (let i = npcs.length - 1; i >= 0; i--) {
-        const npc = npcs[i];
-        if (npc.hp <= 0) {
-          rpgScore += (npc.type === 'worm') ? 2500 : (npc.type === 'dragon' ? 1500 : (npc.type === 'cyclops' ? 1000 : (npc.type === 'spider' ? 800 : (npc.type === 'orc' ? 300 : 100))));
-          lootDrops.push({ x: npc.x + npc.w / 2 - 9, y: npc.y + npc.h / 2 - 9, w: 18, h: 18, dropType: 'health', color: '#ff0055', lifetime: 240 });
-          if (Math.random() < 0.3 || ['cyclops', 'dragon', 'worm'].includes(npc.type)) {
-            lootDrops.push({ x: npc.x + 14, y: npc.y - 12, w: 18, h: 18, dropType: 'armor', color: '#38bdf8', lifetime: 240 });
-          }
-          const roll = Math.random();
-          if (npc.type === 'skeleton_sword' && roll < 0.35) lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'sword', color: '#94a3b8', lifetime: 240 });
-          else if (npc.type === 'skeleton_bow' && roll < 0.5) lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'bow', color: '#38bdf8', lifetime: 240 });
-          else if (npc.type === 'orc') {
-            const drop = roll < 0.5 ? 'staff' : 'axe';
-            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: drop, color: drop === 'staff' ? '#c026d3' : '#ef4444', lifetime: 240 });
-          } else if (npc.type === 'spider') lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'bow', color: '#38bdf8', lifetime: 240 });
-          else if (npc.type === 'cyclops') lootDrops.push({ x: npc.x - 14, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'axe', color: '#ef4444', lifetime: 240 });
-          else if (['dragon', 'worm'].includes(npc.type)) {
-            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'axe', color: '#ef4444', lifetime: 240 });
-            lootDrops.push({ x: npc.x + 22, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'staff', color: '#c026d3', lifetime: 240 });
-          }
-          npcs.splice(i, 1);
-        }
-      }
-
-      if (npcs.length === 0) { rpgWave++; rpgScore += 800; spawnWaveNPCs(); }
-    }
-
-    function drawRPG() {
-      ctx.fillStyle = '#101d14'; ctx.fillRect(0, 0, width, height);
-      groundDetails.forEach(gd => { ctx.fillStyle = gd.color; ctx.fillRect(gd.x, gd.y, gd.size, gd.size * 1.5); });
-
-      obstacles.forEach(ob => {
-        if (ob.type === 'river') {
-          ctx.fillStyle = '#0369a1'; ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
-          ctx.fillStyle = '#0284c7'; ctx.fillRect(ob.x + 3, ob.y, ob.w - 6, ob.h);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-          const waveShift = (rpgTicks * 0.8) % 30;
-          for (let wy = ob.y + waveShift; wy < ob.y + ob.h; wy += 35) { ctx.fillRect(ob.x + 8, wy, 16, 2); ctx.fillRect(ob.x + 28, wy + 14, 18, 2); }
-        } else if (ob.type === 'tree') {
-          ctx.fillStyle = '#451a03'; ctx.fillRect(ob.x + ob.w / 2 - 4, ob.y + ob.h - 16, 8, 16);
-          ctx.fillStyle = '#064e3b'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y); ctx.lineTo(ob.x + ob.w, ob.y + 20); ctx.lineTo(ob.x, ob.y + 20); ctx.fill();
-          ctx.fillStyle = '#047857'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 12); ctx.lineTo(ob.x + ob.w + 4, ob.y + 32); ctx.lineTo(ob.x - 4, ob.y + 32); ctx.fill();
-          ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 24); ctx.lineTo(ob.x + ob.w + 6, ob.y + 44); ctx.lineTo(ob.x - 6, ob.y + 44); ctx.fill();
-        } else if (ob.type === 'rock') {
-          ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w / 2, ob.y + ob.h / 2, ob.w / 2, ob.h / 2, 0, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#64748b'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w / 2 - 2, ob.y + ob.h / 2 - 3, ob.w / 3, ob.h / 3, 0, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#15803d'; ctx.fillRect(ob.x + 4, ob.y + 4, 8, 5);
-        } else if (ob.type === 'ruin') {
-          ctx.fillStyle = '#52525b'; ctx.fillRect(ob.x, ob.y, ob.w, ob.h); ctx.strokeStyle = '#27272a'; ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
-        } else if (ob.type === 'statue') {
-          ctx.fillStyle = '#64748b'; ctx.fillRect(ob.x + 6, ob.y + 12, ob.w - 12, ob.h - 12);
-        }
-      });
-
-      if (bridge) {
-        ctx.fillStyle = '#92400e'; ctx.fillRect(bridge.x, bridge.y, bridge.w, bridge.h);
-        ctx.strokeStyle = '#451a03'; ctx.lineWidth = 2; ctx.strokeRect(bridge.x, bridge.y, bridge.w, bridge.h);
-      }
-
-      lootDrops.forEach(l => {
-        if (l.lifetime < 90 && Math.floor(l.lifetime / 8) % 2 === 0) return;
-        ctx.save();
-        if (l.dropType === 'health') {
-          ctx.fillStyle = '#ff0055'; ctx.shadowColor = '#ff0055'; ctx.shadowBlur = 8;
-          ctx.font = '12px "Press Start 2P", monospace'; ctx.fillText('♥', l.x + 2, l.y + 14);
-        } else if (l.dropType === 'armor') {
-          ctx.fillStyle = '#0284c7'; ctx.strokeStyle = '#38bdf8'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.moveTo(l.x + l.w / 2, l.y); ctx.lineTo(l.x + l.w, l.y + 5); ctx.lineTo(l.x + l.w - 3, l.y + l.h); ctx.lineTo(l.x + l.w / 2, l.y + l.h + 2); ctx.lineTo(l.x + 3, l.y + l.h); ctx.lineTo(l.x, l.y + 5); ctx.closePath(); ctx.fill(); ctx.stroke();
-        } else {
-          ctx.fillStyle = '#1e1b4b'; ctx.strokeStyle = l.color; ctx.lineWidth = 2; ctx.shadowColor = l.color; ctx.shadowBlur = 8;
-          ctx.strokeRect(l.x, l.y, l.w, l.h); ctx.fillRect(l.x, l.y, l.w, l.h);
-          ctx.save(); ctx.translate(l.x + 4, l.y + 4);
-          if (l.weaponType === 'sword') { ctx.fillStyle = '#94a3b8'; ctx.fillRect(5, 1, 3, 10); ctx.fillStyle = '#f59e0b'; ctx.fillRect(3, 7, 7, 2); }
-          else if (l.weaponType === 'bow') { ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2; ctx.strokeRect(4, 2, 4, 10); }
-          else if (l.weaponType === 'staff') { ctx.fillStyle = '#78350f'; ctx.fillRect(7, 1, 2, 11); ctx.fillStyle = '#c026d3'; ctx.beginPath(); ctx.arc(8, 2, 3, 0, Math.PI * 2); ctx.fill(); }
-          else if (l.weaponType === 'axe') { ctx.fillStyle = '#78350f'; ctx.fillRect(7, 1, 2, 11); ctx.fillStyle = '#ef4444'; ctx.fillRect(3, 2, 6, 4); }
-          ctx.restore();
-        }
-        ctx.restore();
-      });
-
-      heroProjectiles.forEach(p => {
-        ctx.save();
-        if (p.type === 'fireball') { ctx.fillStyle = '#c026d3'; ctx.shadowColor = '#e879f9'; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(p.x, p.y, p.w / 2, 0, Math.PI * 2); ctx.fill(); }
-        else { ctx.fillStyle = '#f8fafc'; ctx.fillRect(p.x - 2, p.y - 2, 4, 4); }
-        ctx.restore();
-      });
-
-      enemyProjectiles.forEach(ep => {
-        ctx.save();
-        if (ep.type === 'dragon_fire') { ctx.fillStyle = '#ea580c'; ctx.shadowColor = '#fb923c'; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(ep.x, ep.y, 7, 0, Math.PI * 2); ctx.fill(); }
-        else if (ep.type === 'web') { ctx.fillStyle = '#e2e8f0'; ctx.strokeStyle = '#94a3b8'; ctx.strokeRect(ep.x - 4, ep.y - 4, 8, 8); }
-        else { ctx.fillStyle = '#f1f5f9'; ctx.fillRect(ep.x - 2, ep.y - 2, 4, 4); }
-        ctx.restore();
-      });
-
-      if (meleeSlash) {
-        ctx.save(); ctx.strokeStyle = meleeSlash.type === 'axe' ? '#ef4444' : '#38bdf8'; ctx.shadowColor = meleeSlash.type === 'axe' ? '#ef4444' : '#38bdf8'; ctx.shadowBlur = 8; ctx.lineWidth = 3; ctx.strokeRect(meleeSlash.x, meleeSlash.y, meleeSlash.w, meleeSlash.h); ctx.restore();
-      }
-
-      npcs.forEach(m => {
-        ctx.save();
-        if (m.hp < m.maxHp && !(m.type === 'worm' && m.isBurrowed)) {
-          const barW = Math.max(m.w, 24), barH = 4, barX = m.x + m.w / 2 - barW / 2, barY = m.y - 8;
-          ctx.fillStyle = '#18181b'; ctx.fillRect(barX, barY, barW, barH);
-          ctx.fillStyle = '#ef4444'; ctx.fillRect(barX, barY, barW * (m.hp / m.maxHp), barH);
-          ctx.strokeStyle = '#000000'; ctx.lineWidth = 1; ctx.strokeRect(barX, barY, barW, barH);
-        }
-
-        if (m.type === 'skeleton_sword' || m.type === 'skeleton_bow') {
-          ctx.fillStyle = '#f1f5f9'; ctx.fillRect(m.x + 5, m.y + 2, 14, 10);
-          ctx.fillStyle = '#0f172a'; ctx.fillRect(m.x + 7, m.y + 5, 3, 3); ctx.fillRect(m.x + 14, m.y + 5, 3, 3);
-          ctx.fillStyle = '#ef4444'; ctx.fillRect(m.x + 8, m.y + 6, 1, 1); ctx.fillRect(m.x + 15, m.y + 6, 1, 1);
-          ctx.fillStyle = '#e2e8f0'; ctx.fillRect(m.x + 10, m.y + 12, 4, 8); ctx.fillRect(m.x + 6, m.y + 13, 12, 2); ctx.fillRect(m.x + 7, m.y + 16, 10, 2);
-          ctx.fillRect(m.x + 7, m.y + 23, 3, 7); ctx.fillRect(m.x + 14, m.y + 23, 3, 7);
-          if (m.type === 'skeleton_bow') { ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(m.x + 20, m.y + 16, 8, -Math.PI / 2, Math.PI / 2); ctx.stroke(); }
-          else { ctx.fillStyle = '#94a3b8'; ctx.fillRect(m.x + 19, m.y + 10, 2, 12); }
-        } else if (m.type === 'orc') {
-          ctx.fillStyle = '#166534'; ctx.fillRect(m.x + 5, m.y + 4, 22, 12);
-          ctx.fillStyle = '#475569'; ctx.fillRect(m.x + 4, m.y + 1, 24, 6);
-          ctx.fillStyle = '#e2e8f0'; ctx.fillRect(m.x + 2, m.y - 3, 3, 5); ctx.fillRect(m.x + 27, m.y - 3, 3, 5);
-          ctx.fillStyle = '#facc15'; ctx.fillRect(m.x + 9, m.y + 7, 3, 2); ctx.fillRect(m.x + 20, m.y + 7, 3, 2);
-          ctx.fillStyle = '#ffffff'; ctx.fillRect(m.x + 8, m.y + 13, 3, 4); ctx.fillRect(m.x + 21, m.y + 13, 3, 4);
-          ctx.fillStyle = '#334155'; ctx.fillRect(m.x + 3, m.y + 16, 26, 10);
-          ctx.fillStyle = '#b45309'; ctx.fillRect(m.x + 5, m.y + 26, 22, 4);
-          ctx.fillStyle = '#166534'; ctx.fillRect(m.x + 6, m.y + 30, 6, 4); ctx.fillRect(m.x + 20, m.y + 30, 6, 4);
-          ctx.fillStyle = '#78350f'; ctx.fillRect(m.x + 28, m.y + 8, 3, 22);
-          ctx.fillStyle = '#94a3b8'; ctx.fillRect(m.x + 26, m.y + 6, 7, 8);
-        } else if (m.type === 'spider') {
-          ctx.fillStyle = '#18181b'; ctx.beginPath(); ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, m.w / 2.5, m.h / 2.8, 0, 0, Math.PI * 2); ctx.fill();
-        } else if (m.type === 'cyclops') {
-          ctx.fillStyle = '#7c2d12'; ctx.fillRect(m.x + 8, m.y + 8, m.w - 16, m.h - 16);
-          ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(m.x + m.w / 2, m.y + 16, 7, 0, Math.PI * 2); ctx.fill();
-        } else if (m.type === 'dragon') {
-          ctx.fillStyle = m.isFlying ? '#dc2626' : '#991b1b'; ctx.fillRect(m.x + 18, m.y + 16, m.w - 36, m.h - 24);
-        } else if (m.type === 'worm') {
-          if (m.isBurrowed) {
-            ctx.fillStyle = '#78350f'; ctx.beginPath(); ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, 20, 10, 0, 0, Math.PI * 2); ctx.fill();
-          } else {
-            ctx.fillStyle = '#831843'; ctx.fillRect(m.x + 6, m.y + 8, m.w - 12, m.h - 8);
-          }
-        }
-        ctx.restore();
-      });
-
-      if (hero.invuln % 6 < 3) {
-        ctx.save();
-        ctx.fillStyle = '#312e81'; ctx.fillRect(hero.x + 4, hero.y + 14, 18, 16);
-        if (hero.shields > 0) { ctx.strokeStyle = '#38bdf8'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8; ctx.lineWidth = 2; ctx.strokeRect(hero.x + 4, hero.y + 14, 18, 16); ctx.shadowBlur = 0; }
-        ctx.fillStyle = '#fed7aa'; ctx.fillRect(hero.x + 8, hero.y + 9, 10, 6);
-        ctx.fillStyle = '#1d4ed8'; ctx.beginPath(); ctx.moveTo(hero.x + 2, hero.y + 9); ctx.lineTo(hero.x + 24, hero.y + 9); ctx.lineTo(hero.x + 18, hero.y + 1); ctx.lineTo(hero.x + 8, hero.y - 7); ctx.closePath(); ctx.fill();
-
-        const wx = hero.x + (hero.facingX >= 0 ? 20 : 1), wy = hero.y + 13;
-        if (hero.weapon === 'sword') { ctx.fillStyle = '#94a3b8'; ctx.fillRect(wx, wy, 3, 15); }
-        else if (hero.weapon === 'bow') { ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2; ctx.strokeRect(wx, wy, 4, 14); }
-        else if (hero.weapon === 'staff') { ctx.fillStyle = '#78350f'; ctx.fillRect(wx, wy - 3, 3, 18); ctx.fillStyle = '#c026d3'; ctx.beginPath(); ctx.arc(wx + 1, wy - 5, 4, 0, Math.PI * 2); ctx.fill(); }
-        else if (hero.weapon === 'axe') { ctx.fillStyle = '#78350f'; ctx.fillRect(wx, wy, 3, 16); ctx.fillStyle = '#dc2626'; ctx.fillRect(wx - 3, wy, 9, 6); }
-        ctx.restore();
-      }
-
-      let shieldText = hero.shields > 0 ? `SHIELD: [${'★'.repeat(hero.shields)}]` : null;
-      drawHUD(rpgScore, rpgStartTime, rpgLives, '#f59e0b', rpgWave, `WEAPON: ${hero.weapon.toUpperCase()}${shieldText ? ' | ' + shieldText : ''}`);
-    }
-
-    // ==========================================
-    // THEME SELECTOR DROPDOWN CONTROLLER
-    // ==========================================
     themeSelect.addEventListener('change', (e) => {
       applyTheme(e.target.value, true);
     });
