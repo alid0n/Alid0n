@@ -18,7 +18,7 @@
   <meta property="og:image" content="https://your-domain-here.com/preview.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Addison Warner | Alid0n - Technical Artist & Systems">
-  <meta name="twitter:description" content="Interactive digital portfolio featuring playable background games, Unreal Engine marketplace assets, and modding work.">
+  <meta name="twitter:description" content="Interactive digital portfolio featuring playable background games & previews of my work">
   <meta name="theme-color" content="#07090e">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2307090e'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' fill='%2300ffaa' text-anchor='middle'%3E%3E%3C/text%3E%3C/svg%3E">
 
@@ -739,7 +739,7 @@
     <div class="section-title">OTHER PROJECTS</div>
     <div class="card">
       <h3>Alidon's Ultimate Armory &amp; Artifacts (Skyrim)</h3>
-      <p>Custom script-driven spells, activators, environments, weapons, and companion AIs. Verified Mod Author with the Bethesdas Creation Club. Reached over 15,000,000+ multi-platform downloads across PC, Xbox, and PlayStation.</p>
+      <p>Flagship gameplay mod featuring custom Papyrus scripting, responsive companion AI behaviors, dynamic activators, and interactive environments built in Bethesda's Creation Kit. Officially verified Bethesda Creation Club creator with over 15 million cross-platform downloads across PC, Xbox, and PlayStation.</p>
       <div class="card-links">
         <a href="https://creations.bethesda.net/en/skyrim/all?author_displayname=Alid0n" target="_blank" class="btn btn-primary">Mod Hub Page</a>
         <a href="https://www.youtube.com/watch?v=FScUhR7MjRw" target="_blank" class="btn btn-secondary">Walkthrough Showcase</a>
@@ -3466,11 +3466,11 @@
         initInvaders(true);
       } else if (selected === 'pac') {
         currentTheme = 'pac'; document.body.classList.add('theme-pac-cube');
-        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE • EAT POWER PELLETS ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS / WASD TO NAVIGATE ]';
         initPacGame(true);
       } else if (selected === 'synth') {
         currentTheme = 'synth'; document.body.classList.add('theme-synthwave');
-        gameHint.textContent = '[ PLAY THE BACKGROUND: FIRST-PERSON COCKPIT • LEFT/RIGHT TO STEER ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: LEFT/RIGHT TO STEER ]';
         initSynthRacer(true);
       } else if (selected === 'rpg') {
         currentTheme = 'rpg'; document.body.classList.add('theme-rpg');
@@ -3478,11 +3478,11 @@
         initRPGGame(true);
       } else if (selected === 'dino') {
         currentTheme = 'dino'; document.body.classList.add('theme-dino');
-        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD TO MOVE • SPACEBAR TO JUMP • COLLECT ALL THE BANANAS ]';
+        gameHint.textContent = '[ PLAY THE BACKGROUND: ARROWS/WASD TO MOVE • SPACEBAR TO JUMP ]';
         initDinoGame(true);
       } else if (selected === 'boring') {
         currentTheme = 'boring'; document.body.classList.add('theme-boring');
-        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
+        gameHint.textContent = '[ BORING MODE: SELECT A THEME TO PLAY A GAME ]';
         // FIX: force the portfolio back into full focus if the user switches to
         // "boring" mode while a game was actively dimming it (e.g. was mid-keypress
         // or mid mobile-play when the theme changed).
