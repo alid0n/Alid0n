@@ -604,10 +604,9 @@
       touchControls.classList.remove('active');
     }
 
-    // Mouse movement or scrolling unfades the portfolio back to reading mode
+    // Only mouse movement or scrolling unfades the portfolio back to reading mode
     window.addEventListener('wheel', restorePortfolioFocus, { passive: true });
     window.addEventListener('scroll', restorePortfolioFocus, { passive: true });
-    window.addEventListener('mousedown', restorePortfolioFocus, { passive: true });
     window.addEventListener('mousemove', restorePortfolioFocus, { passive: true });
 
     window.addEventListener('resize', () => {
@@ -950,13 +949,13 @@
       "#......##....##....##......#",
       "######.##### ## #####.######",
       "     #.##### ## #####.#     ",
-      "     #.##          ##.#     ",
+      "     #.##         ##.#     ",
       "     #.## ###--### ##.#     ",
       "######.## #      # ##.######",
       "       .  #      #  .       ",
       "######.## #      # ##.######",
       "     #.## ######## ##.#     ",
-      "     #.##          ##.#     ",
+      "     #.##         ##.#     ",
       "     #.## ######## ##.#     ",
       "######.## ######## ##.######",
       "#............##............#",
@@ -1001,7 +1000,8 @@
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const char = pacMapBlueprint[r][c], x = offsetX + c * tileSize, y = offsetY + r * tileSize;
+          const char = pacMapBlueprint[r][c] || ' ';
+          const x = offsetX + c * tileSize, y = offsetY + r * tileSize;
           if (char === '#') walls.push({ x, y, w: tileSize, h: tileSize });
           else if (char === '-') { ghostPenGate = { x, y: y + tileSize / 2 - 2, w: tileSize, h: 4 }; penExitTile = { x, y: y - tileSize }; }
           else if (char === '.') pellets.push({ x: x + tileSize / 2, y: y + tileSize / 2, eaten: false });
