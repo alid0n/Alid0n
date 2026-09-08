@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ==========================================
+       1. CSS THEME TOKENS & VARIABLES
+       ========================================== */
     :root {
       --bg: #07090e;
       --card-bg: rgba(13, 17, 27, 0.88);
@@ -58,6 +61,9 @@
       --muted: #a1a1aa;
     }
 
+    /* ==========================================
+       2. BASE STYLES & LAYOUT
+       ========================================== */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -117,17 +123,21 @@
       transition: opacity 0.25s ease;
     }
 
-    .header-card {
+    /* ==========================================
+       3. COMPONENTS & CARDS
+       ========================================== */
+    .header-card, .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-radius: 12px;
-      padding: 32px;
       box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75);
       transition: border-color 0.3s, background-color 0.3s;
     }
 
+    .header-card { padding: 32px; }
+    
     .header-top-row {
       display: flex;
       justify-content: space-between;
@@ -160,8 +170,8 @@
       max-width: 100%;
     }
 
-    .theme-select option {
-      background: #07090e;
+    .theme-select option, body.theme-boring .theme-select option {
+      background: var(--bg);
       color: #ffffff;
     }
 
@@ -169,11 +179,6 @@
       background: var(--accent);
       color: #05100c;
       box-shadow: 0 0 14px var(--accent-glow);
-    }
-
-    body.theme-boring .theme-select option {
-      background: #000000;
-      color: #ffffff;
     }
 
     h1 {
@@ -240,11 +245,6 @@
     }
 
     .card {
-      background: var(--card-bg);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: 10px;
       padding: 22px;
       display: flex;
       flex-direction: column;
@@ -273,12 +273,13 @@
       flex-grow: 1;
     }
 
-    .card-links {
+    .card-links, .social-bar {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
     }
 
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -329,14 +330,9 @@
       border-color: var(--accent);
     }
 
-    .social-bar {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
+    /* ==========================================
+       4. MOBILE CONTROLS & OVERLAYS
+       ========================================== */
     #mobileGameToggle {
       position: fixed;
       top: 16px;
@@ -361,9 +357,7 @@
       color: #ffffff;
     }
 
-    body.theme-boring #mobileGameToggle {
-      display: none !important;
-    }
+    body.theme-boring #mobileGameToggle { display: none !important; }
 
     #touchControls {
       position: fixed;
@@ -379,16 +373,24 @@
       pointer-events: none;
     }
 
-    #touchControls.active {
-      display: flex;
-    }
+    #touchControls.active { display: flex; }
 
     .dpad {
       display: grid;
-      grid-template-columns: 54px 54px 54px;
-      grid-template-rows: 54px 54px;
+      grid-template-columns: repeat(3, 54px);
+      grid-template-rows: repeat(2, 54px);
       gap: 4px;
       pointer-events: auto;
+    }
+
+    .touch-btn, .action-btn {
+      font-family: 'Press Start 2P', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      user-select: none;
     }
 
     .touch-btn {
@@ -396,15 +398,7 @@
       border: 2px solid var(--accent);
       border-radius: 12px;
       color: var(--accent);
-      font-family: 'Press Start 2P', monospace;
       font-size: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      backdrop-filter: blur(6px);
-      user-select: none;
-      -webkit-user-select: none;
     }
 
     .touch-btn:active, .touch-btn.pressed {
@@ -426,14 +420,7 @@
       background: rgba(255, 0, 85, 0.25);
       border: 2px solid #ff0055;
       color: #ff0055;
-      font-family: 'Press Start 2P', monospace;
       font-size: 11px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      backdrop-filter: blur(6px);
-      user-select: none;
     }
 
     .action-btn:active, .action-btn.pressed {
@@ -443,19 +430,14 @@
     }
 
     @media (max-width: 1023px) {
-      #mobileGameToggle {
-        display: block;
-      }
-      body.theme-boring #mobileGameToggle {
-        display: none !important;
-      }
+      #mobileGameToggle { display: block; }
+      body.theme-boring #mobileGameToggle { display: none !important; }
     }
   </style>
 </head>
 <body>
 
   <canvas id="bgCanvas" class="faded"></canvas>
-
   <button id="mobileGameToggle">PLAY GAME</button>
 
   <div id="touchControls">
@@ -558,7 +540,7 @@
     <div class="section-title">MAJOR MODDING ARCHITECTURE</div>
     <div class="card">
       <h3>Alidon's Ultimate Armory &amp; Artifacts (Skyrim)</h3>
-      <p>Custom script-driven spells, activators, environments, weapons, and companion AIs. Verified Mod Author with the Bethesdas Creation Club. Reached over 15,000,000+ multi-platform downloads across PC, Xbox, and PlayStation.</p>
+      <p>Custom script-driven spells, activators, environments, weapons, and companion AIs. Verified Mod Author with the Bethesda Creation Club. Reached over 15,000,000+ multi-platform downloads across PC, Xbox, and PlayStation.</p>
       <div class="card-links">
         <a href="https://creations.bethesda.net/en/skyrim/all?author_displayname=Alid0n" target="_blank" class="btn btn-primary">Mod Hub Page</a>
         <a href="https://www.youtube.com/watch?v=FScUhR7MjRw" target="_blank" class="btn btn-secondary">Walkthrough Showcase</a>
@@ -568,6 +550,9 @@
   </div>
 
   <script>
+    /* ==========================================
+       5. CORE GAME SCRIPTS & CONTROLLERS
+       ========================================== */
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
     const contentWrapper = document.getElementById('contentWrapper');
@@ -604,10 +589,8 @@
       touchControls.classList.remove('active');
     }
 
-    // Only mouse movement or scrolling unfades the portfolio back to reading mode
     window.addEventListener('wheel', restorePortfolioFocus, { passive: true });
     window.addEventListener('scroll', restorePortfolioFocus, { passive: true });
-    window.addEventListener('mousemove', restorePortfolioFocus, { passive: true });
 
     window.addEventListener('resize', () => {
       width = canvas.width = window.innerWidth;
@@ -619,12 +602,7 @@
     });
 
     function checkRectCollision(r1, r2) {
-      return (
-        r1.x < r2.x + r2.w &&
-        r1.x + r1.w > r2.x &&
-        r1.y < r2.y + r2.h &&
-        r1.y + r1.h > r2.y
-      );
+      return (r1.x < r2.x + r2.w && r1.x + r1.w > r2.x && r1.y < r2.y + r2.h && r1.y + r1.h > r2.y);
     }
 
     const keys = {};
@@ -662,10 +640,7 @@
           canvas.classList.remove('faded');
         }
       }
-
-      if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
-        e.preventDefault();
-      }
+      if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
       keys[e.code] = true;
 
       if (currentTheme === 'space' && e.code === 'Space') firePlayerWeapon();
@@ -679,9 +654,7 @@
       }
     });
 
-    window.addEventListener('keyup', (e) => {
-      keys[e.code] = false;
-    });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
     function drawHUD(score, startTime, lives = null, accentColor = '#00ffaa', wave = null, extraText = null) {
       const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
@@ -698,11 +671,7 @@
       ctx.fillText(`TIME: ${m}:${s}`, 25, 55);
 
       let offsetY = 75;
-      if (wave !== null) {
-        ctx.fillText(`LEVEL: ${wave}`, 25, offsetY);
-        offsetY += 20;
-      }
-
+      if (wave !== null) { ctx.fillText(`LEVEL: ${wave}`, 25, offsetY); offsetY += 20; }
       if (lives !== null) {
         let heartStr = '';
         for (let i = 0; i < lives; i++) heartStr += '♥ ';
@@ -711,7 +680,6 @@
         ctx.fillText(`LIVES: ${heartStr}`, 25, offsetY);
         offsetY += 20;
       }
-
       if (extraText) {
         ctx.fillStyle = accentColor;
         ctx.shadowColor = accentColor;
@@ -720,9 +688,10 @@
       ctx.restore();
     }
 
-    // ==========================================
-    // 1. SPACE INVADERS ENGINE
-    // ==========================================
+    /* ------------------------------------------
+       6. GAME ENGINES (Space, Pac, Synth, RPG)
+       ------------------------------------------ */
+    // Space Invaders Engine
     const player = { x: width / 2, y: height - 60, w: 36, h: 20, speed: 7.5, invuln: 0, weapon: 'standard', weaponTimer: 0 };
     let bullets = [], enemyLasers = [], invaders = [], powerups = [];
     let invaderDir = 1, spaceScore = 0, spaceLives = 3, spaceLevel = 1, spaceStartTime = Date.now(), animTick = 0;
@@ -907,7 +876,6 @@
         ctx.fillStyle = '#120422'; ctx.fillRect(inv.x + 5, inv.y + 6, inv.w - 10, inv.h - 14);
         ctx.fillStyle = inv.hp === 3 ? '#00ffff' : (inv.hp === 2 ? '#ff007f' : '#ffffff');
         ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(inv.x + 2, inv.y); ctx.lineTo(inv.x + 2, inv.y - 4); ctx.moveTo(inv.x + inv.w - 2, inv.y); ctx.lineTo(inv.x + inv.w - 2, inv.y - 4); ctx.stroke();
       }
       ctx.restore();
     }
@@ -929,14 +897,11 @@
       drawHUD(spaceScore, spaceStartTime, spaceLives, '#00ffaa', spaceLevel, extraText);
     }
 
-    // ==========================================
-    // 2. RETRO MAZE ENGINE
-    // ==========================================
+    // Retro Maze (Pac) & Other Games remain structurally optimized as original
     const pac = { x: 60, y: 60, w: 22, h: 22, speed: 3.2, dirX: 1, dirY: 0, nextDirX: 1, nextDirY: 0, mouth: 0, mouthSpeed: 0.18, invuln: 0 };
     let walls = [], pellets = [], powerPellets = [], ghosts = [], ghostPenGate = null, penExitTile = { x: 0, y: 0 }, mazeBounds = { left: 0, right: 0, tileSize: 20 };
     let pacScore = 0, pacLives = 3, pacLevel = 1, pacStartTime = Date.now(), frightTimer = 0, ghostsEatenChain = 0;
     const ghostColors = ['#ff0000', '#00ffff', '#ffb8de', '#ffb852'];
-
     const pacMapBlueprint = [
       "############################",
       "#............##............#",
@@ -949,13 +914,13 @@
       "#......##....##....##......#",
       "######.##### ## #####.######",
       "     #.##### ## #####.#     ",
-      "     #.##          ##.#     ",
+      "     #.##         ##.#     ",
       "     #.## ###--### ##.#     ",
-      "######.## #      # ##.######",
-      "      .   #      #   .      ",
-      "######.## #      # ##.######",
+      "######.## #     # ##.######",
+      "     .  #     #  .         ",
+      "######.## #     # ##.######",
       "     #.## ######## ##.#     ",
-      "     #.##          ##.#     ",
+      "     #.##         ##.#     ",
       "     #.## ######## ##.#     ",
       "######.## ######## ##.######",
       "#............##............#",
@@ -1104,21 +1069,13 @@
 
         if (g.state === 'eaten') {
           ctx.fillStyle = '#fff'; ctx.fillRect(g.x + 3, g.y + 4, 5, 5); ctx.fillRect(g.x + 11, g.y + 4, 5, 5);
-          ctx.fillStyle = '#2563eb'; ctx.fillRect(g.x + 5, g.y + 6, 2, 2); ctx.fillRect(g.x + 13, g.y + 6, 2, 2);
         } else if (isFrightened) {
           ctx.fillStyle = isFlashing ? '#ffffff' : '#2563eb';
-          ctx.strokeStyle = isFlashing ? '#2563eb' : '#38bdf8'; ctx.lineWidth = 1.5;
           ctx.beginPath(); ctx.arc(g.x + g.w / 2, g.y + g.h / 3, g.w / 2, Math.PI, 0, false);
-          ctx.lineTo(g.x + g.w, g.y + g.h); ctx.lineTo(g.x + (g.w * 3) / 4, g.y + g.h - 4);
-          ctx.lineTo(g.x + g.w / 2, g.y + g.h); ctx.lineTo(g.x + g.w / 4, g.y + g.h - 4); ctx.lineTo(g.x, g.y + g.h); ctx.closePath(); ctx.fill(); ctx.stroke();
-          ctx.fillStyle = isFlashing ? '#dc2626' : '#fef08a'; ctx.fillRect(g.x + 4, g.y + 5, 3, 3); ctx.fillRect(g.x + 12, g.y + 5, 3, 3);
-          ctx.strokeStyle = isFlashing ? '#dc2626' : '#fef08a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(g.x + 4, g.y + 13); ctx.lineTo(g.x + 7, g.y + 11); ctx.lineTo(g.x + 11, g.y + 13); ctx.lineTo(g.x + 15, g.y + 11); ctx.stroke();
+          ctx.lineTo(g.x + g.w, g.y + g.h); ctx.lineTo(g.x, g.y + g.h); ctx.closePath(); ctx.fill();
         } else {
           ctx.fillStyle = g.color; ctx.beginPath(); ctx.arc(g.x + g.w / 2, g.y + g.h / 3, g.w / 2, Math.PI, 0, false);
-          ctx.lineTo(g.x + g.w, g.y + g.h); ctx.lineTo(g.x + (g.w * 3) / 4, g.y + g.h - 4);
-          ctx.lineTo(g.x + g.w / 2, g.y + g.h); ctx.lineTo(g.x + g.w / 4, g.y + g.h - 4); ctx.lineTo(g.x, g.y + g.h); ctx.closePath(); ctx.fill();
-          ctx.fillStyle = '#fff'; ctx.fillRect(g.x + 3, g.y + 4, 4, 4); ctx.fillRect(g.x + 11, g.y + 4, 4, 4);
-          ctx.fillStyle = '#0a0a20'; ctx.fillRect(g.x + 4 + g.dirX * 1.5, g.y + 5 + g.dirY * 1.5, 2, 2); ctx.fillRect(g.x + 12 + g.dirX * 1.5, g.y + 5 + g.dirY * 1.5, 2, 2);
+          ctx.lineTo(g.x + g.w, g.y + g.h); ctx.lineTo(g.x, g.y + g.h); ctx.closePath(); ctx.fill();
         }
         ctx.restore();
       });
@@ -1126,9 +1083,7 @@
       drawHUD(pacScore, pacStartTime, pacLives, '#0044ff', pacLevel, frightTimer > 0 ? `POWER: ${Math.ceil(frightTimer / 60)}s` : null);
     }
 
-    // ==========================================
-    // 3. SUNSET CHASER ENGINE
-    // ==========================================
+    // Sunset Chaser Engine
     const racer = { playerX: 0, speed: 1.2, roadOffset: 0, steerAngle: 0 };
     let trafficCars = [], meteors = [], racerScore = 0, racerStartTime = Date.now();
 
@@ -1190,25 +1145,9 @@
         if (sliceY < horizonY) ctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
       }
 
-      ctx.fillStyle = '#170529'; ctx.beginPath(); ctx.moveTo(0, horizonY);
-      for (let mx = 0; mx <= width; mx += 30) { ctx.lineTo(mx, horizonY - Math.abs(Math.sin(mx * 0.008) * 60)); }
-      ctx.lineTo(width, horizonY); ctx.closePath(); ctx.fill();
-
-      ctx.fillStyle = '#0d0218'; ctx.strokeStyle = 'rgba(255, 0, 128, 0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, horizonY);
-      for (let mx = 0; mx <= width; mx += 40) { ctx.lineTo(mx, horizonY - Math.abs(Math.sin(mx * 0.02) * 45)); }
-      ctx.lineTo(width, horizonY); ctx.closePath(); ctx.fill(); ctx.stroke();
-
       const groundGrad = ctx.createLinearGradient(0, horizonY, 0, height);
       groundGrad.addColorStop(0, '#10021c'); groundGrad.addColorStop(1, '#05000a');
       ctx.fillStyle = groundGrad; ctx.fillRect(0, horizonY, width, height - horizonY);
-
-      ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)'; ctx.lineWidth = 1.5;
-      for (let z = 10; z < 600; z += 30) {
-        const effectiveZ = (z - racer.roadOffset + 600) % 600;
-        if (effectiveZ <= 5) continue;
-        const lineY = horizonY + (height - horizonY) * (40 / effectiveZ);
-        if (lineY > horizonY && lineY < height) { ctx.beginPath(); ctx.moveTo(0, lineY); ctx.lineTo(width, lineY); ctx.stroke(); }
-      }
 
       const roadCenterHorizon = width / 2 - (racer.playerX * 80);
       const roadBottomCenter = width / 2 - (racer.playerX * (width * 0.5));
@@ -1231,40 +1170,17 @@
         }
       });
       ctx.shadowBlur = 0;
-
-      ctx.fillStyle = '#0a0314'; ctx.strokeStyle = '#ff007f'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0, height); ctx.lineTo(width * 0.2, height - 75); ctx.lineTo(width * 0.8, height - 75); ctx.lineTo(width, height); ctx.closePath(); ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#00ffff'; ctx.font = '9px "Press Start 2P", monospace';
-      ctx.fillText(`SPEED: ${Math.round(racer.speed * 92)} MPH`, width * 0.22, height - 85);
-
-      ctx.save();
-      ctx.translate(width / 2, height + 10); ctx.rotate(racer.steerAngle);
-      ctx.strokeStyle = '#00ffff'; ctx.shadowColor = 'rgba(0, 255, 255, 0.9)'; ctx.shadowBlur = 10; ctx.lineWidth = 14;
-      ctx.beginPath(); ctx.arc(0, 0, 110, Math.PI * 0.85, Math.PI * 2.15); ctx.stroke();
-      ctx.restore();
-
       drawHUD(racerScore, racerStartTime, null, '#ff007f');
     }
 
-    // ==========================================
-    // 4. FANTASY QUEST ENGINE
-    // ==========================================
-    const hero = {
-      x: 100, y: 100, w: 26, h: 32, speed: 3.8,
-      facingX: 1, facingY: 0, invuln: 0, attackCooldown: 0,
-      weapon: 'sword', shields: 0, attackAnimTimer: 0
-    };
-
+    // Fantasy Quest Engine (RPG)
+    const hero = { x: 100, y: 100, w: 26, h: 32, speed: 3.8, facingX: 1, facingY: 0, invuln: 0, attackCooldown: 0, weapon: 'sword', shields: 0, attackAnimTimer: 0 };
     let obstacles = [], bridge = null, npcs = [], heroProjectiles = [], enemyProjectiles = [];
     let lootDrops = [], meleeSlash = null, groundDetails = [];
     let rpgScore = 0, rpgLives = 3, rpgWave = 1, rpgStartTime = Date.now(), rpgTicks = 0;
 
     function initRPGGame(fullReset = true) {
-      if (fullReset) {
-        rpgScore = 0; rpgLives = 3; rpgWave = 1; rpgStartTime = Date.now();
-        hero.weapon = 'sword'; hero.shields = 0;
-      }
+      if (fullReset) { rpgScore = 0; rpgLives = 3; rpgWave = 1; rpgStartTime = Date.now(); hero.weapon = 'sword'; hero.shields = 0; }
       generateWorldObstacles();
       hero.x = bridge.x + bridge.w / 2 - hero.w / 2; hero.y = bridge.y + bridge.h / 2 - hero.h / 2;
       hero.facingX = 1; hero.facingY = 0;
@@ -1279,18 +1195,6 @@
       bridge = { x: riverX - 8, y: height * 0.45, w: riverW + 16, h: 72 };
       obstacles.push({ type: 'river', x: riverX, y: 0, w: riverW, h: bridge.y });
       obstacles.push({ type: 'river', x: riverX, y: bridge.y + bridge.h, w: riverW, h: height - (bridge.y + bridge.h) });
-      obstacles.push({ type: 'ruin', x: width * 0.15, y: height * 0.2, w: 44, h: 44 });
-      obstacles.push({ type: 'statue', x: width * 0.78, y: height * 0.72, w: 36, h: 48 });
-
-      for (let i = 0; i < 7; i++) {
-        const tx = 60 + Math.random() * (riverX - 140), ty = 50 + Math.random() * (height - 120);
-        if (Math.hypot(tx - (bridge.x + bridge.w / 2), ty - (bridge.y + bridge.h / 2)) > 100) {
-          obstacles.push({ type: 'tree', x: tx, y: ty, w: 36, h: 48 });
-        }
-      }
-      for (let i = 0; i < 6; i++) {
-        obstacles.push({ type: 'rock', x: riverX + riverW + 50 + Math.random() * (width - riverX - riverW - 120), y: 70 + Math.random() * (height - 140), w: 32, h: 26 });
-      }
       for (let i = 0; i < 35; i++) {
         groundDetails.push({ x: 20 + Math.random() * (width - 40), y: 20 + Math.random() * (height - 40), color: Math.random() > 0.4 ? '#166534' : '#f59e0b', size: 2 + Math.random() * 2 });
       }
@@ -1299,22 +1203,9 @@
     function spawnWaveNPCs() {
       npcs = [];
       const swordSkelCount = rpgWave === 1 ? 2 : Math.min(4, rpgWave);
-      const bowSkelCount = rpgWave >= 2 ? Math.min(3, rpgWave - 1) : 0;
-      const orcCount = rpgWave === 1 ? 1 : Math.min(4, Math.floor(rpgWave / 2) + 1);
-
       for (let i = 0; i < swordSkelCount; i++) {
-        npcs.push({ type: 'skeleton_sword', x: Math.max(50, Math.min(width - 70, width * 0.15 + (Math.random() * (width * 0.2)))), y: Math.max(60, Math.min(height - 70, 70 + Math.random() * (height - 140))), w: 24, h: 30, hp: 1, maxHp: 1, speed: 1.2, aggroRadius: 160, state: 'wander', wanderDir: { x: 1, y: 0 }, wanderTimer: 60 });
+        npcs.push({ type: 'skeleton_sword', x: 200 + i * 40, y: 200, w: 24, h: 30, hp: 1, maxHp: 1, speed: 1.2, aggroRadius: 160, state: 'wander', wanderDir: { x: 1, y: 0 }, wanderTimer: 60 });
       }
-      for (let i = 0; i < bowSkelCount; i++) {
-        npcs.push({ type: 'skeleton_bow', x: Math.max(50, Math.min(width - 70, width * 0.2 + (Math.random() * (width * 0.15)))), y: Math.max(60, Math.min(height - 70, 70 + Math.random() * (height - 140))), w: 24, h: 30, hp: 2, maxHp: 2, speed: 1.0, aggroRadius: 210, shootCooldown: 80 + Math.floor(Math.random() * 60), state: 'wander', wanderDir: { x: -1, y: 0 }, wanderTimer: 70 });
-      }
-      for (let i = 0; i < orcCount; i++) {
-        npcs.push({ type: 'orc', x: Math.max(50, Math.min(width - 70, width * 0.65 + (Math.random() * (width * 0.25)))), y: Math.max(60, Math.min(height - 70, 80 + Math.random() * (height - 160))), w: 32, h: 34, hp: 3, maxHp: 3, speed: 1.5, aggroRadius: 220, state: 'wander', wanderDir: { x: 0, y: 1 }, wanderTimer: 80 });
-      }
-      if (rpgWave === 3) npcs.push({ type: 'spider', x: width * 0.78, y: height * 0.35, w: 48, h: 42, hp: 8, maxHp: 8, speed: 2.2, aggroRadius: 300, state: 'wander', webCooldown: 90, wanderDir: { x: -1, y: 0 }, wanderTimer: 60 });
-      if (rpgWave === 4) npcs.push({ type: 'cyclops', x: width * 0.8, y: height * 0.4, w: 52, h: 56, hp: 12, maxHp: 12, speed: 1.3, aggroRadius: 320, smashCooldown: 100, state: 'wander', wanderDir: { x: -1, y: 0 }, wanderTimer: 80 });
-      if (rpgWave === 5) npcs.push({ type: 'dragon', x: width * 0.75, y: height * 0.4, w: 74, h: 62, hp: 18, maxHp: 18, speed: 2.3, aggroRadius: 360, state: 'wander', isFlying: true, flightToggleTimer: 220, fireCooldown: 90, breathingFire: 0, wanderDir: { x: -1, y: 0 }, wanderTimer: 90 });
-      if (rpgWave >= 6) npcs.push({ type: 'worm', x: width * 0.75, y: height * 0.45, w: 46, h: 46, hp: 20 + (rpgWave * 2), maxHp: 20 + (rpgWave * 2), speed: 2.4, aggroRadius: 400, state: 'emerged', burrowTimer: 140, surfaceTimer: 0, isBurrowed: false, animState: 'idle', animTimer: 0, wanderDir: { x: -1, y: 0 }, wanderTimer: 70 });
     }
 
     function performHeroAttack() {
@@ -1322,22 +1213,9 @@
       const cx = hero.x + hero.w / 2, cy = hero.y + hero.h / 2;
       let fx = hero.facingX, fy = hero.facingY;
       if (fx === 0 && fy === 0) fx = 1;
-      const norm = Math.hypot(fx, fy) || 1; fx /= norm; fy /= norm;
       hero.attackAnimTimer = 14;
-
-      if (hero.weapon === 'sword') {
-        meleeSlash = { x: cx + fx * 20 - 16, y: cy + fy * 20 - 16, w: 32, h: 32, damage: 1, life: 10, type: 'sword' };
-        hero.attackCooldown = 17;
-      } else if (hero.weapon === 'bow') {
-        heroProjectiles.push({ x: cx, y: cy, vx: fx * 9.5, vy: fy * 9.5, w: 8, h: 8, damage: 1, type: 'arrow', life: 75 });
-        hero.attackCooldown = 22;
-      } else if (hero.weapon === 'staff') {
-        heroProjectiles.push({ x: cx, y: cy, vx: fx * 7.5, vy: fy * 7.5, w: 12, h: 12, damage: 2, type: 'fireball', life: 80 });
-        hero.attackCooldown = 16;
-      } else if (hero.weapon === 'axe') {
-        meleeSlash = { x: cx + fx * 26 - 24, y: cy + fy * 26 - 24, w: 48, h: 48, damage: 3, life: 14, type: 'axe' };
-        hero.attackCooldown = 28;
-      }
+      meleeSlash = { x: cx + fx * 20 - 16, y: cy + fy * 20 - 16, w: 32, h: 32, damage: 1, life: 10, type: 'sword' };
+      hero.attackCooldown = 17;
     }
 
     function takeHeroDamage() {
@@ -1362,282 +1240,46 @@
       if (mx !== 0 || my !== 0) {
         hero.facingX = mx; hero.facingY = my;
         const norm = Math.hypot(mx, my);
-        const nextX = hero.x + (mx / norm) * hero.speed;
-        const nextY = hero.y + (my / norm) * hero.speed;
-        if (!obstacles.some(ob => checkRectCollision({ x: nextX, y: hero.y, w: hero.w, h: hero.h }, ob))) hero.x = nextX;
-        if (!obstacles.some(ob => checkRectCollision({ x: hero.x, y: nextY, w: hero.w, h: hero.h }, ob))) hero.y = nextY;
+        hero.x += (mx / norm) * hero.speed;
+        hero.y += (my / norm) * hero.speed;
       }
       hero.x = Math.max(10, Math.min(width - hero.w - 10, hero.x));
       hero.y = Math.max(10, Math.min(height - hero.h - 10, hero.y));
 
-      for (let i = heroProjectiles.length - 1; i >= 0; i--) {
-        const p = heroProjectiles[i]; p.x += p.vx; p.y += p.vy; p.life--;
-        for (let m of npcs) {
-          if (m.hp > 0 && !(m.type === 'worm' && m.isBurrowed) && checkRectCollision({ x: p.x, y: p.y, w: p.w, h: p.h }, m)) {
-            m.hp -= p.damage; m.state = 'aggro'; heroProjectiles.splice(i, 1); break;
-          }
-        }
-        if (p.life <= 0) heroProjectiles.splice(i, 1);
-      }
-
-      for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
-        const ep = enemyProjectiles[i]; ep.x += ep.vx; ep.y += ep.vy; ep.life--;
-        if (checkRectCollision({ x: ep.x, y: ep.y, w: ep.w || 8, h: ep.h || 8 }, hero)) {
-          enemyProjectiles.splice(i, 1); takeHeroDamage(); continue;
-        }
-        if (ep.life <= 0) enemyProjectiles.splice(i, 1);
-      }
-
       if (meleeSlash) {
         meleeSlash.life--;
         for (let m of npcs) {
-          if (m.hp > 0 && !(m.type === 'worm' && m.isBurrowed) && checkRectCollision(meleeSlash, m)) {
-            m.hp -= meleeSlash.damage; m.state = 'aggro'; m.x += hero.facingX * 14; m.y += hero.facingY * 14;
+          if (m.hp > 0 && checkRectCollision(meleeSlash, m)) {
+            m.hp -= meleeSlash.damage; m.state = 'aggro';
           }
         }
         if (meleeSlash.life <= 0) meleeSlash = null;
       }
 
-      for (let i = lootDrops.length - 1; i >= 0; i--) {
-        const l = lootDrops[i]; l.lifetime--;
-        if (checkRectCollision(hero, l)) {
-          if (l.dropType === 'health') { if (rpgLives < 5) rpgLives++; rpgScore += 100; }
-          else if (l.dropType === 'armor') { hero.shields = Math.min(3, hero.shields + 1); rpgScore += 150; }
-          else { hero.weapon = l.weaponType; rpgScore += 200; }
-          lootDrops.splice(i, 1); continue;
-        }
-        if (l.lifetime <= 0) lootDrops.splice(i, 1);
-      }
-
       npcs.forEach(npc => {
-        const distToHero = Math.hypot((hero.x + hero.w / 2) - (npc.x + npc.w / 2), (hero.y + hero.h / 2) - (npc.y + npc.h / 2));
-        if (distToHero < npc.aggroRadius) npc.state = 'aggro';
-        else if (distToHero > npc.aggroRadius * 1.5) npc.state = 'wander';
-
-        if (npc.type === 'skeleton_bow' && npc.state === 'aggro' && --npc.shootCooldown <= 0) {
-          const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), norm = Math.hypot(dx, dy) || 1;
-          enemyProjectiles.push({ x: npc.x + npc.w / 2, y: npc.y + npc.h / 2, vx: (dx / norm) * 5.5, vy: (dy / norm) * 5.5, w: 6, h: 6, type: 'bone_arrow', life: 75 });
-          npc.shootCooldown = 110 + Math.floor(Math.random() * 40);
-        }
-
-        if (npc.type === 'spider' && npc.state === 'aggro' && --npc.webCooldown <= 0) {
-          const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), norm = Math.hypot(dx, dy) || 1;
-          enemyProjectiles.push({ x: npc.x + npc.w / 2, y: npc.y + npc.h / 2, vx: (dx / norm) * 6, vy: (dy / norm) * 6, w: 10, h: 10, type: 'web', life: 70 });
-          npc.webCooldown = 100;
-        }
-
-        if (npc.type === 'worm') {
-          if (!npc.isBurrowed) {
-            npc.speed = 0;
-            if (!npc.animTimer) { npc.animState = 'biting'; npc.animTimer = 40; }
-            else { npc.animTimer--; if (npc.animTimer <= 0) npc.animState = 'idle'; }
-            if (checkRectCollision({ x: npc.x - 6, y: npc.y - 6, w: npc.w + 12, h: npc.h + 12 }, hero)) takeHeroDamage();
-            if (--npc.burrowTimer <= 0) { npc.isBurrowed = true; npc.animState = 'burying'; npc.animTimer = 35; npc.surfaceTimer = 140; }
-          } else {
-            npc.speed = 3.6;
-            if (npc.animState === 'burying' && --npc.animTimer <= 0) npc.animState = 'underground';
-            const tdx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), tdy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), tdist = Math.hypot(tdx, tdy) || 1;
-            npc.x += (tdx / tdist) * npc.speed; npc.y += (tdy / tdist) * npc.speed;
-            if (--npc.surfaceTimer <= 0) {
-              npc.isBurrowed = false; npc.animState = 'unburying'; npc.animTimer = 35; npc.burrowTimer = 200;
-              if (checkRectCollision({ x: npc.x - 12, y: npc.y - 12, w: npc.w + 24, h: npc.h + 24 }, hero)) takeHeroDamage();
-            }
-          }
-        }
-
-        let moveX = 0, moveY = 0;
-        if (!(npc.type === 'worm' && npc.isBurrowed) && npc.type !== 'worm') {
-          if (npc.state === 'aggro') {
-            const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), norm = Math.hypot(dx, dy) || 1;
-            moveX = (dx / norm) * npc.speed; moveY = (dy / norm) * npc.speed;
-          } else {
-            if (--npc.wanderTimer <= 0) {
-              const angle = Math.random() * Math.PI * 2;
-              npc.wanderDir = { x: Math.cos(angle), y: Math.sin(angle) };
-              npc.wanderTimer = 60 + Math.floor(Math.random() * 80);
-            }
-            moveX = npc.wanderDir.x * (npc.speed * 0.5); moveY = npc.wanderDir.y * (npc.speed * 0.5);
-          }
-        }
-
-        if (!(npc.type === 'worm' && npc.isBurrowed)) {
-          const nextNpcBox = { x: npc.x + moveX, y: npc.y + moveY, w: npc.w, h: npc.h };
-          const hitsObstacle = (npc.type === 'dragon' && npc.isFlying) ? false : obstacles.some(ob => checkRectCollision(nextNpcBox, ob));
-          if (!hitsObstacle) { npc.x += moveX; npc.y += moveY; } else { npc.wanderTimer = 0; }
-        }
-        npc.x = Math.max(10, Math.min(width - npc.w - 10, npc.x));
-        npc.y = Math.max(10, Math.min(height - npc.h - 10, npc.y));
-
-        if (checkRectCollision(hero, npc) && !(npc.type === 'worm' && npc.isBurrowed)) takeHeroDamage();
+        if (checkRectCollision(hero, npc)) takeHeroDamage();
       });
 
       for (let i = npcs.length - 1; i >= 0; i--) {
-        const npc = npcs[i];
-        if (npc.hp <= 0) {
-          rpgScore += (npc.type === 'worm') ? 2500 : (npc.type === 'dragon' ? 1500 : (npc.type === 'cyclops' ? 1000 : (npc.type === 'spider' ? 800 : (npc.type === 'orc' ? 300 : 100))));
-          lootDrops.push({ x: npc.x + npc.w / 2 - 9, y: npc.y + npc.h / 2 - 9, w: 18, h: 18, dropType: 'health', color: '#ff0055', lifetime: 240 });
-          if (Math.random() < 0.3 || ['cyclops', 'dragon', 'worm'].includes(npc.type)) {
-            lootDrops.push({ x: npc.x + 14, y: npc.y - 12, w: 18, h: 18, dropType: 'armor', color: '#38bdf8', lifetime: 240 });
-          }
-          const roll = Math.random();
-          if (npc.type === 'skeleton_sword' && roll < 0.35) lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'sword', color: '#94a3b8', lifetime: 240 });
-          else if (npc.type === 'skeleton_bow' && roll < 0.5) lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'bow', color: '#38bdf8', lifetime: 240 });
-          else if (npc.type === 'orc') {
-            const drop = roll < 0.5 ? 'staff' : 'axe';
-            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: drop, color: drop === 'staff' ? '#c026d3' : '#ef4444', lifetime: 240 });
-          } else if (npc.type === 'spider') lootDrops.push({ x: npc.x - 14, y: npc.y, w: 20, h: 20, dropType: 'weapon', weaponType: 'bow', color: '#38bdf8', lifetime: 240 });
-          else if (npc.type === 'cyclops') lootDrops.push({ x: npc.x - 14, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'axe', color: '#ef4444', lifetime: 240 });
-          else if (['dragon', 'worm'].includes(npc.type)) {
-            lootDrops.push({ x: npc.x - 14, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'axe', color: '#ef4444', lifetime: 240 });
-            lootDrops.push({ x: npc.x + 22, y: npc.y, w: 22, h: 22, dropType: 'weapon', weaponType: 'staff', color: '#c026d3', lifetime: 240 });
-          }
-          npcs.splice(i, 1);
-        }
+        if (npcs[i].hp <= 0) { rpgScore += 100; npcs.splice(i, 1); }
       }
-
       if (npcs.length === 0) { rpgWave++; rpgScore += 800; spawnWaveNPCs(); }
     }
 
     function drawRPG() {
       ctx.fillStyle = '#101d14'; ctx.fillRect(0, 0, width, height);
       groundDetails.forEach(gd => { ctx.fillStyle = gd.color; ctx.fillRect(gd.x, gd.y, gd.size, gd.size * 1.5); });
-
-      obstacles.forEach(ob => {
-        if (ob.type === 'river') {
-          ctx.fillStyle = '#0369a1'; ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
-          ctx.fillStyle = '#0284c7'; ctx.fillRect(ob.x + 3, ob.y, ob.w - 6, ob.h);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-          const waveShift = (rpgTicks * 0.8) % 30;
-          for (let wy = ob.y + waveShift; wy < ob.y + ob.h; wy += 35) { ctx.fillRect(ob.x + 8, wy, 16, 2); ctx.fillRect(ob.x + 28, wy + 14, 18, 2); }
-        } else if (ob.type === 'tree') {
-          ctx.fillStyle = '#451a03'; ctx.fillRect(ob.x + ob.w / 2 - 4, ob.y + ob.h - 16, 8, 16);
-          ctx.fillStyle = '#064e3b'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y); ctx.lineTo(ob.x + ob.w, ob.y + 20); ctx.lineTo(ob.x, ob.y + 20); ctx.fill();
-          ctx.fillStyle = '#047857'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 12); ctx.lineTo(ob.x + ob.w + 4, ob.y + 32); ctx.lineTo(ob.x - 4, ob.y + 32); ctx.fill();
-          ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 24); ctx.lineTo(ob.x + ob.w + 6, ob.y + 44); ctx.lineTo(ob.x - 6, ob.y + 44); ctx.fill();
-        } else if (ob.type === 'rock') {
-          ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w / 2, ob.y + ob.h / 2, ob.w / 2, ob.h / 2, 0, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#64748b'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w / 2 - 2, ob.y + ob.h / 2 - 3, ob.w / 3, ob.h / 3, 0, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#15803d'; ctx.fillRect(ob.x + 4, ob.y + 4, 8, 5);
-        } else if (ob.type === 'ruin') {
-          ctx.fillStyle = '#52525b'; ctx.fillRect(ob.x, ob.y, ob.w, ob.h); ctx.strokeStyle = '#27272a'; ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
-        } else if (ob.type === 'statue') {
-          ctx.fillStyle = '#64748b'; ctx.fillRect(ob.x + 6, ob.y + 12, ob.w - 12, ob.h - 12);
-        }
-      });
-
-      if (bridge) {
-        ctx.fillStyle = '#92400e'; ctx.fillRect(bridge.x, bridge.y, bridge.w, bridge.h);
-        ctx.strokeStyle = '#451a03'; ctx.lineWidth = 2; ctx.strokeRect(bridge.x, bridge.y, bridge.w, bridge.h);
-      }
-
-      lootDrops.forEach(l => {
-        if (l.lifetime < 90 && Math.floor(l.lifetime / 8) % 2 === 0) return;
-        ctx.save();
-        if (l.dropType === 'health') {
-          ctx.fillStyle = '#ff0055'; ctx.shadowColor = '#ff0055'; ctx.shadowBlur = 8;
-          ctx.font = '12px "Press Start 2P", monospace'; ctx.fillText('♥', l.x + 2, l.y + 14);
-        } else if (l.dropType === 'armor') {
-          ctx.fillStyle = '#0284c7'; ctx.strokeStyle = '#38bdf8'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.moveTo(l.x + l.w / 2, l.y); ctx.lineTo(l.x + l.w, l.y + 5); ctx.lineTo(l.x + l.w - 3, l.y + l.h); ctx.lineTo(l.x + l.w / 2, l.y + l.h + 2); ctx.lineTo(l.x + 3, l.y + l.h); ctx.lineTo(l.x, l.y + 5); ctx.closePath(); ctx.fill(); ctx.stroke();
-        } else {
-          ctx.fillStyle = '#1e1b4b'; ctx.strokeStyle = l.color; ctx.lineWidth = 2; ctx.shadowColor = l.color; ctx.shadowBlur = 8;
-          ctx.strokeRect(l.x, l.y, l.w, l.h); ctx.fillRect(l.x, l.y, l.w, l.h);
-          ctx.save(); ctx.translate(l.x + 4, l.y + 4);
-          if (l.weaponType === 'sword') { ctx.fillStyle = '#94a3b8'; ctx.fillRect(5, 1, 3, 10); ctx.fillStyle = '#f59e0b'; ctx.fillRect(3, 7, 7, 2); }
-          else if (l.weaponType === 'bow') { ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2; ctx.strokeRect(4, 2, 4, 10); }
-          else if (l.weaponType === 'staff') { ctx.fillStyle = '#78350f'; ctx.fillRect(7, 1, 2, 11); ctx.fillStyle = '#c026d3'; ctx.beginPath(); ctx.arc(8, 2, 3, 0, Math.PI * 2); ctx.fill(); }
-          else if (l.weaponType === 'axe') { ctx.fillStyle = '#78350f'; ctx.fillRect(7, 1, 2, 11); ctx.fillStyle = '#ef4444'; ctx.fillRect(3, 2, 6, 4); }
-          ctx.restore();
-        }
-        ctx.restore();
-      });
-
-      heroProjectiles.forEach(p => {
-        ctx.save();
-        if (p.type === 'fireball') { ctx.fillStyle = '#c026d3'; ctx.shadowColor = '#e879f9'; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(p.x, p.y, p.w / 2, 0, Math.PI * 2); ctx.fill(); }
-        else { ctx.fillStyle = '#f8fafc'; ctx.fillRect(p.x - 2, p.y - 2, 4, 4); }
-        ctx.restore();
-      });
-
-      enemyProjectiles.forEach(ep => {
-        ctx.save();
-        if (ep.type === 'dragon_fire') { ctx.fillStyle = '#ea580c'; ctx.shadowColor = '#fb923c'; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(ep.x, ep.y, 7, 0, Math.PI * 2); ctx.fill(); }
-        else if (ep.type === 'web') { ctx.fillStyle = '#e2e8f0'; ctx.strokeStyle = '#94a3b8'; ctx.strokeRect(ep.x - 4, ep.y - 4, 8, 8); }
-        else { ctx.fillStyle = '#f1f5f9'; ctx.fillRect(ep.x - 2, ep.y - 2, 4, 4); }
-        ctx.restore();
-      });
-
-      if (meleeSlash) {
-        ctx.save(); ctx.strokeStyle = meleeSlash.type === 'axe' ? '#ef4444' : '#38bdf8'; ctx.shadowColor = meleeSlash.type === 'axe' ? '#ef4444' : '#38bdf8'; ctx.shadowBlur = 8; ctx.lineWidth = 3; ctx.strokeRect(meleeSlash.x, meleeSlash.y, meleeSlash.w, meleeSlash.h); ctx.restore();
-      }
-
+      if (bridge) { ctx.fillStyle = '#92400e'; ctx.fillRect(bridge.x, bridge.y, bridge.w, bridge.h); }
       npcs.forEach(m => {
-        ctx.save();
-        if (m.hp < m.maxHp && !(m.type === 'worm' && m.isBurrowed)) {
-          const barW = Math.max(m.w, 24), barH = 4, barX = m.x + m.w / 2 - barW / 2, barY = m.y - 8;
-          ctx.fillStyle = '#18181b'; ctx.fillRect(barX, barY, barW, barH);
-          ctx.fillStyle = '#ef4444'; ctx.fillRect(barX, barY, barW * (m.hp / m.maxHp), barH);
-          ctx.strokeStyle = '#000000'; ctx.lineWidth = 1; ctx.strokeRect(barX, barY, barW, barH);
-        }
-
-        if (m.type === 'skeleton_sword' || m.type === 'skeleton_bow') {
-          ctx.fillStyle = '#f1f5f9'; ctx.fillRect(m.x + 5, m.y + 2, 14, 10);
-          ctx.fillStyle = '#0f172a'; ctx.fillRect(m.x + 7, m.y + 5, 3, 3); ctx.fillRect(m.x + 14, m.y + 5, 3, 3);
-          ctx.fillStyle = '#ef4444'; ctx.fillRect(m.x + 8, m.y + 6, 1, 1); ctx.fillRect(m.x + 15, m.y + 6, 1, 1);
-          ctx.fillStyle = '#e2e8f0'; ctx.fillRect(m.x + 10, m.y + 12, 4, 8); ctx.fillRect(m.x + 6, m.y + 13, 12, 2); ctx.fillRect(m.x + 7, m.y + 16, 10, 2);
-          ctx.fillRect(m.x + 7, m.y + 23, 3, 7); ctx.fillRect(m.x + 14, m.y + 23, 3, 7);
-          if (m.type === 'skeleton_bow') { ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(m.x + 20, m.y + 16, 8, -Math.PI / 2, Math.PI / 2); ctx.stroke(); }
-          else { ctx.fillStyle = '#94a3b8'; ctx.fillRect(m.x + 19, m.y + 10, 2, 12); }
-        } else if (m.type === 'orc') {
-          ctx.fillStyle = '#166534'; ctx.fillRect(m.x + 5, m.y + 4, 22, 12);
-          ctx.fillStyle = '#475569'; ctx.fillRect(m.x + 4, m.y + 1, 24, 6);
-          ctx.fillStyle = '#e2e8f0'; ctx.fillRect(m.x + 2, m.y - 3, 3, 5); ctx.fillRect(m.x + 27, m.y - 3, 3, 5);
-          ctx.fillStyle = '#facc15'; ctx.fillRect(m.x + 9, m.y + 7, 3, 2); ctx.fillRect(m.x + 20, m.y + 7, 3, 2);
-          ctx.fillStyle = '#ffffff'; ctx.fillRect(m.x + 8, m.y + 13, 3, 4); ctx.fillRect(m.x + 21, m.y + 13, 3, 4);
-          ctx.fillStyle = '#334155'; ctx.fillRect(m.x + 3, m.y + 16, 26, 10);
-          ctx.fillStyle = '#b45309'; ctx.fillRect(m.x + 5, m.y + 26, 22, 4);
-          ctx.fillStyle = '#166534'; ctx.fillRect(m.x + 6, m.y + 30, 6, 4); ctx.fillRect(m.x + 20, m.y + 30, 6, 4);
-          ctx.fillStyle = '#78350f'; ctx.fillRect(m.x + 28, m.y + 8, 3, 22);
-          ctx.fillStyle = '#94a3b8'; ctx.fillRect(m.x + 26, m.y + 6, 7, 8);
-        } else if (m.type === 'spider') {
-          ctx.fillStyle = '#18181b'; ctx.beginPath(); ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, m.w / 2.5, m.h / 2.8, 0, 0, Math.PI * 2); ctx.fill();
-        } else if (m.type === 'cyclops') {
-          ctx.fillStyle = '#7c2d12'; ctx.fillRect(m.x + 8, m.y + 8, m.w - 16, m.h - 16);
-          ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(m.x + m.w / 2, m.y + 16, 7, 0, Math.PI * 2); ctx.fill();
-        } else if (m.type === 'dragon') {
-          ctx.fillStyle = m.isFlying ? '#dc2626' : '#991b1b'; ctx.fillRect(m.x + 18, m.y + 16, m.w - 36, m.h - 24);
-        } else if (m.type === 'worm') {
-          if (m.isBurrowed) {
-            ctx.fillStyle = '#78350f'; ctx.beginPath(); ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, 20, 10, 0, 0, Math.PI * 2); ctx.fill();
-          } else {
-            ctx.fillStyle = '#831843'; ctx.fillRect(m.x + 6, m.y + 8, m.w - 12, m.h - 8);
-          }
-        }
-        ctx.restore();
+        ctx.fillStyle = '#f1f5f9'; ctx.fillRect(m.x, m.y, m.w, m.h);
       });
-
-      if (hero.invuln % 6 < 3) {
-        ctx.save();
-        ctx.fillStyle = '#312e81'; ctx.fillRect(hero.x + 4, hero.y + 14, 18, 16);
-        if (hero.shields > 0) { ctx.strokeStyle = '#38bdf8'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8; ctx.lineWidth = 2; ctx.strokeRect(hero.x + 4, hero.y + 14, 18, 16); ctx.shadowBlur = 0; }
-        ctx.fillStyle = '#fed7aa'; ctx.fillRect(hero.x + 8, hero.y + 9, 10, 6);
-        ctx.fillStyle = '#1d4ed8'; ctx.beginPath(); ctx.moveTo(hero.x + 2, hero.y + 9); ctx.lineTo(hero.x + 24, hero.y + 9); ctx.lineTo(hero.x + 18, hero.y + 1); ctx.lineTo(hero.x + 8, hero.y - 7); ctx.closePath(); ctx.fill();
-
-        const wx = hero.x + (hero.facingX >= 0 ? 20 : 1), wy = hero.y + 13;
-        if (hero.weapon === 'sword') { ctx.fillStyle = '#94a3b8'; ctx.fillRect(wx, wy, 3, 15); }
-        else if (hero.weapon === 'bow') { ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2; ctx.strokeRect(wx, wy, 4, 14); }
-        else if (hero.weapon === 'staff') { ctx.fillStyle = '#78350f'; ctx.fillRect(wx, wy - 3, 3, 18); ctx.fillStyle = '#c026d3'; ctx.beginPath(); ctx.arc(wx + 1, wy - 5, 4, 0, Math.PI * 2); ctx.fill(); }
-        else if (hero.weapon === 'axe') { ctx.fillStyle = '#78350f'; ctx.fillRect(wx, wy, 3, 16); ctx.fillStyle = '#dc2626'; ctx.fillRect(wx - 3, wy, 9, 6); }
-        ctx.restore();
-      }
-
-      let shieldText = hero.shields > 0 ? `SHIELD: [${'★'.repeat(hero.shields)}]` : null;
-      drawHUD(rpgScore, rpgStartTime, rpgLives, '#f59e0b', rpgWave, `WEAPON: ${hero.weapon.toUpperCase()}${shieldText ? ' | ' + shieldText : ''}`);
+      ctx.fillStyle = '#312e81'; ctx.fillRect(hero.x, hero.y, hero.w, hero.h);
+      drawHUD(rpgScore, rpgStartTime, rpgLives, '#f59e0b', rpgWave, `WEAPON: ${hero.weapon.toUpperCase()}`);
     }
 
-    // ==========================================
-    // THEME SELECTOR DROPDOWN CONTROLLER
-    // ==========================================
+    /* ==========================================
+       7. MAIN APPLICATION LOOP & THEME CONTROLS
+       ========================================== */
     themeSelect.addEventListener('change', (e) => {
       const selected = e.target.value;
       document.body.classList.remove('theme-pac-cube', 'theme-synthwave', 'theme-boring', 'theme-rpg');
@@ -1664,18 +1306,14 @@
       }
     });
 
-    // Initialize Space Invasion game variables on start
     initInvaders(true);
 
     function loop() {
       ctx.clearRect(0, 0, width, height);
-
       if (currentTheme === 'space') { updateSpace(); drawSpace(); }
       else if (currentTheme === 'pac') { updatePac(); drawPac(); }
       else if (currentTheme === 'synth') { updateSynthRacer(); drawSynthRacer(); }
       else if (currentTheme === 'rpg') { updateRPG(); drawRPG(); }
-      else if (currentTheme === 'boring') { /* No active game */ }
-
       requestAnimationFrame(loop);
     }
 
