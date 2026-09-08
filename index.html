@@ -4,6 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Addison Warner | Alid0n - Technical Artist & Systems</title>
+
+  <!-- FIX (suggestion): basic SEO + social preview tags were missing entirely,
+       so shared links showed no description/preview on Discord, Twitter, etc.
+       Replace the og:url / og:image values with your real deployed URL and a
+       hosted screenshot once this is live — og:image in particular must be a
+       real hosted image URL, not a data URI, for most crawlers to pick it up. -->
+  <meta name="description" content="Addison Warner (Alid0n) — Technical Artist & Unreal Engine Systems Specialist. Interactive portfolio with playable background games, marketplace assets, and modding work with 15M+ downloads.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Addison Warner | Alid0n - Technical Artist & Systems">
+  <meta property="og:description" content="Interactive digital portfolio featuring playable background games, Unreal Engine marketplace assets, and modding work with 15M+ downloads.">
+  <meta property="og:url" content="https://your-domain-here.com">
+  <meta property="og:image" content="https://your-domain-here.com/preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Addison Warner | Alid0n - Technical Artist & Systems">
+  <meta name="twitter:description" content="Interactive digital portfolio featuring playable background games, Unreal Engine marketplace assets, and modding work.">
+  <meta name="theme-color" content="#07090e">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2307090e'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' fill='%2300ffaa' text-anchor='middle'%3E%3E%3C/text%3E%3C/svg%3E">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
@@ -115,6 +133,35 @@
     .content-wrapper.dimmed {
       opacity: 0.12;
       transition: opacity 0.25s ease;
+    }
+
+    /* FIX (new feature): after 5s of sustained play, fade the portfolio the
+       rest of the way to fully invisible, on a slower/smoother transition
+       than the initial dim so it reads as a deliberate "fully in the game
+       now" moment rather than a snap. */
+    .content-wrapper.fully-hidden {
+      opacity: 0 !important;
+      transition: opacity 1.2s ease;
+    }
+
+    /* FIX (suggestion): accessible skip link, hidden until keyboard-focused */
+    .skip-link {
+      position: absolute;
+      top: -60px;
+      left: 12px;
+      z-index: 300;
+      background: var(--accent);
+      color: #05100c;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      text-decoration: none;
+      transition: top 0.2s ease;
+    }
+
+    .skip-link:focus {
+      top: 12px;
     }
 
     .header-card {
@@ -454,21 +501,29 @@
 </head>
 <body>
 
-  <canvas id="bgCanvas" class="faded"></canvas>
+  <!-- FIX (suggestion): skip link for keyboard/screen-reader users so they
+       aren't forced to tab through the game toggle/touch controls first -->
+  <a href="#contentWrapper" class="skip-link">Skip to portfolio content</a>
+
+  <!-- FIX (suggestion): the canvas is a decorative animated background (the
+       actual game interactions happen via global keyboard/button listeners,
+       not the canvas element itself), so it's hidden from assistive tech
+       and out of the tab order -->
+  <canvas id="bgCanvas" class="faded" aria-hidden="true" tabindex="-1"></canvas>
 
   <button id="mobileGameToggle">PLAY GAME</button>
 
   <div id="touchControls">
     <div class="dpad">
       <div></div>
-      <div class="touch-btn" id="btnUp">▲</div>
+      <div class="touch-btn" id="btnUp" role="button" aria-label="Move up">▲</div>
       <div></div>
-      <div class="touch-btn" id="btnLeft">◀</div>
-      <div class="touch-btn" id="btnDown">▼</div>
-      <div class="touch-btn" id="btnRight">▶</div>
+      <div class="touch-btn" id="btnLeft" role="button" aria-label="Move left">◀</div>
+      <div class="touch-btn" id="btnDown" role="button" aria-label="Move down">▼</div>
+      <div class="touch-btn" id="btnRight" role="button" aria-label="Move right">▶</div>
     </div>
     <div class="action-pad">
-      <div class="action-btn" id="btnAction">ACTION</div>
+      <div class="action-btn" id="btnAction" role="button" aria-label="Attack or shoot">ACTION</div>
     </div>
   </div>
 
@@ -581,27 +636,72 @@
     let height = (canvas.height = window.innerHeight);
     let isPlayingMobileGame = false;
 
+    // FIX: single source of truth for "is a game actually running right now".
+    // Every path that can dim the portfolio / bring the canvas forward checks
+    // this first, so the "boring" theme can never trigger the fade effect.
+    function isGameActive() {
+      return currentTheme !== 'boring';
+    }
+
+    // FIX (new feature): tracks how long the portfolio has been dimmed so it
+    // can fade all the way to fully transparent after 5s of sustained play,
+    // rather than staying at the partial "dimmed" opacity forever.
+    let gameFocusTimer = null;
+
+    function enterGameFocus() {
+      if (!contentWrapper.classList.contains('dimmed')) {
+        contentWrapper.classList.add('dimmed');
+        canvas.classList.remove('faded');
+      }
+      // Only start the countdown once per continuous play session — repeated
+      // calls (e.g. holding a key, or the keydown handler firing on every
+      // keystroke) must NOT keep pushing the 5s mark back.
+      if (!gameFocusTimer) {
+        gameFocusTimer = setTimeout(() => {
+          contentWrapper.classList.add('fully-hidden');
+          gameFocusTimer = null;
+        }, 5000);
+      }
+    }
+
     mobileGameToggle.addEventListener('click', () => {
+      // FIX: no game to play in boring mode (CSS already hides this button then,
+      // but guard here too in case that ever changes).
+      if (!isGameActive()) return;
+
       isPlayingMobileGame = !isPlayingMobileGame;
       if (isPlayingMobileGame) {
         mobileGameToggle.textContent = 'QUIT';
         mobileGameToggle.classList.add('playing');
-        contentWrapper.classList.add('dimmed');
-        canvas.classList.remove('faded');
         touchControls.classList.add('active');
+        enterGameFocus();
+        // FIX (suggestion): lock background scrolling and swallow touchmove
+        // while actively playing on mobile — previously, dragging on the
+        // canvas (anywhere off the touch buttons) could scroll the page out
+        // from under the game.
+        document.body.style.overflow = 'hidden';
       } else {
         restorePortfolioFocus();
       }
     });
+
+    // FIX (suggestion): companion to the overflow lock above — without this,
+    // a touchmove on the canvas itself could still scroll the page even with
+    // body overflow hidden on some mobile browsers.
+    window.addEventListener('touchmove', (e) => {
+      if (isPlayingMobileGame) e.preventDefault();
+    }, { passive: false });
 
     function restorePortfolioFocus() {
       if (isPlayingMobileGame) return;
       isPlayingMobileGame = false;
       mobileGameToggle.textContent = 'PLAY GAME';
       mobileGameToggle.classList.remove('playing');
-      contentWrapper.classList.remove('dimmed');
+      contentWrapper.classList.remove('dimmed', 'fully-hidden');
       canvas.classList.add('faded');
       touchControls.classList.remove('active');
+      document.body.style.overflow = '';
+      if (gameFocusTimer) { clearTimeout(gameFocusTimer); gameFocusTimer = null; }
     }
 
     // Mouse movement or scrolling unfades the portfolio back to reading mode
@@ -658,9 +758,13 @@
 
     window.addEventListener('keydown', (e) => {
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
-        if (!isPlayingMobileGame) {
-          contentWrapper.classList.add('dimmed');
-          canvas.classList.remove('faded');
+        // FIX: previously dimmed the portfolio on any movement/action key press
+        // regardless of theme, so "BORING" mode (which has no active game) was
+        // still fading the portfolio away for nothing. Now it only dims when a
+        // real game is active. Routed through enterGameFocus() so this also
+        // starts the 5s-to-fully-transparent countdown.
+        if (!isPlayingMobileGame && isGameActive()) {
+          enterGameFocus();
         }
       }
 
@@ -999,15 +1103,30 @@
       const offsetX = Math.floor((width - cols * tileSize) / 2), offsetY = Math.floor((height - rows * tileSize) / 2);
       mazeBounds = { left: offsetX, right: offsetX + cols * tileSize, tileSize };
 
+      // FIX: the blueprint's ghost-pen gate is two cells wide ("--"), so
+      // gate cells are collected and merged into one wide gate below instead
+      // of letting the second cell silently overwrite the first (which was
+      // leaving only half the intended gate placed).
+      let gateCells = [];
+
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const char = pacMapBlueprint[r][c], x = offsetX + c * tileSize, y = offsetY + r * tileSize;
           if (char === '#') walls.push({ x, y, w: tileSize, h: tileSize });
-          else if (char === '-') { ghostPenGate = { x, y: y + tileSize / 2 - 2, w: tileSize, h: 4 }; penExitTile = { x, y: y - tileSize }; }
+          else if (char === '-') gateCells.push({ x, y });
           else if (char === '.') pellets.push({ x: x + tileSize / 2, y: y + tileSize / 2, eaten: false });
           else if (char === 'O') powerPellets.push({ x: x + tileSize / 2, y: y + tileSize / 2, eaten: false });
         }
       }
+
+      if (gateCells.length > 0) {
+        const minX = Math.min(...gateCells.map(g => g.x));
+        const maxX = Math.max(...gateCells.map(g => g.x)) + tileSize;
+        const gateY = gateCells[0].y;
+        ghostPenGate = { x: minX, y: gateY + tileSize / 2 - 2, w: maxX - minX, h: 4 };
+        penExitTile = { x: minX + (maxX - minX) / 2 - tileSize / 2, y: gateY - tileSize };
+      }
+
       pac.w = Math.max(16, tileSize - 4); pac.h = Math.max(16, tileSize - 4);
       resetPacEntities();
     }
@@ -1426,6 +1545,52 @@
           npc.webCooldown = 100;
         }
 
+        // FIX: cyclops had an unused smashCooldown field with no attack
+        // behind it. It now winds up a telegraphed ground-slam when the hero
+        // gets close, then deals an AoE hit — dodgeable if you move away
+        // during the wind-up.
+        if (npc.type === 'cyclops') {
+          if (npc.smashState === 'telegraph') {
+            if (--npc.smashTimer <= 0) {
+              npc.smashState = 'impact';
+              npc.smashTimer = 12;
+              const dNow = Math.hypot((hero.x + hero.w / 2) - (npc.x + npc.w / 2), (hero.y + hero.h / 2) - (npc.y + npc.h / 2));
+              if (dNow < 95) takeHeroDamage();
+            }
+          } else if (npc.smashState === 'impact') {
+            if (--npc.smashTimer <= 0) npc.smashState = 'idle';
+          } else if (npc.state === 'aggro' && distToHero < 120 && --npc.smashCooldown <= 0) {
+            npc.smashState = 'telegraph';
+            npc.smashTimer = 34;
+            npc.smashCooldown = 160 + Math.floor(Math.random() * 60);
+          }
+        }
+
+        // FIX: the dragon boss had fireCooldown/breathingFire/flightToggleTimer
+        // fields, and drawRPG() already knew how to render a "dragon_fire"
+        // projectile and draw the grounded-vs-flying color states — but
+        // nothing ever used these fields, so the ranged attack never fired
+        // and the dragon never landed. This wires up a brief wind-up
+        // (breathingFire) before it breathes fire, and a periodic toggle
+        // between flying and grounded (which also lets it collide with
+        // ground obstacles while landed, per the existing obstacle check).
+        if (npc.type === 'dragon') {
+          if (--npc.flightToggleTimer <= 0) {
+            npc.isFlying = !npc.isFlying;
+            npc.flightToggleTimer = 150 + Math.floor(Math.random() * 150);
+          }
+          if (npc.breathingFire > 0) {
+            npc.breathingFire--;
+            if (npc.breathingFire === 0) {
+              const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), norm = Math.hypot(dx, dy) || 1;
+              enemyProjectiles.push({ x: npc.x + npc.w / 2, y: npc.y + npc.h / 2, vx: (dx / norm) * 4.5, vy: (dy / norm) * 4.5, w: 14, h: 14, type: 'dragon_fire', life: 90 });
+            }
+          } else if (npc.state === 'aggro' && --npc.fireCooldown <= 0) {
+            npc.breathingFire = 20;
+            npc.fireCooldown = 150 + Math.floor(Math.random() * 60);
+          }
+        }
+
         if (npc.type === 'worm') {
           if (!npc.isBurrowed) {
             npc.speed = 0;
@@ -1436,17 +1601,29 @@
           } else {
             npc.speed = 3.6;
             if (npc.animState === 'burying' && --npc.animTimer <= 0) npc.animState = 'underground';
+            // FIX (suggestion): telegraph the worm's upcoming surface point.
+            // Previously it homed in at full speed underground with zero
+            // warning, making it hard to read/dodge compared to the other
+            // bosses. It now slows slightly and sets a flag (used by
+            // drawRPG to draw a warning ring tracking its position) during
+            // the last ~0.4s before it erupts.
+            npc.telegraphing = npc.surfaceTimer <= 25;
+            if (npc.telegraphing) npc.speed = 2.0;
             const tdx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), tdy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), tdist = Math.hypot(tdx, tdy) || 1;
             npc.x += (tdx / tdist) * npc.speed; npc.y += (tdy / tdist) * npc.speed;
             if (--npc.surfaceTimer <= 0) {
-              npc.isBurrowed = false; npc.animState = 'unburying'; npc.animTimer = 35; npc.burrowTimer = 200;
+              npc.isBurrowed = false; npc.animState = 'unburying'; npc.animTimer = 35; npc.burrowTimer = 200; npc.telegraphing = false;
               if (checkRectCollision({ x: npc.x - 12, y: npc.y - 12, w: npc.w + 24, h: npc.h + 24 }, hero)) takeHeroDamage();
             }
           }
         }
 
         let moveX = 0, moveY = 0;
-        if (!(npc.type === 'worm' && npc.isBurrowed) && npc.type !== 'worm') {
+        // FIX: without this, the cyclops would keep walking mid-slam, making
+        // the telegraph meaningless since its position wouldn't match where
+        // the impact ring lands.
+        const cyclopsWindingUp = npc.type === 'cyclops' && (npc.smashState === 'telegraph' || npc.smashState === 'impact');
+        if (!(npc.type === 'worm' && npc.isBurrowed) && npc.type !== 'worm' && !cyclopsWindingUp) {
           if (npc.state === 'aggro') {
             const dx = (hero.x + hero.w / 2) - (npc.x + npc.w / 2), dy = (hero.y + hero.h / 2) - (npc.y + npc.h / 2), norm = Math.hypot(dx, dy) || 1;
             moveX = (dx / norm) * npc.speed; moveY = (dy / norm) * npc.speed;
@@ -1604,11 +1781,42 @@
         } else if (m.type === 'cyclops') {
           ctx.fillStyle = '#7c2d12'; ctx.fillRect(m.x + 8, m.y + 8, m.w - 16, m.h - 16);
           ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(m.x + m.w / 2, m.y + 16, 7, 0, Math.PI * 2); ctx.fill();
+          if (m.smashState === 'telegraph') {
+            const t = 1 - (m.smashTimer / 34);
+            ctx.save();
+            ctx.strokeStyle = `rgba(250, 204, 21, ${0.3 + t * 0.5})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(m.x + m.w / 2, m.y + m.h / 2, 20 + t * 75, 0, Math.PI * 2); ctx.stroke();
+            ctx.restore();
+          } else if (m.smashState === 'impact') {
+            const t = m.smashTimer / 12;
+            ctx.save();
+            ctx.strokeStyle = `rgba(255, 255, 255, ${t})`;
+            ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.arc(m.x + m.w / 2, m.y + m.h / 2, 95 * (1 - t) + 20, 0, Math.PI * 2); ctx.stroke();
+            ctx.restore();
+          }
         } else if (m.type === 'dragon') {
           ctx.fillStyle = m.isFlying ? '#dc2626' : '#991b1b'; ctx.fillRect(m.x + 18, m.y + 16, m.w - 36, m.h - 24);
+          if (m.breathingFire > 0) {
+            const t = m.breathingFire / 20;
+            ctx.save();
+            ctx.fillStyle = `rgba(251, 146, 60, ${0.5 + (1 - t) * 0.5})`;
+            ctx.shadowColor = '#fb923c'; ctx.shadowBlur = 14;
+            ctx.beginPath(); ctx.arc(m.x + m.w / 2, m.y + m.h / 2, 10 + (1 - t) * 10, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+          }
         } else if (m.type === 'worm') {
           if (m.isBurrowed) {
             ctx.fillStyle = '#78350f'; ctx.beginPath(); ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, 20, 10, 0, 0, Math.PI * 2); ctx.fill();
+            if (m.telegraphing) {
+              const pulse = 0.5 + Math.sin(rpgTicks * 0.5) * 0.3;
+              ctx.save();
+              ctx.strokeStyle = `rgba(239, 68, 68, ${pulse})`;
+              ctx.lineWidth = 3;
+              ctx.beginPath(); ctx.ellipse(m.x + m.w / 2, m.y + m.h / 2, 32, 18, 0, 0, Math.PI * 2); ctx.stroke();
+              ctx.restore();
+            }
           } else {
             ctx.fillStyle = '#831843'; ctx.fillRect(m.x + 6, m.y + 8, m.w - 12, m.h - 8);
           }
@@ -1661,6 +1869,11 @@
       } else if (selected === 'boring') {
         currentTheme = 'boring'; document.body.classList.add('theme-boring');
         gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
+        // FIX: force the portfolio back into full focus if the user switches to
+        // "boring" mode while a game was actively dimming it (e.g. was mid-keypress
+        // or mid mobile-play when the theme changed).
+        isPlayingMobileGame = false;
+        restorePortfolioFocus();
       }
     });
 
