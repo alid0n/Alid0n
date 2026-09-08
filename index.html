@@ -368,6 +368,16 @@
       background: #000;
     }
 
+    .card-video-embed img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
     .card-video-embed .video-frame-wrap {
       position: relative;
       width: 100%;
@@ -755,12 +765,23 @@
         </div>
       </div>
     </div>
-    <div class="card">
-      <h3>Custom Cyberdeck PC</h3>
-      <p>Custom portable field terminal engineered inside an Apache protective case, currently running Linux Pop!_OS. Built on the x86 LattePanda Sigma single-board computer, featuring custom 3D-printed internal chassis frames to house a dedicated battery hat, active cooling, trackball mouse, keyboard, and an onboard display. Includes exterior chassis breakouts that expose the USB, DC power, and even HDMI output for driving external monitors and projectors.</p>
-      </div>
-    </div>
 
+<div class="card card-with-video">
+        <div class="card-info">
+          <div>
+            <h3>Custom Cyberdeck PC</h3>
+            <p>Custom portable field terminal engineered inside an Apache protective case, currently running Linux Pop!_OS. Built on the x86 LattePanda Sigma single-board computer, featuring custom 3D-printed internal chassis frames to house a dedicated battery hat, active cooling, trackball mouse, keyboard, and an onboard display. Includes exterior chassis breakouts that expose the USB, DC power, and even HDMI output for driving external monitors and projectors.</p>
+          </div>
+          <div class="card-links">
+            <!-- Add any links if desired, or remove this div if not needed -->
+          </div>
+        </div>
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <img src="https://www.instagram.com/alid0n/p/DdB5ryhxu2z/" alt="Custom LattePanda Cyberdeck PC" loading="lazy" />
+          </div>
+        </div>
+      </div>
   </div>
 
   <script>
