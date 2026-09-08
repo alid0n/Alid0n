@@ -883,11 +883,16 @@
     }
 
     function spawnPowerup(x, y) {
-      if (Math.random() > 0.35) return;
+      // FIX (requested): spawn rate cut by 50% (0.35 -> 0.175).
+      if (Math.random() > 0.175) return;
       const roll = Math.random();
       let kind = 'weapon', label = 'W', color = '#00ffff';
-      if (roll < 0.20) { kind = 'life'; label = '+'; color = '#ff0055'; }
-      else if (roll < 0.45) { kind = 'score'; label = '$'; color = '#ffeb3b'; }
+      if (roll < 0.15) { kind = 'life'; label = '+'; color = '#ff0055'; }
+      else if (roll < 0.35) { kind = 'score'; label = '$'; color = '#ffeb3b'; }
+      // FIX (requested): new dedicated laser-beam powerup — distinct from
+      // the existing random weapon drop, always grants the laser, and only
+      // lasts 3.5s (210 frames at 60fps) before reverting to standard.
+      else if (roll < 0.55) { kind = 'laserbeam'; label = 'L'; color = '#ffee00'; }
       powerups.push({ x, y, w: 20, h: 20, vy: 2.2, kind, label, color });
     }
 
@@ -916,6 +921,10 @@
             const weapons = ['spread', 'laser', 'plasma'];
             player.weapon = weapons[Math.floor(Math.random() * weapons.length)];
             player.weaponTimer = 720;
+            spaceScore += 150;
+          } else if (p.kind === 'laserbeam') {
+            player.weapon = 'laser';
+            player.weaponTimer = 210; // 3.5s at 60fps
             spaceScore += 150;
           }
           powerups.splice(i, 1);
@@ -1248,22 +1257,33 @@
     // ==========================================
     // 3. SUNSET CHASER ENGINE
     // ==========================================
-    const racer = { playerX: 0, speed: 1.2, roadOffset: 0, steerAngle: 0 };
+    const racer = { playerX: 0, speed: 1.2, roadOffset: 0, steerAngle: 0, crashInvuln: 0 };
     let trafficCars = [], meteors = [], racerScore = 0, racerStartTime = Date.now();
 
     function initSynthRacer(fullReset = true) {
       if (fullReset) { racerScore = 0; racerStartTime = Date.now(); }
-      racer.playerX = 0; racer.speed = 1.2; racer.roadOffset = 0; racer.steerAngle = 0;
+      racer.playerX = 0; racer.speed = 1.2; racer.roadOffset = 0; racer.steerAngle = 0; racer.crashInvuln = 0;
       trafficCars = []; meteors = [];
-      for (let i = 0; i < 5; i++) {
-        trafficCars.push({ x: (Math.random() * 1.6) - 0.8, z: 150 + i * 160, color: i % 2 === 0 ? '#00e5ff' : '#ff007f', speed: 0.7 + Math.random() * 0.5 });
+      // FIX (performance, requested): fewer simultaneous traffic cars —
+      // each one costs a shadowBlur glow draw every frame, so cutting the
+      // count directly reduces per-frame cost.
+      for (let i = 0; i < 3; i++) {
+        trafficCars.push({ x: (Math.random() * 1.6) - 0.8, z: 200 + i * 220, color: i % 2 === 0 ? '#00e5ff' : '#ff007f', speed: 0.7 + Math.random() * 0.5 });
       }
+      // FIX (performance): gauge radius scales with canvas width, so a
+      // resize needs a freshly-sized cached bitmap rather than reusing (or
+      // endlessly accumulating) stale ones.
+      gaugeFaceCache.clear();
     }
 
     function updateSynthRacer() {
+      if (racer.crashInvuln > 0) racer.crashInvuln--;
+
       let targetSteer = 0;
-      if (keys['ArrowLeft'] || keys['KeyA']) { racer.playerX = Math.max(-0.9, racer.playerX - 0.035); targetSteer = -0.5; }
-      if (keys['ArrowRight'] || keys['KeyD']) { racer.playerX = Math.min(0.9, racer.playerX + 0.035); targetSteer = 0.5; }
+      // FIX: widened steering rate slightly (0.035 -> 0.045) so lane changes
+      // are quick enough to actually dodge traffic once it's closing in fast.
+      if (keys['ArrowLeft'] || keys['KeyA']) { racer.playerX = Math.max(-0.9, racer.playerX - 0.045); targetSteer = -0.5; }
+      if (keys['ArrowRight'] || keys['KeyD']) { racer.playerX = Math.min(0.9, racer.playerX + 0.045); targetSteer = 0.5; }
       racer.steerAngle += (targetSteer - racer.steerAngle) * 0.18;
       if (keys['ArrowUp'] || keys['KeyW'] || keys['Space']) racer.speed = Math.min(2.8, racer.speed + 0.05);
       else racer.speed = Math.max(1.1, racer.speed - 0.025);
@@ -1279,12 +1299,196 @@
         if (m.alpha <= 0) meteors.splice(i, 1);
       }
       trafficCars.forEach(car => {
-        car.z -= (racer.speed * 7 + car.speed * 3);
+        // FIX: this is the actual cause of "speed resets when it maxes out".
+        // Closing speed scaled directly with racer.speed * 7, so right as you
+        // approached the 2.8 cap, oncoming cars rushed in fast enough that
+        // dodging within the shrinking reaction window became close to
+        // impossible — you'd crash right as you hit top speed, every time.
+        // Toning down the scaling here gives a real, survivable window even
+        // at max speed.
+        car.z -= (racer.speed * 5 + car.speed * 2.5);
         if (car.z < 20) {
-          if (Math.abs(car.x - racer.playerX) < 0.3) { racer.speed = 0.8; racerScore = Math.max(0, racerScore - 150); }
+          if (racer.crashInvuln <= 0 && Math.abs(car.x - racer.playerX) < 0.3) {
+            // FIX: a proportional penalty instead of a hard reset to a fixed
+            // floor, so a graze at high speed costs you speed but doesn't
+            // always feel like starting over from scratch.
+            racer.speed = Math.max(0.8, racer.speed - 1.5);
+            racerScore = Math.max(0, racerScore - 150);
+            // FIX: brief grace window so a tight cluster of oncoming cars
+            // can't chain-trigger multiple resets within the same moment.
+            racer.crashInvuln = 45;
+          }
           car.z = 750 + Math.random() * 150; car.x = (Math.random() * 1.6) - 0.8;
         }
       });
+    }
+
+    // FIX (performance): the gauges and wheel below use several shadowBlur
+    // glow effects — one of the most expensive operations in Canvas2D — and
+    // were being fully re-stroked/re-gradiented every single frame even
+    // though almost none of that geometry (bezel, tick marks, labels, rim,
+    // spokes) ever actually changes. This was the cause of the lag reported
+    // after the detail pass. Both are now rendered ONCE to small offscreen
+    // canvases and simply blitted (a cheap bitmap copy) each frame — only
+    // the moving needle and the live number readout are drawn fresh per
+    // frame, and without shadow blur, since they're small and simple enough
+    // not to need it.
+    let gaugeFaceCache = new Map();
+
+    function buildGaugeFace(radius, maxValue, label, accentColor) {
+      const size = Math.ceil(radius * 2) + 4;
+      const off = document.createElement('canvas');
+      off.width = size; off.height = size;
+      const fctx = off.getContext('2d');
+      const cx = size / 2, cy = size / 2;
+      const startAngle = Math.PI * 0.75;
+      const sweep = Math.PI * 1.5;
+
+      const bezelGrad = fctx.createRadialGradient(cx, cy, radius * 0.55, cx, cy, radius);
+      bezelGrad.addColorStop(0, '#1a0a2e');
+      bezelGrad.addColorStop(1, '#000000');
+      fctx.fillStyle = bezelGrad;
+      fctx.beginPath(); fctx.arc(cx, cy, radius, 0, Math.PI * 2); fctx.fill();
+      fctx.strokeStyle = accentColor; fctx.lineWidth = 2.5; fctx.shadowColor = accentColor; fctx.shadowBlur = 10;
+      fctx.stroke();
+      fctx.shadowBlur = 0;
+
+      fctx.beginPath(); fctx.arc(cx, cy, radius * 0.84, 0, Math.PI * 2);
+      fctx.fillStyle = '#07020f'; fctx.fill();
+
+      const steps = 6;
+      fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const val = Math.round(maxValue * t);
+        const angle = startAngle + t * sweep;
+        const x1 = cx + Math.cos(angle) * radius * 0.64, y1 = cy + Math.sin(angle) * radius * 0.64;
+        const x2 = cx + Math.cos(angle) * radius * 0.78, y2 = cy + Math.sin(angle) * radius * 0.78;
+        fctx.strokeStyle = t >= 0.85 ? '#ff0055' : accentColor;
+        fctx.lineWidth = 2;
+        fctx.beginPath(); fctx.moveTo(x1, y1); fctx.lineTo(x2, y2); fctx.stroke();
+
+        const tx = cx + Math.cos(angle) * radius * 0.5, ty = cy + Math.sin(angle) * radius * 0.5;
+        fctx.fillStyle = '#dff6ff';
+        fctx.font = `${Math.max(6, radius * 0.13)}px "Press Start 2P", monospace`;
+        fctx.fillText(val, tx, ty);
+      }
+
+      fctx.fillStyle = '#dff6ff';
+      fctx.font = `${radius * 0.09}px "Press Start 2P", monospace`;
+      fctx.fillText(label, cx, cy + radius * 0.52);
+
+      return off;
+    }
+
+    function getGaugeFace(radius, maxValue, label, accentColor) {
+      const key = radius + '|' + maxValue + '|' + label + '|' + accentColor;
+      let face = gaugeFaceCache.get(key);
+      if (!face) {
+        face = buildGaugeFace(radius, maxValue, label, accentColor);
+        gaugeFaceCache.set(key, face);
+      }
+      return face;
+    }
+
+    // A reusable retro analog gauge — circular bezel, tick marks, sweeping
+    // needle, and a digital readout underneath. Used for both the main
+    // speedometer and the decorative RPM gauge.
+    function drawRetroGauge(cx, cy, radius, value, maxValue, label, accentColor) {
+      const face = getGaugeFace(radius, maxValue, label, accentColor);
+      ctx.drawImage(face, cx - face.width / 2, cy - face.height / 2);
+
+      const startAngle = Math.PI * 0.75;
+      const sweep = Math.PI * 1.5;
+      const pct = Math.max(0, Math.min(1, value / maxValue));
+      const needleAngle = startAngle + pct * sweep;
+
+      ctx.save();
+      ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(needleAngle) * radius * 0.62, cy + Math.sin(needleAngle) * radius * 0.62); ctx.stroke();
+
+      ctx.beginPath(); ctx.arc(cx, cy, radius * 0.09, 0, Math.PI * 2);
+      ctx.fillStyle = accentColor; ctx.fill();
+
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = accentColor;
+      ctx.font = `${radius * 0.17}px "Press Start 2P", monospace`;
+      ctx.fillText(`${Math.round(value)}`, cx, cy + radius * 0.36);
+      ctx.restore();
+    }
+
+    let wheelFaceCache = null;
+
+    function buildWheelFace(radius) {
+      const pad = 22;
+      const size = Math.ceil((radius + pad) * 2);
+      const off = document.createElement('canvas');
+      off.width = size; off.height = size;
+      const fctx = off.getContext('2d');
+      const cx = size / 2, cy = size / 2;
+      const startAngle = Math.PI * 0.85, endAngle = Math.PI * 2.15;
+
+      fctx.lineWidth = 18; fctx.strokeStyle = '#150a24';
+      fctx.beginPath(); fctx.arc(cx, cy, radius, startAngle, endAngle); fctx.stroke();
+
+      fctx.lineWidth = 14; fctx.strokeStyle = '#00ffff';
+      fctx.shadowColor = 'rgba(0, 255, 255, 0.9)'; fctx.shadowBlur = 10;
+      fctx.beginPath(); fctx.arc(cx, cy, radius, startAngle, endAngle); fctx.stroke();
+      fctx.shadowBlur = 0;
+
+      fctx.lineWidth = 2; fctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      fctx.beginPath(); fctx.arc(cx, cy, radius - 6, startAngle, endAngle); fctx.stroke();
+
+      fctx.strokeStyle = 'rgba(5, 5, 20, 0.65)'; fctx.lineWidth = 3;
+      const grips = 16;
+      for (let i = 0; i <= grips; i++) {
+        const a = startAngle + (endAngle - startAngle) * (i / grips);
+        const x1 = cx + Math.cos(a) * (radius - 10), y1 = cy + Math.sin(a) * (radius - 10);
+        const x2 = cx + Math.cos(a) * (radius + 1), y2 = cy + Math.sin(a) * (radius + 1);
+        fctx.beginPath(); fctx.moveTo(x1, y1); fctx.lineTo(x2, y2); fctx.stroke();
+      }
+
+      fctx.strokeStyle = '#ff007f'; fctx.lineWidth = 8;
+      fctx.shadowColor = '#ff007f'; fctx.shadowBlur = 8;
+      [Math.PI * 1.15, Math.PI * 1.5, Math.PI * 1.85].forEach(a => {
+        fctx.beginPath();
+        fctx.moveTo(cx + Math.cos(a) * radius * 0.18, cy + Math.sin(a) * radius * 0.18);
+        fctx.lineTo(cx + Math.cos(a) * (radius - 15), cy + Math.sin(a) * (radius - 15));
+        fctx.stroke();
+      });
+      fctx.shadowBlur = 0;
+
+      const hubGrad = fctx.createRadialGradient(cx, cy, 2, cx, cy, radius * 0.2);
+      hubGrad.addColorStop(0, '#3a1a52');
+      hubGrad.addColorStop(1, '#0a0314');
+      fctx.fillStyle = hubGrad;
+      fctx.beginPath(); fctx.arc(cx, cy, radius * 0.18, 0, Math.PI * 2); fctx.fill();
+      fctx.strokeStyle = '#ff007f'; fctx.lineWidth = 2; fctx.shadowColor = '#ff007f'; fctx.shadowBlur = 6;
+      fctx.stroke();
+      fctx.shadowBlur = 0;
+
+      fctx.fillStyle = '#00ffaa';
+      fctx.font = `${radius * 0.1}px "Press Start 2P", monospace`;
+      fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
+      fctx.fillText('A', cx, cy + 1);
+
+      return off;
+    }
+
+    // A proper 3-spoke steering wheel — layered rim (dark base + neon glow +
+    // chrome highlight), stitched grip texture, spokes converging on a lit
+    // hub with a small emblem. The static artwork is cached (see above);
+    // only the rotation changes per frame.
+    function drawSteeringWheelDetailed(cx, cy, radius, angle) {
+      if (!wheelFaceCache || wheelFaceCache.radius !== radius) {
+        wheelFaceCache = { radius, canvas: buildWheelFace(radius) };
+      }
+      const face = wheelFaceCache.canvas;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.drawImage(face, -face.width / 2, -face.height / 2);
+      ctx.restore();
     }
 
     function drawSynthRacer() {
@@ -1321,11 +1525,19 @@
       groundGrad.addColorStop(0, '#10021c'); groundGrad.addColorStop(1, '#05000a');
       ctx.fillStyle = groundGrad; ctx.fillRect(0, horizonY, width, height - horizonY);
 
+      // FIX: the ground grid used a "40" depth constant while the cars below
+      // used "60" for the same z-to-screen-Y projection. That mismatch meant
+      // a car and a grid line at the *same* simulated distance didn't land
+      // at the same screen height — the cars looked mis-anchored to the
+      // road surface (like they were sinking beneath it) instead of resting
+      // on it. Pulling this into one shared constant used by both fixes that.
+      const ROAD_DEPTH_K = 40;
+
       ctx.strokeStyle = 'rgba(255, 0, 128, 0.45)'; ctx.lineWidth = 1.5;
       for (let z = 10; z < 600; z += 30) {
         const effectiveZ = (z - racer.roadOffset + 600) % 600;
         if (effectiveZ <= 5) continue;
-        const lineY = horizonY + (height - horizonY) * (40 / effectiveZ);
+        const lineY = horizonY + (height - horizonY) * (ROAD_DEPTH_K / effectiveZ);
         if (lineY > horizonY && lineY < height) { ctx.beginPath(); ctx.moveTo(0, lineY); ctx.lineTo(width, lineY); ctx.stroke(); }
       }
 
@@ -1340,28 +1552,49 @@
 
       trafficCars.forEach((c) => {
         if (c.z > 20 && c.z < 750) {
-          const depthScale = 60 / c.z, carY = horizonY + (height - horizonY) * depthScale;
+          const depthScale = ROAD_DEPTH_K / c.z, carY = horizonY + (height - horizonY) * depthScale;
           const carScreenX = roadCenterHorizon + (c.x * width * 0.45 * depthScale);
           const carW = 120 * depthScale, carH = 50 * depthScale;
           if (carY > horizonY && carY < height - 40) {
-            ctx.fillStyle = c.color; ctx.shadowColor = c.color; ctx.shadowBlur = 10;
+            // FIX (performance, requested): trimmed the glow — shadowBlur
+            // cost scales with blur radius, so 10 -> 3 keeps a hint of glow
+            // at a fraction of the cost, across up to 3 cars every frame.
+            ctx.fillStyle = c.color; ctx.shadowColor = c.color; ctx.shadowBlur = 3;
             ctx.fillRect(carScreenX - carW / 2, carY - carH, carW, carH);
           }
         }
       });
       ctx.shadowBlur = 0;
 
+      // FIX (requested detail pass): the cockpit was just a flat dashboard
+      // shape, a line of plain text for speed, and a single bare arc for
+      // the wheel. Replaced with a textured dashboard (trim line, vents,
+      // blinking indicators, brand plaque), a real retro analog speedometer
+      // with tick marks and a needle, a matching decorative RPM gauge for
+      // symmetry, and a proper detailed steering wheel.
+      const dashTopY = height - 75;
       ctx.fillStyle = '#0a0314'; ctx.strokeStyle = '#ff007f'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0, height); ctx.lineTo(width * 0.2, height - 75); ctx.lineTo(width * 0.8, height - 75); ctx.lineTo(width, height); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, height); ctx.lineTo(width * 0.2, dashTopY); ctx.lineTo(width * 0.8, dashTopY); ctx.lineTo(width, height); ctx.closePath(); ctx.fill(); ctx.stroke();
 
-      ctx.fillStyle = '#00ffff'; ctx.font = '9px "Press Start 2P", monospace';
-      ctx.fillText(`SPEED: ${Math.round(racer.speed * 92)} MPH`, width * 0.22, height - 85);
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(width * 0.2, dashTopY + 3); ctx.lineTo(width * 0.8, dashTopY + 3); ctx.stroke();
 
-      ctx.save();
-      ctx.translate(width / 2, height + 10); ctx.rotate(racer.steerAngle);
-      ctx.strokeStyle = '#00ffff'; ctx.shadowColor = 'rgba(0, 255, 255, 0.9)'; ctx.shadowBlur = 10; ctx.lineWidth = 14;
-      ctx.beginPath(); ctx.arc(0, 0, 110, Math.PI * 0.85, Math.PI * 2.15); ctx.stroke();
-      ctx.restore();
+      ctx.fillStyle = '#150a24';
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(width * 0.46 + i * 13, dashTopY + 10, 8, 4);
+      }
+
+      const blink = Math.floor(Date.now() / 500) % 2 === 0;
+      ctx.fillStyle = blink ? '#00ff88' : '#0a4030';
+      ctx.beginPath(); ctx.arc(width * 0.4, dashTopY + 14, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = !blink ? '#ff2255' : '#4a0a18';
+      ctx.beginPath(); ctx.arc(width * 0.6, dashTopY + 14, 3, 0, Math.PI * 2); ctx.fill();
+
+      const gaugeRadius = Math.min(52, width * 0.065);
+      drawRetroGauge(width * 0.78, height - 40, gaugeRadius, racer.speed * 92, 260, 'MPH', '#00ffff');
+      drawRetroGauge(width * 0.22, height - 40, gaugeRadius * 0.7, racer.speed * 1900, 5000, 'RPM', '#ff007f');
+
+      drawSteeringWheelDetailed(width / 2, height + 10, 110, racer.steerAngle);
 
       drawHUD(racerScore, racerStartTime, null, '#ff007f');
     }
