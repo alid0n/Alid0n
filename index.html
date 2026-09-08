@@ -672,7 +672,9 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
     }
-
+    
+.drawer-media-item video{width:100%;height:140px;object-fit:cover;display:block;background:#000}
+.card-full-width{grid-column:1/-1}
     .drawer-media-item {
       border-radius: 6px;
       overflow: hidden;
@@ -687,6 +689,8 @@
       object-fit: cover;
       display: block;
     }
+    .drawer-media-item video{width:100%;height:140px;object-fit:cover;display:block;background:#000}
+.card-full-width{grid-column:1/-1}
 
     .drawer-media-item .video-frame-wrap {
       position: relative;
@@ -985,8 +989,8 @@
       </div>
 
       <div class="skills-row-wrap">
-        <span class="pixel-tag">&gt; CORE SKILLS</span>
-        <button type="button" id="skillsToggleAll" class="skills-toggle-all">+ Tap to expand all Skills</button>
+        <span class="pixel-tag">&gt; SKILLS</span>
+        <button type="button" id="skillsToggleAll" class="skills-toggle-all">+ Expand All Skills</button>
         <div class="skills-row">
           <span class="skill-tag" data-name="Unreal Engine" data-detail="C++ and Blueprint gameplay systems, actor components, and marketplace-ready tools built for the FAB marketplace."><span class="skill-icon">+</span><span class="skill-name">Unreal Engine</span></span>
           <span class="skill-tag" data-name="Animation" data-detail="Proficient in animation state machines, procedural animation, and animation software such as akeytsu."><span class="skill-icon">+</span><span class="skill-name">Animation</span></span>
@@ -1034,7 +1038,7 @@
             
           <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
           <ul class="drawer-details-list">
-            <li><strong>Buoyancy Simulation:</strong> Physics-based water surface volume detection with smooth entry/exit blending.</li>
+            <li><strong>Buoyancy Simulation:</strong> Physics & logic-based water surface volume detection with smooth entry/exit blending.</li>
             <li><strong>Animation Integration:</strong> Pre-rigged blend spaces and state transitions for treading water, diving, sprinting, and vertical surfacing.</li>
             <li><strong>Modular Design:</strong> Actor component architecture allowing drag-and-drop addition onto any standard character actor.</li>
           </ul>
@@ -1043,10 +1047,13 @@
             <div class="drawer-media-item">
               <div class="video-frame-wrap">
                 <!-- TODO: swap YOUR_SECOND_VIDEO_ID for the second Swim Component demo's YouTube ID -->
-                <div class="yt-lazy" data-video-id="YOUR_SECOND_VIDEO_ID" data-title="Advanced Swim Component - Additional Demo">
-                  <img class="yt-thumb" src="https://img.youtube.com/vi/YOUR_SECOND_VIDEO_ID/hqdefault.jpg" alt="Advanced Swim Component - Additional Demo thumbnail" loading="lazy">
-                  <div class="yt-play-btn">&#9658;</div>
-                </div>
+<div class="drawer-gallery">
+  <div class="drawer-media-item"><video controls preload="none"><source src="OceanSwimming.mp4" type="video/mp4"></video><div class="drawer-media-label">Ocean Swimming</div></div>
+  <div class="drawer-media-item"><video controls preload="none"><source src="SwimAnimWIP.mp4" type="video/mp4"></video><div class="drawer-media-label">Animation WIP</div></div>
+  <div class="drawer-media-item"><img src="EasySwimTesting.jpg" alt="Swim testing" loading="lazy"><div class="drawer-media-label">Testing</div></div>
+  <div class="drawer-media-item"><img src="EasySwimAnimationBlueprintClip.JPG" alt="Anim blueprint" loading="lazy"><div class="drawer-media-label">Anim Blueprint</div></div>
+  <div class="drawer-media-item"><img src="EasySwimSetUpDocumentationExample.JPG" alt="Setup docs" loading="lazy"><div class="drawer-media-label">Setup Docs</div></div>
+</div>
               </div>
               <div class="drawer-media-label">Additional Demo</div>
             </div>
@@ -1364,6 +1371,8 @@
 
   </div>
   </div>
+
+  
 
 
   <script>
