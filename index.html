@@ -589,21 +589,43 @@
       display: block;
     }
 
-    /* Expandable drawer styling */
+/* Expandable drawer styling with smooth dynamic height transition */
     .card-expanded-drawer {
       width: 100%;
       flex-basis: 100%;
-      display: none;
-      flex-direction: column;
-      gap: 16px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.15);
-      animation: drawerSlide 0.25s ease-out;
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                  margin-top 0.35s ease,
+                  padding-top 0.35s ease,
+                  border-color 0.35s ease;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 1px dashed transparent;
+      overflow: hidden;
     }
 
     .card-expanded-drawer.open {
+      grid-template-rows: 1fr;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card-drawer-inner {
+      min-height: 0;
       display: flex;
+      flex-direction: column;
+      gap: 16px;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .card-expanded-drawer.open .card-drawer-inner {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 0.1s;
     }
 
     @keyframes drawerSlide {
@@ -994,6 +1016,8 @@
           </div>
         </div>
         <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            
           <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
           <ul class="drawer-details-list">
             <li><strong>Buoyancy Simulation:</strong> Physics-based water surface volume detection with smooth entry/exit blending.</li>
@@ -1020,7 +1044,7 @@
           </div>
         </div>
       </div>
-
+      </div>
       <!-- CARD 2: Easy Taming Component -->
       <div class="card card-with-video">
         <div class="card-info">
@@ -1044,6 +1068,8 @@
           </div>
         </div>
         <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            
           <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
           <ul class="drawer-details-list">
             <li><strong>AI State Controller:</strong> Wild, passive, aggressive, feeding, following, and commanded behavior trees.</li>
@@ -1070,6 +1096,7 @@
           </div>
         </div>
       </div>
+      </div>
 
       <!-- CARD 3: Catalyst Dynamic Flame -->
       <div class="card card-with-video">
@@ -1094,6 +1121,8 @@
           </div>
         </div>
         <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            
           <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
           <ul class="drawer-details-list">
             <li><strong>Spread Mechanics:</strong> Proximity traces detect nearby flammable surfaces and calculate their chance to catch fire.</li>
@@ -1120,6 +1149,7 @@
           </div>
         </div>
       </div>
+      </div>
 
       <!-- CARD 4: Mobile Touch Controls -->
       <div class="card card-with-video">
@@ -1144,6 +1174,7 @@
           </div>
         </div>
         <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
           <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DEEP DIVE</span>
           <ul class="drawer-details-list">
             <li><strong>Adaptive UI:</strong> Dynamic floating joysticks, fixed D-pads, multi-touch gestures, and contextual action buttons.</li>
@@ -1169,6 +1200,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
 
     </div>
@@ -1199,6 +1231,7 @@
           </div>
         </div>
         <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
           <span class="drawer-subtitle">&gt; MOD SPECIFICATIONS &amp; SCALE</span>
           <ul class="drawer-details-list">
             <li><strong>Content:</strong> Added thousands of hours of gameplay to the Elderscrolls V: Skyrim</li>
@@ -1208,6 +1241,7 @@
             <li><strong>Discord Community:</strong> A community to give users a place to interact with each other, ask questions, and search for topics related to my mods.</li>
           </ul>
         </div>
+      </div>
       </div>
 
     </div>
@@ -1235,6 +1269,8 @@
           </div>
         </div>
         <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            
           <span class="drawer-subtitle">&gt; HARDWARE SPECIFICATIONS &amp; FABRICATION</span>
           <ul class="drawer-details-list">
             <li><strong>Compute:</strong> LattePanda Sigma (x86 architecture) running Linux Pop!_OS.</li>
@@ -1263,6 +1299,7 @@
           </div>
         </div>
       </div>
+      </div>
 
     </div>
 
@@ -1286,6 +1323,8 @@
           </div>
         </div>
         <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            
           <span class="drawer-subtitle">&gt; SKILLS UTILIZED</span>
           <ul class="drawer-details-list">
             <li><strong>Gameplay:</strong> Made a simple gameplay loop that was unique and fun.</li>
@@ -1310,6 +1349,7 @@
 
     </div>
 
+  </div>
   </div>
 
 
