@@ -424,6 +424,32 @@
       display: none !important;
     }
 
+    /* FIX (requested): a level/wave jump control for testing, shown above
+       where the canvas HUD draws "SCORE:" (top-left) for the games that
+       have discrete levels. Hidden by default; JS shows it per-theme. */
+    #levelSelector {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 200;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      display: none;
+    }
+
+    #levelSelector option {
+      background: #07090e;
+      color: #ffffff;
+    }
+
     #touchControls {
       position: fixed;
       bottom: 0;
@@ -524,6 +550,10 @@
   <canvas id="bgCanvas" class="faded" aria-hidden="true" tabindex="-1"></canvas>
 
   <button id="mobileGameToggle">PLAY GAME</button>
+
+  <!-- FIX (requested): level/wave jump selector for testing, shown for
+       Space Invasion, Retro Maze, Fantasy Quest, and Jungle Rumble only -->
+  <select id="levelSelector" aria-label="Jump to level"></select>
 
   <div id="touchControls">
     <div class="dpad">
@@ -643,6 +673,33 @@
     const gameHint = document.getElementById('gameHint');
     const mobileGameToggle = document.getElementById('mobileGameToggle');
     const touchControls = document.getElementById('touchControls');
+    const levelSelector = document.getElementById('levelSelector');
+
+    // FIX (requested): shared 4-second "GAME OVER" freeze before a game
+    // resets, used by Space Invasion, Retro Maze, Fantasy Quest, and
+    // Jungle Rumble. triggerGameOver() schedules the reset rather than
+    // running it immediately; the main loop() checks gameOverTimer before
+    // running any game's update/draw and shows the overlay instead while
+    // it's counting down.
+    let gameOverTimer = 0, gameOverPendingReset = null;
+    function triggerGameOver(resetFn) {
+      gameOverTimer = 240; // 4s at 60fps
+      gameOverPendingReset = resetFn;
+    }
+    function drawGameOverOverlay() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+      ctx.fillRect(0, 0, width, height);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ef4444';
+      ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 14;
+      ctx.font = `${Math.max(18, Math.min(36, width * 0.045))}px "Press Start 2P", monospace`;
+      ctx.fillText('GAME OVER', width / 2, height / 2);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '11px "Press Start 2P", monospace';
+      ctx.fillText('RESETTING...', width / 2, height / 2 + 36);
+      ctx.textAlign = 'left';
+    }
 
     let currentTheme = 'space';
     let width = (canvas.width = window.innerWidth);
@@ -1004,7 +1061,7 @@
         }
 
         if (checkRectCollision(player, inv) && player.invuln <= 0) {
-          if (--spaceLives <= 0) { initInvaders(true); return; }
+          if (--spaceLives <= 0) { triggerGameOver(() => initInvaders(true)); return; }
           player.invuln = 60;
         }
       });
@@ -1019,7 +1076,7 @@
         l.y += l.vy;
         if (checkRectCollision(player, l) && player.invuln <= 0) {
           enemyLasers.splice(i, 1);
-          if (--spaceLives <= 0) { initInvaders(true); return; }
+          if (--spaceLives <= 0) { triggerGameOver(() => initInvaders(true)); return; }
           player.invuln = 60;
           continue;
         }
@@ -1258,7 +1315,7 @@
             g.state = 'eaten'; ghostsEatenChain++;
             pacScore += Math.min(1600, 200 * Math.pow(2, ghostsEatenChain - 1));
           } else if (pac.invuln <= 0) {
-            if (--pacLives <= 0) initPacGame(true);
+            if (--pacLives <= 0) triggerGameOver(() => initPacGame(true));
             else resetPacEntities();
           }
         }
@@ -1780,7 +1837,7 @@
     function takeHeroDamage() {
       if (hero.invuln > 0) return;
       if (hero.shields > 0) hero.shields--;
-      else if (--rpgLives <= 0) { initRPGGame(true); return; }
+      else if (--rpgLives <= 0) { triggerGameOver(() => initRPGGame(true)); return; }
       hero.invuln = 70;
     }
 
@@ -2472,34 +2529,70 @@
       facingX: 1, invuln: 0, grabbed: false
     };
     const DINO_GRAVITY = 0.6;
-    let dinoPlatforms = [], dinoEnemies = [], bananas = [];
+    let dinoPlatforms = [], dinoEnemies = [], bananas = [], hearts = [];
     let dinoScore = 0, dinoLives = 3, dinoWave = 1, dinoStartTime = Date.now(), dinoTicks = 0;
 
     function generateDinoLevel() {
       dinoPlatforms = [];
       // Ground spans the full width
-      dinoPlatforms.push({ x: 0, y: height - 40, w: width, h: 40 });
+      const ground = { x: 0, y: height - 40, w: width, h: 40 };
+      dinoPlatforms.push(ground);
 
       // FIX (requested): each level up to level 4 adds more platform tiers
       // (capped there — level 5+ keeps level 4's amount rather than
       // growing indefinitely).
       const levelForPlatforms = Math.min(dinoWave, 4);
       const tiers = 2 + levelForPlatforms;
+      // FIX (bug): platforms above tier 0 used to be placed completely
+      // independently of what was below them, so a platform could
+      // occasionally land somewhere with no reachable platform underneath
+      // it at all — any banana placed there was then permanently
+      // uncollectable, which is why the level sometimes wouldn't progress
+      // even after grabbing every banana you could actually reach. Each
+      // tier is now anchored to a platform from the tier directly below
+      // (within actual jump range), guaranteeing a path exists from the
+      // ground all the way up.
+      let previousTier = [ground];
       for (let t = 0; t < tiers; t++) {
         const platY = height - 130 - t * 95;
-        if (platY < 60) continue;
+        if (platY < 60) break;
         const platCount = 2 + (t % 2);
+        const thisTier = [];
         for (let p = 0; p < platCount; p++) {
           const platW = 130 + Math.random() * 90;
-          const slot = width / platCount;
-          const platX = Math.min(width - platW - 20, slot * p + Math.random() * (slot - platW > 0 ? slot - platW : 20));
-          dinoPlatforms.push({ x: Math.max(10, platX), y: platY, w: platW, h: 20 });
+          let platX;
+          if (t === 0) {
+            // Reachable from anywhere along the full-width ground
+            const slot = width / platCount;
+            platX = Math.min(width - platW - 20, slot * p + Math.random() * Math.max(20, slot - platW));
+          } else {
+            const anchor = previousTier[Math.floor(Math.random() * previousTier.length)];
+            const anchorCenter = anchor.x + anchor.w / 2;
+            const maxReach = 130; // within the monkey's actual jump arc
+            platX = anchorCenter - platW / 2 + (Math.random() * maxReach * 2 - maxReach);
+          }
+          platX = Math.max(10, Math.min(width - platW - 10, platX));
+          const plat = { x: platX, y: platY, w: platW, h: 20 };
+          dinoPlatforms.push(plat);
+          thisTier.push(plat);
         }
+        previousTier = thisTier;
       }
     }
 
+    // Fisher-Yates shuffle of platform indices, used to assign enemies to
+    // distinct platforms without repeats.
+    function shuffledPlatformIndices() {
+      const arr = dinoPlatforms.map((_, i) => i);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     function spawnBananasAndEnemies() {
-      dinoEnemies = []; bananas = [];
+      dinoEnemies = []; bananas = []; hearts = [];
 
       dinoPlatforms.forEach((plat, idx) => {
         if (idx === 0) return; // skip the ground, bias bananas toward climbing
@@ -2508,14 +2601,32 @@
         }
       });
 
-      // FIX (requested): raptors now spawn in a random amount each level
-      // instead of a fixed formula, capped at 0.8 per platform in the
-      // current level (so bigger levels can have more, but it's never
-      // guaranteed to be the max).
+      // FIX (requested): a life heart always spawns on the topmost
+      // platform tier each level, rewarding players who climb all the way up.
+      const nonGroundPlats = dinoPlatforms.slice(1);
+      if (nonGroundPlats.length > 0) {
+        const topY = Math.min(...nonGroundPlats.map(p => p.y));
+        const topPlats = nonGroundPlats.filter(p => p.y === topY);
+        const heartPlat = topPlats[Math.floor(Math.random() * topPlats.length)];
+        hearts.push({ x: heartPlat.x + heartPlat.w / 2 - 8, y: heartPlat.y - 24, w: 16, h: 16 });
+      }
+
+      // FIX (requested): no platform can have more than one dinosaur on it
+      // (raptor or stego) — previously each was assigned a fully random
+      // platform independently, so two could occasionally land on the same
+      // one. Platforms are now handed out from a shuffled, non-repeating
+      // pool, and counts are capped to however many distinct platforms are
+      // actually available.
+      const usedPlatformIdx = new Set();
+      const shuffled = shuffledPlatformIndices();
+      const nonGroundShuffled = shuffled.filter(i => i !== 0);
+
       const maxRaptors = Math.max(1, Math.floor(dinoPlatforms.length * 0.8));
-      const raptorCount = 1 + Math.floor(Math.random() * maxRaptors);
+      const raptorCount = Math.min(1 + Math.floor(Math.random() * maxRaptors), nonGroundShuffled.length);
       for (let i = 0; i < raptorCount; i++) {
-        const plat = dinoPlatforms[1 + Math.floor(Math.random() * (dinoPlatforms.length - 1))];
+        const platIdx = nonGroundShuffled[i];
+        usedPlatformIdx.add(platIdx);
+        const plat = dinoPlatforms[platIdx];
         const dir = Math.random() > 0.5 ? 1 : -1;
         dinoEnemies.push({
           type: 'raptor',
@@ -2525,11 +2636,14 @@
         });
       }
 
-      // FIX (requested): stego made noticeably bigger, plus an animPhase
-      // used to drive a walking leg-swing animation in drawDino.
-      const stegoCount = dinoWave === 1 ? 1 : Math.min(3, Math.floor(dinoWave / 2) + 1);
+      // FIX (requested): stego capped at 2 per level (was up to 3), and
+      // now also respects the one-dinosaur-per-platform rule above.
+      const availableForStego = shuffled.filter(i => !usedPlatformIdx.has(i));
+      const stegoCount = Math.min(2, dinoWave === 1 ? 1 : Math.floor(dinoWave / 2) + 1, availableForStego.length);
       for (let i = 0; i < stegoCount; i++) {
-        const plat = dinoPlatforms[Math.floor(Math.random() * dinoPlatforms.length)];
+        const platIdx = availableForStego[i];
+        usedPlatformIdx.add(platIdx);
+        const plat = dinoPlatforms[platIdx];
         dinoEnemies.push({
           type: 'stego',
           x: plat.x + Math.random() * Math.max(10, plat.w - 66), y: plat.y - 44,
@@ -2589,7 +2703,7 @@
 
     function takeMonkeyDamage() {
       if (monkey.invuln > 0) return;
-      if (--dinoLives <= 0) { initDinoGame(true); return; }
+      if (--dinoLives <= 0) { triggerGameOver(() => initDinoGame(true)); return; }
       monkey.invuln = 70;
       monkey.vy = -6; monkey.vx = -monkey.facingX * 4;
     }
@@ -3130,15 +3244,76 @@
       // a theme — which is the main way arrow keys ended up reaching it
       // during gameplay in the first place (see the keydown handler above).
       themeSelect.blur();
+
+      // FIX (requested): show/populate the level jump selector for the
+      // games that have discrete levels; hidden for Sunset Chaser/Boring.
+      updateLevelSelector();
+    });
+
+    // FIX (requested): a small testing tool — jump directly to any level
+    // for the games that have them, shown "above the score" (i.e. near
+    // where the canvas HUD draws SCORE: at the top-left).
+    const LEVEL_SELECTOR_GAMES = ['space', 'pac', 'rpg', 'dino'];
+    const LEVEL_SELECTOR_MAX = 10;
+
+    function updateLevelSelector() {
+      if (!LEVEL_SELECTOR_GAMES.includes(currentTheme)) {
+        levelSelector.style.display = 'none';
+        return;
+      }
+      let current = 1;
+      if (currentTheme === 'space') current = spaceLevel;
+      else if (currentTheme === 'pac') current = pacLevel;
+      else if (currentTheme === 'rpg') current = rpgWave;
+      else if (currentTheme === 'dino') current = dinoWave;
+
+      levelSelector.innerHTML = '';
+      const max = Math.max(LEVEL_SELECTOR_MAX, current);
+      for (let i = 1; i <= max; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = 'LEVEL ' + i;
+        if (i === current) opt.selected = true;
+        levelSelector.appendChild(opt);
+      }
+      levelSelector.style.display = 'block';
+    }
+
+    levelSelector.addEventListener('change', (e) => {
+      const lvl = parseInt(e.target.value, 10);
+      if (currentTheme === 'space') {
+        spaceLevel = lvl;
+        initInvaders(false);
+      } else if (currentTheme === 'pac') {
+        pacLevel = lvl;
+        initPacGame(false);
+      } else if (currentTheme === 'rpg') {
+        rpgWave = lvl;
+        spawnWaveNPCs();
+      } else if (currentTheme === 'dino') {
+        dinoWave = lvl;
+        generateDinoLevel();
+        monkey.x = 60; monkey.y = height - 40 - monkey.h; monkey.vx = 0; monkey.vy = 0; monkey.grabbed = false;
+        spawnBananasAndEnemies();
+      }
+      levelSelector.blur();
     });
 
     // Initialize Space Invasion game variables on start
     initInvaders(true);
+    updateLevelSelector();
 
     function loop() {
       ctx.clearRect(0, 0, width, height);
 
-      if (currentTheme === 'space') { updateSpace(); drawSpace(); }
+      if (gameOverTimer > 0) {
+        gameOverTimer--;
+        drawGameOverOverlay();
+        if (gameOverTimer <= 0 && gameOverPendingReset) {
+          gameOverPendingReset();
+          gameOverPendingReset = null;
+        }
+      } else if (currentTheme === 'space') { updateSpace(); drawSpace(); }
       else if (currentTheme === 'pac') { updatePac(); drawPac(); }
       else if (currentTheme === 'synth') { updateSynthRacer(); drawSynthRacer(); }
       else if (currentTheme === 'rpg') { updateRPG(); drawRPG(); }
