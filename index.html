@@ -757,6 +757,20 @@
     bindTouchButton('btnAction', 'Space');
 
     window.addEventListener('keydown', (e) => {
+      // FIX: this is the real cause of the game randomly kicking back to
+      // Space Invasion. preventDefault() below stops most default browser
+      // key behavior, but a still-*focused* <select> element's native
+      // arrow-key value cycling isn't reliably cancelable that way in every
+      // browser (it's often handled as native OS list-box behavior rather
+      // than a standard cancelable default action). If the theme dropdown
+      // still had focus — e.g. right after picking a theme — pressing
+      // arrow keys to play could silently cycle it back toward "SPACE
+      // INVASION" and fire its change event. Blurring it the moment any
+      // game key is pressed removes that possibility at the source.
+      if (document.activeElement === themeSelect) {
+        themeSelect.blur();
+      }
+
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
         // FIX: previously dimmed the portfolio on any movement/action key press
         // regardless of theme, so "BORING" mode (which has no active game) was
@@ -875,8 +889,11 @@
         bullets.push({ x: cx - 6, y: player.y, w: 5, h: 10, vx: -2.5, vy: -9.5, damage: 1, color: '#00ffff' });
         bullets.push({ x: cx + 2, y: player.y, w: 5, h: 10, vx: 2.5, vy: -9.5, damage: 1, color: '#00ffff' });
       } else if (player.weapon === 'laser') {
-        bullets.push({ x: player.x + 4, y: player.y - 4, w: 3, h: 18, vx: 0, vy: -15, damage: 1, color: '#ffee00', pierce: true });
-        bullets.push({ x: player.x + player.w - 7, y: player.y - 4, w: 3, h: 18, vx: 0, vy: -15, damage: 1, color: '#ffee00', pierce: true });
+        // FIX (requested): the laser used to fire two thin bullets that
+        // traveled up the screen. Replaced with a single wide beam that
+        // spans the full height instantly and lingers for a few frames —
+        // a proper "burst" rather than a pair of fast-moving pellets.
+        bullets.push({ x: cx - 5, y: 0, w: 10, h: player.y, vx: 0, vy: 0, damage: 1, color: '#ffee00', pierce: true, beam: true, life: 8 });
       } else if (player.weapon === 'plasma') {
         bullets.push({ x: cx - 5, y: player.y - 4, w: 10, h: 14, vx: 0, vy: -8, damage: 2, color: '#ff00ff' });
       }
@@ -908,6 +925,13 @@
       for (let i = bullets.length - 1; i >= 0; i--) {
         const b = bullets[i];
         b.x += b.vx || 0; b.y += b.vy;
+        // FIX: the beam bullet doesn't travel (vy: 0) since it already spans
+        // the full height on creation — it needs its own lifetime countdown
+        // instead of the usual off-screen check to know when to disappear.
+        if (b.life !== undefined) {
+          b.life--;
+          if (b.life <= 0) { bullets.splice(i, 1); continue; }
+        }
         if (b.y < -20 || b.x < 0 || b.x > width) bullets.splice(i, 1);
       }
 
@@ -1031,7 +1055,21 @@
         ctx.fillStyle = player.weapon !== 'standard' ? '#00ffff' : '#00ffaa';
         ctx.beginPath(); ctx.moveTo(player.x + player.w / 2, player.y); ctx.lineTo(player.x + player.w, player.y + player.h); ctx.lineTo(player.x, player.y + player.h); ctx.closePath(); ctx.fill();
       }
-      bullets.forEach(b => { ctx.fillStyle = b.color || '#38bdf8'; ctx.fillRect(b.x, b.y, b.w, b.h); });
+      bullets.forEach(b => {
+        if (b.beam) {
+          // FIX (requested): render the new laser as a single glowing beam
+          // that fades out over its short lifetime, instead of a plain flat
+          // rectangle — reads more like a "burst" than a bullet.
+          ctx.save();
+          ctx.globalAlpha = Math.max(0.15, b.life / 8);
+          ctx.fillStyle = b.color || '#ffee00';
+          ctx.shadowColor = b.color || '#ffee00'; ctx.shadowBlur = 8;
+          ctx.fillRect(b.x, b.y, b.w, b.h);
+          ctx.restore();
+        } else {
+          ctx.fillStyle = b.color || '#38bdf8'; ctx.fillRect(b.x, b.y, b.w, b.h);
+        }
+      });
       enemyLasers.forEach(l => { ctx.fillStyle = l.color; ctx.fillRect(l.x, l.y, l.w, l.h); });
       powerups.forEach(p => {
         ctx.save(); ctx.fillStyle = '#07090e'; ctx.strokeStyle = p.color; ctx.lineWidth = 2;
@@ -2108,6 +2146,11 @@
         isPlayingMobileGame = false;
         restorePortfolioFocus();
       }
+
+      // FIX: the select otherwise keeps keyboard focus right after picking
+      // a theme — which is the main way arrow keys ended up reaching it
+      // during gameplay in the first place (see the keydown handler above).
+      themeSelect.blur();
     });
 
     // Initialize Space Invasion game variables on start
