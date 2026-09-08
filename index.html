@@ -692,24 +692,56 @@
     // Jungle Rumble. triggerGameOver() schedules the reset rather than
     // running it immediately; the main loop() checks gameOverTimer before
     // running any game's update/draw and shows the overlay instead while
-    // it's counting down.
-    let gameOverTimer = 0, gameOverPendingReset = null;
+    // it's counting down. triggerVictory() reuses the same freeze/overlay
+    // machinery for beating the final level, just with a different message.
+    // FIX (requested): each game's "final level" now matches where its own
+    // story actually ends, rather than one shared arbitrary number. Space
+    // Invasion and Retro Maze don't have bosses, so they keep the original
+    // level 10 cap; Fantasy Quest ends with the wizard (wave 7), and
+    // Jungle Rumble ends with the quetzalcoatlus, its last and biggest
+    // introduced dinosaur (level 4) — otherwise both would just keep
+    // repeating their final boss's level indefinitely with nothing new.
+    const SPACE_FINAL_LEVEL = 10;
+    const PAC_FINAL_LEVEL = 10;
+    const RPG_FINAL_LEVEL = 7;
+    const DINO_FINAL_LEVEL = 4;
+    let gameOverTimer = 0, gameOverPendingReset = null, gameOverIsVictory = false, gameOverScore = 0;
     function triggerGameOver(resetFn) {
       gameOverTimer = 240; // 4s at 60fps
       gameOverPendingReset = resetFn;
+      gameOverIsVictory = false;
+    }
+    function triggerVictory(resetFn, score) {
+      gameOverTimer = 240;
+      gameOverPendingReset = resetFn;
+      gameOverIsVictory = true;
+      gameOverScore = score;
     }
     function drawGameOverOverlay() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
       ctx.fillRect(0, 0, width, height);
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#ef4444';
-      ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 14;
-      ctx.font = `${Math.max(18, Math.min(36, width * 0.045))}px "Press Start 2P", monospace`;
-      ctx.fillText('GAME OVER', width / 2, height / 2);
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '11px "Press Start 2P", monospace';
-      ctx.fillText('RESETTING...', width / 2, height / 2 + 36);
+      if (gameOverIsVictory) {
+        ctx.fillStyle = '#facc15';
+        ctx.shadowColor = '#facc15'; ctx.shadowBlur = 14;
+        ctx.font = `${Math.max(14, Math.min(26, width * 0.034))}px "Press Start 2P", monospace`;
+        ctx.fillText('VICTORY! YOUR SCORE:', width / 2, height / 2 - 22);
+        ctx.font = `${Math.max(20, Math.min(36, width * 0.045))}px "Press Start 2P", monospace`;
+        ctx.fillText(String(gameOverScore), width / 2, height / 2 + 22);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '11px "Press Start 2P", monospace';
+        ctx.fillText('RESETTING...', width / 2, height / 2 + 62);
+      } else {
+        ctx.fillStyle = '#ef4444';
+        ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 14;
+        ctx.font = `${Math.max(18, Math.min(36, width * 0.045))}px "Press Start 2P", monospace`;
+        ctx.fillText('GAME OVER', width / 2, height / 2);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '11px "Press Start 2P", monospace';
+        ctx.fillText('RESETTING...', width / 2, height / 2 + 36);
+      }
       ctx.textAlign = 'left';
     }
 
@@ -1113,7 +1145,13 @@
       }
 
       if (invaders.length > 0 && invaders.every(inv => !inv.alive)) {
-        spaceLevel++; spaceScore += 1000; initInvaders(false);
+        // FIX (requested): beating the final level shows a Victory screen
+        // with the final score instead of continuing to spawn harder waves.
+        if (spaceLevel >= SPACE_FINAL_LEVEL) {
+          triggerVictory(() => initInvaders(true), spaceScore + 1000);
+        } else {
+          spaceLevel++; spaceScore += 1000; initInvaders(false);
+        }
       }
     }
 
@@ -1295,7 +1333,15 @@
           ghosts.forEach(g => { if (g.state === 'free') { g.dirX *= -1; g.dirY *= -1; } });
         }
       });
-      if (pellets.length > 0 && pellets.every(p => p.eaten)) { pacLevel++; pacScore += 1000; initPacGame(false); }
+      // FIX (requested): beating the final level shows a Victory screen
+      // with the final score instead of continuing to harder mazes.
+      if (pellets.length > 0 && pellets.every(p => p.eaten)) {
+        if (pacLevel >= PAC_FINAL_LEVEL) {
+          triggerVictory(() => initPacGame(true), pacScore + 1000);
+        } else {
+          pacLevel++; pacScore += 1000; initPacGame(false);
+        }
+      }
 
       const cardinal = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
       ghosts.forEach(g => {
@@ -2132,7 +2178,15 @@
         }
       }
 
-      if (npcs.length === 0) { rpgWave++; rpgScore += 800; spawnWaveNPCs(); }
+      // FIX (requested): beating the final level shows a Victory screen
+      // with the final score instead of continuing to harder waves.
+      if (npcs.length === 0) {
+        if (rpgWave >= RPG_FINAL_LEVEL) {
+          triggerVictory(() => initRPGGame(true), rpgScore + 800);
+        } else {
+          rpgWave++; rpgScore += 800; spawnWaveNPCs();
+        }
+      }
     }
 
     function drawRPG() {
@@ -2688,7 +2742,12 @@
       const nonGroundShuffled = shuffled.filter(i => i !== 0);
 
       const maxRaptors = Math.max(1, Math.floor(dinoPlatforms.length * 0.8));
-      const raptorCount = Math.min(1 + Math.floor(Math.random() * maxRaptors), nonGroundShuffled.length);
+      let raptorCount = 1 + Math.floor(Math.random() * maxRaptors);
+      // FIX (requested): raptor count cut in half for every level after
+      // level 2, so the platform-bound dinosaur density stays reasonable
+      // as levels (and platform counts) grow.
+      if (dinoWave > 2) raptorCount = Math.max(1, Math.floor(raptorCount / 2));
+      raptorCount = Math.min(raptorCount, nonGroundShuffled.length);
       for (let i = 0; i < raptorCount; i++) {
         const platIdx = nonGroundShuffled[i];
         usedPlatformIdx.add(platIdx);
@@ -2962,11 +3021,17 @@
       // The monkey has no attack, so raptors (like the stegosaurus and the
       // new dinosaurs) are never defeated — a wave clears purely by
       // collecting every banana, dodging the dinosaurs along the way.
+      // FIX (requested): beating the final level shows a Victory screen
+      // with the final score instead of continuing to harder levels.
       if (bananas.length === 0) {
-        dinoWave++; dinoScore += 500;
-        generateDinoLevel();
-        monkey.x = 60; monkey.y = height - 40 - monkey.h; monkey.vx = 0; monkey.vy = 0;
-        spawnBananasAndEnemies();
+        if (dinoWave >= DINO_FINAL_LEVEL) {
+          triggerVictory(() => initDinoGame(true), dinoScore + 500);
+        } else {
+          dinoWave++; dinoScore += 500;
+          generateDinoLevel();
+          monkey.x = 60; monkey.y = height - 40 - monkey.h; monkey.vx = 0; monkey.vy = 0;
+          spawnBananasAndEnemies();
+        }
       }
     }
 
@@ -3335,7 +3400,7 @@
         initDinoGame(true);
       } else if (selected === 'boring') {
         currentTheme = 'boring'; document.body.classList.add('theme-boring');
-        gameHint.textContent = '[ WELCOME TO MY DIGITAL PORTFOLIO ]';
+        gameHint.textContent = '[ BORING MODE: NO ACTIVE GAME ]';
         // FIX: force the portfolio back into full focus if the user switches to
         // "boring" mode while a game was actively dimming it (e.g. was mid-keypress
         // or mid mobile-play when the theme changed).
@@ -3356,11 +3421,15 @@
     // FIX (requested): a small testing tool — jump directly to any level
     // for the games that have them, shown "above the score" (i.e. near
     // where the canvas HUD draws SCORE: at the top-left).
+    //
+    // Set this to true to bring the level selector back for testing later
+    // — nothing else needs to change, all the underlying logic stays intact.
+    const LEVEL_SELECTOR_ENABLED = false;
     const LEVEL_SELECTOR_GAMES = ['space', 'pac', 'rpg', 'dino'];
     const LEVEL_SELECTOR_MAX = 10;
 
     function updateLevelSelector() {
-      if (!LEVEL_SELECTOR_GAMES.includes(currentTheme)) {
+      if (!LEVEL_SELECTOR_ENABLED || !LEVEL_SELECTOR_GAMES.includes(currentTheme)) {
         levelSelector.style.display = 'none';
         return;
       }
@@ -3393,7 +3462,7 @@
     // has actually changed, so it stays accurate no matter which of the
     // three paths (dropdown, natural progression, or a reset) caused it.
     function syncLevelSelectorDisplay() {
-      if (!LEVEL_SELECTOR_GAMES.includes(currentTheme)) return;
+      if (!LEVEL_SELECTOR_ENABLED || !LEVEL_SELECTOR_GAMES.includes(currentTheme)) return;
       let current = 1;
       if (currentTheme === 'space') current = spaceLevel;
       else if (currentTheme === 'pac') current = pacLevel;
