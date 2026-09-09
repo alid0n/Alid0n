@@ -4072,6 +4072,9 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
         // Reset the button state and label
         btn.setAttribute('aria-expanded', 'false');
         btn.textContent = '[+ More Info]';
+        // 2. Remove active/expanded classes that might hold color styling
+        btn.classList.remove('active', 'open', 'expanded');
+        card.classList.remove('expanded', 'active', 'open');
 
         // Collapse the drawer / card
         card.classList.remove('expanded');
