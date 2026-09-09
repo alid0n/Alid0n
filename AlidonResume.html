@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Addison Warner - Resume</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @page {
+      size: letter;
+      margin: 0;
+    }
+
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(0, 255, 170, 0.22);
+      --accent: #00ffaa;
+      --accent-dim: rgba(0, 255, 170, 0.55);
+      --text: #f0f4f8;
+      --muted: #94a3b8;
+      --muted-dim: #64748b;
+    }
+
+    /* Screen view stays dark/green to match the site; printing (or
+       "print to PDF") switches to plain black-on-white so it doesn't burn
+       through ink and reads reliably for ATS/recruiter printouts. Since
+       every color in this file is a var(), redefining them here is enough
+       — nothing else needs to change. */
+    @media print {
+      :root {
+        --bg: #ffffff;
+        --card-bg: #ffffff;
+        --card-border: #cbd5e1;
+        --accent: #0f172a;
+        --accent-dim: #475569;
+        --text: #0f172a;
+        --muted: #334155;
+        --muted-dim: #64748b;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      font-size: 9pt;
+    }
+
+    .resume-sheet {
+      width: 8.5in;
+      min-height: 11in;
+      padding: 0.42in 0.6in;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      background: var(--bg);
+    }
+
+    /* HEADER */
+    header {
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 12px;
+    }
+
+    .header-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .pixel-tag {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6.5pt;
+      color: var(--accent-dim);
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    h1 {
+      font-size: 22pt;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .subtitle {
+      font-size: 10pt;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 4px;
+      letter-spacing: 0.2px;
+    }
+
+    .contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 8px;
+      font-size: 8.5pt;
+      color: var(--muted);
+    }
+
+    .contact-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .contact-item a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .contact-item a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    /* SECTIONS */
+    .section-title {
+      font-size: 9.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 3px;
+      margin-bottom: 8px;
+    }
+
+    .section-title::before {
+      content: '> ';
+      color: var(--accent-dim);
+    }
+
+    /* SKILLS GRID */
+    .skills-container {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      row-gap: 5px;
+      column-gap: 10px;
+      font-size: 8.5pt;
+    }
+
+    .skill-cat {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .skill-list {
+      color: var(--muted);
+    }
+
+    /* EXPERIENCE & PROJECTS */
+    .entry {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 6px 9px;
+      margin-bottom: 6px;
+    }
+
+    .entry:last-child {
+      margin-bottom: 0;
+    }
+
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+      gap: 10px;
+    }
+
+    .entry-title {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .entry-sub {
+      font-size: 8.5pt;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .entry-sub a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .entry-sub a:hover {
+      text-decoration: underline;
+    }
+
+    .entry-date {
+      font-size: 8pt;
+      font-weight: 500;
+      color: var(--muted-dim);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    ul.bullet-list {
+      list-style-type: none;
+      margin-left: 0;
+      margin-top: 3px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    ul.bullet-list li {
+      font-size: 8.5pt;
+      color: var(--muted);
+      padding-left: 12px;
+      position: relative;
+    }
+
+    ul.bullet-list li::before {
+      content: '\25B8';
+      position: absolute;
+      left: 0;
+      color: var(--accent-dim);
+      font-size: 7.5pt;
+      top: 1.5px;
+    }
+
+    ul.bullet-list li strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 3px;
+    }
+
+    .badge-tag {
+      background: rgba(0, 255, 170, 0.06);
+      color: var(--accent);
+      font-size: 7.5pt;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="resume-sheet">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-main">
+      <div>
+        <span class="pixel-tag">&gt; RESUME // ALID0N</span>
+        <h1>Addison Warner</h1>
+        <div class="subtitle">Technical Artist &amp; Unreal Engine Systems Specialist</div>
+      </div>
+    </div>
+    <div class="contact-row">
+      <span class="contact-item">Email: <a href="mailto:alid0ndev@gmail.com">alid0ndev@gmail.com</a></span>
+      <span class="contact-item">Discord: <strong>alid0n</strong></span>
+      <span class="contact-item">Digital Portfolio: <a href="https://alid0n.com" target="_blank">alid0n.com</a></span>
+      <span class="contact-item">Fab Store: <a href="https://www.fab.com/sellers/alid0n" target="_blank">fab.com/sellers/alid0n</a></span>
+      <span class="contact-item">Dev YouTube: <a href="https://www.youtube.com/@AlidonDev" target="_blank">@AlidonDev</a></span>
+	  <span class="contact-item">Community YouTube: <a href="https://www.youtube.com/@Alidon" target="_blank">@AlidonDev</a></span>
+	  <span class="contact-item">Website: <a href="https://www.alid0n.com" target="_blank">alid0n.com</a></span>
+    </div>
+  </header>
+
+  <!-- SKILLS SUMMARY -->
+  <section>
+    <div class="section-title">Technical Expertise</div>
+    <div class="skills-container">
+      <div class="skill-cat">Engine &amp; Systems</div>
+      <div class="skill-list">Unreal Engine 5 (Actor Components, Blueprints, Game Systems, Lighting, Network Replication, UMG)</div>
+
+      <div class="skill-cat">Animation &amp; Rigging</div>
+      <div class="skill-list">Akeytsu, Blender, State Machines, Blend Spaces, Procedural Buoyancy &amp; Locomotion, Montages</div>
+
+      <div class="skill-cat">Shaders &amp; VFX</div>
+      <div class="skill-list">Vertex Shader Parameters, Niagara Particle Systems, Draw-Call Culling</div>
+
+      <div class="skill-cat">Scripting &amp; Modding</div>
+      <div class="skill-list">Bethesda Creation Kit, Papyrus Scripting, Custom AI Behavior Trees, Quest Architecture, Teleportation Grids</div>
+
+      <div class="skill-cat">Media &amp; Documentation</div>
+      <div class="skill-list">Technical Video Capture &amp; Editing, Product Trailers, Implementation Setup Documentation, Storefront Assets</div>
+
+      <div class="skill-cat">Hardware &amp; Fabrication</div>
+      <div class="skill-list">Single-Board Computers, CAD Modeling, 3D Printing Prototyping, Vacuum Forming</div>
+    </div>
+  </section>
+
+  <!-- COMMERCIAL ENGINE ASSETS & PRODUCTS -->
+  <section>
+    <div class="section-title">Commercial Engine Systems &amp; Fab Marketplace Tools</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Advanced Swim Component</span>
+          <span class="entry-sub"> | <a href="https://www.fab.com/listings/28777803-b752-467a-b140-44690a51fdca" target="_blank">View Product on Epic Games Fab Marketplace</a></span>
+        </div>
+      </div>
+      <ul class="bullet-list">
+        <li>Engineered a plug-and-play Actor Component for procedural swimming, volume surface detection, and buoyancy physics.</li>
+        <li>Implemented dynamic animation state machine blending across treading water, diving, sprinting, and vertical surfacing.</li>
+        <li>Packaged comprehensive visual Blueprint documentation and demo levels to ensure zero-friction setup for clients.</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Easy Taming Component</span>
+          <span class="entry-sub"> | <a href="https://www.fab.com/listings/76087e56-d804-48ad-922a-1b6df7c97aff" target="_blank">View Product on Epic Games Fab Marketplace</a></span>
+        </div>
+      </div>
+      <ul class="bullet-list">
+        <li>Architected an extensible creature AI framework featuring configurable behavior states (wild, passive, aggressive, follow, mount).</li>
+        <li>Constructed server-authoritative multiplayer network replication workflows for feeding prompts, taming bars, and state sync.</li>
+        <li>Standardized integration pathways for open-world survival gameplay loops without tight coupling to base character meshes.</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Catalyst Dynamic Flame</span>
+          <span class="entry-sub"> | <a href="https://www.fab.com/listings/469a4c13-da77-427e-ab07-ac6e2dfe2fc7" target="_blank">View Product on Epic Games Fab Marketplace</a></span>
+        </div>
+      </div>
+      <ul class="bullet-list">
+        <li>Programmed a real-time flammability and fire propagation component optimized for low draw-call overhead in foliage-heavy maps.</li>
+        <li>Built progressive procedural charring materials with vertex shader burning parameters and proximity-based heat traces.</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Mobile Touch Controls</span>
+          <span class="entry-sub"> | <a href="https://www.fab.com/listings/b4a3899a-da75-4e4c-9a2d-b4be644023f3" target="_blank">View Product on Epic Games Fab Marketplace</a></span>
+        </div>
+      </div>
+      <ul class="bullet-list">
+        <li>Built on Unreal Engine's Enhanced Input framework to provide adaptive on-screen touch interfaces for cross-platform games.</li>
+        <li>Implemented dynamic floating thumbsticks, configurable action buttons, and touch gesture recognition with zero input lag.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- FEATURED WORK & MODDING SCALE -->
+  <section>
+    <div class="section-title">Featured Game Systems &amp; Production Work</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">The Elder Scrolls V: Skyrim — Alidon's Ultimate Armory &amp; Expansions</span>
+        </div>
+        <span class="entry-date">15,000,000+ Cross-Platform Downloads</span>
+      </div>
+      <div class="entry-sub">Verified Bethesda Creation Club Creator | PC, Xbox, PlayStation</div>
+      <ul class="bullet-list">
+        <li>Created one of the most widely downloaded gameplay modification suites in Bethesda modding history.</li>
+        <li>Authored complex Papyrus scripts driving custom teleportation networks, dynamic activators, custom vendors, and spell frameworks.</li>
+        <li>Designed bespoke subterranean environments, weapon armories, and testing facilities supporting hundreds of concurrent gameplay hours.</li>
+        <li>Produced all promotional showcase videos, tutorials, update change logs, and established an active Discord support community.</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Toss-o-bot | Epic Games Mega Stack-O-Jam</span>
+        </div>
+        <span class="entry-date">72-Hour Solo Game Jam</span>
+      </div>
+      <div class="entry-sub">Solo Developer (Design, Animation, Programming, Build Shipping)</div>
+      <ul class="bullet-list">
+        <li>Conceived, designed, animated, and packaged a complete game using Epic Games' Stack-O-Bot digital assets in 3 days using Unreal Engine and Akeytsu.</li>
+        <li>Authored custom locomotion graphs, state-driven enemy AI, multi-phase boss mechanics, and implemented a gameplay loop for itch.io release.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- PROTOTYPING & HARDWARE PROJECTS -->
+  <section>
+    <div class="section-title">Prototypes &amp; Hardware Engineering</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Dual-Wield Magic &amp; Cross-Platform Inventory Prototypes</span>
+          <span class="entry-sub"> | Unreal Engine</span>
+        </div>
+      </div>
+      <ul class="bullet-list">
+        <li>Engineered a modular, independent per-hand spellcasting framework combat system.</li>
+        <li>Constructed a data-driven item architecture using UMG widgets for dynamic grid slots, equipment binding, and consumption logic.</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Ruggedized Portable Cyberdeck Terminal</span>
+          <span class="entry-sub"> | Embedded Systems &amp; Rapid Fabrication</span>
+        </div>
+      </div>
+      <ul class="bullet-list">
+        <li>Designed and fabricated a field-ready portable PC housed in a weather-resistant Apache 2800 chassis powered by an x86 LattePanda Sigma.</li>
+        <li>Created CAD-designed 3D-printed internal mount panels, integrated active cooling, battery expansion hats, and flush I/O breakouts.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
