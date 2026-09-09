@@ -4062,5 +4062,29 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
 
     loop();
   </script>
+    <script>
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mouseleave', () => {
+      const btn = card.querySelector('.more-info-btn');
+      
+      // Check if the card is currently expanded
+      if (btn && btn.getAttribute('aria-expanded') === 'true') {
+        // Reset the button state and label
+        btn.setAttribute('aria-expanded', 'false');
+        btn.textContent = '[+ More Info]';
+
+        // Collapse the drawer / card
+        card.classList.remove('expanded');
+        
+        const drawer = card.querySelector('.card-expanded-drawer');
+        if (drawer) {
+          drawer.classList.remove('open');
+          // If you set inline maxHeight in JS for animations, clear it:
+          drawer.style.maxHeight = null;
+        }
+      }
+    });
+  });
+</script>
 </body>
 </html>
