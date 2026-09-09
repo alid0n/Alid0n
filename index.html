@@ -4092,25 +4092,6 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
       }
     });
   });
-      const headerCard = document.querySelector('.header-card');
-
-if (headerCard) {
-  headerCard.addEventListener('mouseleave', () => {
-    // 1. Reset each expanded skill tag back to its default state
-    headerCard.querySelectorAll('.skill-tag').forEach(tag => {
-      tag.classList.remove('expanded', 'active', 'open');
-      const icon = tag.querySelector('.skill-icon');
-      if (icon) icon.textContent = '+';
-    });
-
-    // 2. Reset the "Expand All Skills" button
-    const toggleAllBtn = headerCard.querySelector('#skillsToggleAll');
-    if (toggleAllBtn) {
-      toggleAllBtn.classList.remove('expanded', 'active', 'open');
-      toggleAllBtn.textContent = '+ Expand All Skills';
-    }
-  });
-}
 </script>
 </body>
 </html>
