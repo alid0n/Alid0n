@@ -25,9 +25,7 @@
 
     /* Screen view stays dark/green to match the site; printing (or
        "print to PDF") switches to plain black-on-white so it doesn't burn
-       through ink and reads reliably for ATS/recruiter printouts. Since
-       every color in this file is a var(), redefining them here is enough
-       — nothing else needs to change. */
+       through ink */
     @media print {
       :root {
         --bg: #ffffff;
@@ -80,14 +78,7 @@
       align-items: flex-end;
     }
 
-    /* FIX (requested): "Download as PDF" button. Since the file already
-       has a fully working @media print palette (black-on-white), the
-       simplest and most reliable way to produce that PDF — with zero
-       external libraries or server needed — is to trigger the browser's
-       native print dialog, where choosing "Save as PDF" as the
-       destination writes exactly that already-tested black/white
-       version to disk. .no-print hides the button itself from the
-       printed/exported output. */
+
     .download-btn {
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 600;
