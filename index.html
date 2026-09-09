@@ -4062,51 +4062,54 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
 
     loop();
   </script>
-    <script>
+<script>
+  // Collapse cards on mouse leave
   document.querySelectorAll('.card').forEach(card => {
     card.addEventListener('mouseleave', () => {
       const btn = card.querySelector('.more-info-btn');
       
-      // Check if the card is currently expanded
       if (btn && btn.getAttribute('aria-expanded') === 'true') {
-        // Reset the button state and label
         btn.setAttribute('aria-expanded', 'false');
         btn.textContent = '[+ More Info]';
-        // 2. Remove active/expanded classes that might hold color styling
         btn.classList.remove('active', 'open', 'expanded');
         card.classList.remove('expanded', 'active', 'open');
-
-        // Collapse the drawer / card
-        card.classList.remove('expanded');
         
         const drawer = card.querySelector('.card-expanded-drawer');
         if (drawer) {
           drawer.classList.remove('open');
-          // If you set inline maxHeight in JS for animations, clear it:
           drawer.style.maxHeight = null;
         }
       }
     });
   });
-      const headerCard = document.querySelector('.header-card');
 
-if (headerCard) {
-  headerCard.addEventListener('mouseleave', () => {
-    // 1. Reset each expanded skill tag back to its default state
-    headerCard.querySelectorAll('.skill-tag').forEach(tag => {
-      tag.classList.remove('expanded', 'active', 'open');
-      const icon = tag.querySelector('.skill-icon');
-      if (icon) icon.textContent = '+';
+  // Collapse header skills on mouse leave
+  const headerCard = document.querySelector('.header-card');
+  if (headerCard) {
+    headerCard.addEventListener('mouseleave', () => {
+      // 1. Reset each skill tag and clear inline styles
+      headerCard.querySelectorAll('.skill-tag').forEach(tag => {
+        tag.classList.remove('expanded', 'active', 'open');
+        tag.style.maxHeight = '';
+        const icon = tag.querySelector('.skill-icon');
+        if (icon) icon.textContent = '+';
+      });
+
+      // 2. Hide any shared skill detail box or dropdown if present
+      headerCard.querySelectorAll('.skill-details, .skills-detail-box, .skill-drawer').forEach(detail => {
+        detail.classList.remove('open', 'expanded', 'active');
+        detail.style.display = 'none';
+        detail.style.maxHeight = null;
+      });
+
+      // 3. Reset the "Expand All Skills" button
+      const toggleAllBtn = headerCard.querySelector('#skillsToggleAll');
+      if (toggleAllBtn) {
+        toggleAllBtn.classList.remove('expanded', 'active', 'open');
+        toggleAllBtn.textContent = '+ Expand All Skills';
+      }
     });
-
-    // 2. Reset the "Expand All Skills" button
-    const toggleAllBtn = headerCard.querySelector('#skillsToggleAll');
-    if (toggleAllBtn) {
-      toggleAllBtn.classList.remove('expanded', 'active', 'open');
-      toggleAllBtn.textContent = '+ Expand All Skills';
-    }
-  });
-}
+  }
 </script>
 </body>
 </html>
