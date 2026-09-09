@@ -80,6 +80,44 @@
       align-items: flex-end;
     }
 
+    /* FIX (requested): "Download as PDF" button. Since the file already
+       has a fully working @media print palette (black-on-white), the
+       simplest and most reliable way to produce that PDF — with zero
+       external libraries or server needed — is to trigger the browser's
+       native print dialog, where choosing "Save as PDF" as the
+       destination writes exactly that already-tested black/white
+       version to disk. .no-print hides the button itself from the
+       printed/exported output. */
+    .download-btn {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 9pt;
+      padding: 9px 16px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #05100c;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 255, 170, 0.25);
+      transition: filter 0.15s ease, transform 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .download-btn:hover {
+      filter: brightness(1.12);
+      transform: translateY(-1px);
+    }
+
+    .download-btn:active {
+      transform: translateY(0);
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+
     .pixel-tag {
       font-family: 'Press Start 2P', monospace;
       font-size: 6.5pt;
@@ -276,6 +314,7 @@
         <h1>Addison Warner</h1>
         <div class="subtitle">Technical Artist &amp; Unreal Engine Systems Specialist</div>
       </div>
+      <button class="download-btn no-print" onclick="window.print()">Download as PDF</button>
     </div>
     <div class="contact-row">
       <span class="contact-item">Email: <a href="mailto:alid0ndev@gmail.com">alid0ndev@gmail.com</a></span>
