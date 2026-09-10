@@ -1737,6 +1737,30 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
     let height = (canvas.height = window.innerHeight);
     let isPlayingMobileGame = false;
 
+    /* Every game repaints a backdrop that never changes between frames: the
+       maze walls, the world scenery, the sky gradients. Each one is painted
+       into an offscreen canvas the first time it is asked for and blitted
+       after that, so a frame costs one drawImage instead of hundreds of
+       fills. Call invalidateLayer when the thing it drew actually changes,
+       which is level generation and resize. */
+    const layerCache = new Map();
+
+    function staticLayer(key, paint) {
+      const hit = layerCache.get(key);
+      if (hit && hit.w === width && hit.h === height) return hit.canvas;
+      const c = document.createElement('canvas');
+      c.width = width;
+      c.height = height;
+      paint(c.getContext('2d'));
+      layerCache.set(key, { canvas: c, w: width, h: height });
+      return c;
+    }
+
+    function invalidateLayer(key) {
+      if (key) layerCache.delete(key);
+      else layerCache.clear();
+    }
+
     function isGameActive() {
       return currentTheme !== 'boring';
     }
@@ -1777,7 +1801,10 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
 
     function restorePortfolioFocus() {
       if (isPlayingMobileGame) return;
-      isPlayingMobileGame = false;
+      // This is wired to mousemove, so it runs many times a second whenever
+      // the pointer moves. Bail out when there is nothing to undo rather than
+      // rewriting the same classes and text on every event.
+      if (!gameFocusTimer && !contentWrapper.classList.contains('dimmed') && !contentWrapper.classList.contains('fully-hidden')) return;
       mobileGameToggle.textContent = 'PLAY GAME';
       mobileGameToggle.classList.remove('playing');
       contentWrapper.classList.remove('dimmed', 'fully-hidden');
@@ -1795,6 +1822,7 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
     window.addEventListener('resize', () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
+      invalidateLayer();
       if (currentTheme === 'space') initInvaders(false);
       if (currentTheme === 'pac') initPacGame(false);
       if (currentTheme === 'synth') initSynthRacer(false);
@@ -1839,20 +1867,32 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
     bindTouchButton('btnRight', 'ArrowRight');
     bindTouchButton('btnAction', 'Space');
 
+    const GAME_KEYS = ['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'];
+
     window.addEventListener('keydown', (e) => {
-      if (document.activeElement === themeSelect) {
-        themeSelect.blur();
+      // Escape hands the page back. Moving the mouse already did this, which
+      // left anyone navigating by keyboard with no way out once the content
+      // had faded.
+      if (e.code === 'Escape') {
+        restorePortfolioFocus();
+        return;
       }
 
-      if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
-        if (!isPlayingMobileGame && isGameActive()) {
-          enterGameFocus();
-        }
-      }
+      // A key pressed while a control has focus belongs to that control. The
+      // old handler blurred the theme dropdown on every keystroke, so it
+      // could not be operated from the keyboard at all, and swallowed Space
+      // before a focused button or link could act on it.
+      const el = document.activeElement;
+      if (el && el !== document.body && el.closest('a, button, select, input, textarea, [contenteditable]')) return;
 
-      if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
-        e.preventDefault();
-      }
+      if (!GAME_KEYS.includes(e.code)) return;
+
+      // With no game running these keys still belong to the page, so leave
+      // arrows and space free to scroll it.
+      if (!isGameActive()) return;
+
+      if (!isPlayingMobileGame) enterGameFocus();
+      e.preventDefault();
       keys[e.code] = true;
 
       if (currentTheme === 'space' && e.code === 'Space') firePlayerWeapon();
@@ -2201,6 +2241,7 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
 
     function initPacGame(fullReset = true) {
       if (fullReset) { pacScore = 0; pacLives = 3; pacLevel = 1; pacStartTime = Date.now(); }
+      invalidateLayer('pacMaze');
       walls = []; pellets = []; powerPellets = [];
       frightTimer = 0; ghostsEatenChain = 0;
       const rows = pacMapBlueprint.length, cols = pacMapBlueprint[0].length;
@@ -2301,17 +2342,27 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
     }
 
     function drawPac() {
+      // The maze is several hundred tiles and none of them move. Painting it
+      // per frame meant that many glow-stroked rects every frame.
+      ctx.drawImage(staticLayer('pacMaze', mctx => {
+        mctx.lineWidth = 2;
+        walls.forEach(w => {
+          mctx.fillStyle = '#02030a'; mctx.fillRect(w.x, w.y, w.w, w.h);
+          mctx.strokeStyle = '#0022ff'; mctx.shadowColor = 'rgba(0, 34, 255, 0.9)'; mctx.shadowBlur = 4;
+          mctx.strokeRect(w.x + 1, w.y + 1, w.w - 2, w.h - 2);
+        });
+        mctx.shadowBlur = 0;
+      }), 0, 0);
+
       ctx.lineWidth = 2;
-      walls.forEach(w => {
-        ctx.fillStyle = '#02030a'; ctx.fillRect(w.x, w.y, w.w, w.h);
-        ctx.strokeStyle = '#0022ff'; ctx.shadowColor = 'rgba(0, 34, 255, 0.9)'; ctx.shadowBlur = 4;
-        ctx.strokeRect(w.x + 1, w.y + 1, w.w - 2, w.h - 2);
-      });
-      ctx.shadowBlur = 0;
       if (ghostPenGate) { ctx.fillStyle = '#ffb8de'; ctx.fillRect(ghostPenGate.x, ghostPenGate.y, ghostPenGate.w, ghostPenGate.h); }
+
+      // One path for every pellet rather than one path per pellet.
       ctx.fillStyle = '#ffe066';
-      pellets.forEach(p => { if (!p.eaten) { ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2); ctx.fill(); } });
-      powerPellets.forEach(p => { if (!p.eaten) { ctx.beginPath(); ctx.arc(p.x, p.y, 6.5, 0, Math.PI * 2); ctx.fill(); } });
+      ctx.beginPath();
+      pellets.forEach(p => { if (!p.eaten) { ctx.moveTo(p.x + 2.5, p.y); ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2); } });
+      powerPellets.forEach(p => { if (!p.eaten) { ctx.moveTo(p.x + 6.5, p.y); ctx.arc(p.x, p.y, 6.5, 0, Math.PI * 2); } });
+      ctx.fill();
 
       if (pac.invuln % 6 < 3) {
         ctx.fillStyle = '#ffee00'; ctx.save(); ctx.translate(pac.x + pac.w / 2, pac.y + pac.h / 2);
@@ -2554,37 +2605,45 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
 
     function drawSynthRacer() {
       const horizonY = height * 0.46;
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
-      skyGrad.addColorStop(0, '#090214'); skyGrad.addColorStop(0.7, '#240738'); skyGrad.addColorStop(1, '#ff007f');
-      ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, width, horizonY);
+
+      // Sky sits behind the meteors, sun and mountains sit in front of them,
+      // and none of the three change between frames. Two cached layers, so
+      // three gradients stop being rebuilt sixty times a second.
+      ctx.drawImage(staticLayer('synthSky', sctx => {
+        const skyGrad = sctx.createLinearGradient(0, 0, 0, horizonY);
+        skyGrad.addColorStop(0, '#090214'); skyGrad.addColorStop(0.7, '#240738'); skyGrad.addColorStop(1, '#ff007f');
+        sctx.fillStyle = skyGrad; sctx.fillRect(0, 0, width, horizonY);
+      }), 0, 0);
 
       meteors.forEach(m => {
         ctx.save(); ctx.strokeStyle = `rgba(0, 255, 255, ${m.alpha})`; ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 10; ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x + m.len, m.y - m.len * 0.5); ctx.stroke(); ctx.restore();
       });
 
-      const sunRadius = Math.min(width, height) * 0.18, sunX = width / 2, sunY = horizonY - 20;
-      const sunGrad = ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
-      sunGrad.addColorStop(0, '#ffee55'); sunGrad.addColorStop(0.6, '#ff007f'); sunGrad.addColorStop(1, '#7900ff');
-      ctx.fillStyle = sunGrad; ctx.beginPath(); ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2); ctx.fill();
+      ctx.drawImage(staticLayer('synthScenery', sctx => {
+        const sunRadius = Math.min(width, height) * 0.18, sunX = width / 2, sunY = horizonY - 20;
+        const sunGrad = sctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
+        sunGrad.addColorStop(0, '#ffee55'); sunGrad.addColorStop(0.6, '#ff007f'); sunGrad.addColorStop(1, '#7900ff');
+        sctx.fillStyle = sunGrad; sctx.beginPath(); sctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2); sctx.fill();
 
-      ctx.fillStyle = '#090214';
-      for (let i = 0; i < 7; i++) {
-        const sliceY = sunY + (i * 12);
-        if (sliceY < horizonY) ctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
-      }
+        sctx.fillStyle = '#090214';
+        for (let i = 0; i < 7; i++) {
+          const sliceY = sunY + (i * 12);
+          if (sliceY < horizonY) sctx.fillRect(sunX - sunRadius, sliceY, sunRadius * 2, 2 + i * 0.8);
+        }
 
-      ctx.fillStyle = '#170529'; ctx.beginPath(); ctx.moveTo(0, horizonY);
-      for (let mx = 0; mx <= width; mx += 30) { ctx.lineTo(mx, horizonY - Math.abs(Math.sin(mx * 0.008) * 60)); }
-      ctx.lineTo(width, horizonY); ctx.closePath(); ctx.fill();
+        sctx.fillStyle = '#170529'; sctx.beginPath(); sctx.moveTo(0, horizonY);
+        for (let mx = 0; mx <= width; mx += 30) { sctx.lineTo(mx, horizonY - Math.abs(Math.sin(mx * 0.008) * 60)); }
+        sctx.lineTo(width, horizonY); sctx.closePath(); sctx.fill();
 
-      ctx.fillStyle = '#0d0218'; ctx.strokeStyle = 'rgba(255, 0, 128, 0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, horizonY);
-      for (let mx = 0; mx <= width; mx += 40) { ctx.lineTo(mx, horizonY - Math.abs(Math.sin(mx * 0.02) * 45)); }
-      ctx.lineTo(width, horizonY); ctx.closePath(); ctx.fill(); ctx.stroke();
+        sctx.fillStyle = '#0d0218'; sctx.strokeStyle = 'rgba(255, 0, 128, 0.5)'; sctx.lineWidth = 1.5; sctx.beginPath(); sctx.moveTo(0, horizonY);
+        for (let mx = 0; mx <= width; mx += 40) { sctx.lineTo(mx, horizonY - Math.abs(Math.sin(mx * 0.02) * 45)); }
+        sctx.lineTo(width, horizonY); sctx.closePath(); sctx.fill(); sctx.stroke();
 
-      const groundGrad = ctx.createLinearGradient(0, horizonY, 0, height);
-      groundGrad.addColorStop(0, '#10021c'); groundGrad.addColorStop(1, '#05000a');
-      ctx.fillStyle = groundGrad; ctx.fillRect(0, horizonY, width, height - horizonY);
+        const groundGrad = sctx.createLinearGradient(0, horizonY, 0, height);
+        groundGrad.addColorStop(0, '#10021c'); groundGrad.addColorStop(1, '#05000a');
+        sctx.fillStyle = groundGrad; sctx.fillRect(0, horizonY, width, height - horizonY);
+      }), 0, 0);
 
       const ROAD_DEPTH_K = 40;
 
@@ -2672,6 +2731,7 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
     }
 
     function generateWorldObstacles() {
+      invalidateLayer('rpgGround'); invalidateLayer('rpgScenery');
       obstacles = []; groundDetails = [];
       const riverW = 54, riverX = width * 0.42;
       bridge = { x: riverX - 8, y: height * 0.45, w: riverW + 16, h: 72 };
@@ -2999,8 +3059,13 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
     }
 
     function drawRPG() {
-      ctx.fillStyle = '#101d14'; ctx.fillRect(0, 0, width, height);
-      groundDetails.forEach(gd => { ctx.fillStyle = gd.color; ctx.fillRect(gd.x, gd.y, gd.size, gd.size * 1.5); });
+      // Ground and scenery are fixed for the wave; only the river animates,
+      // so it stays live between the two cached layers. Rivers are pushed
+      // into obstacles first, which is why splitting here preserves z-order.
+      ctx.drawImage(staticLayer('rpgGround', gctx => {
+        gctx.fillStyle = '#101d14'; gctx.fillRect(0, 0, width, height);
+        groundDetails.forEach(gd => { gctx.fillStyle = gd.color; gctx.fillRect(gd.x, gd.y, gd.size, gd.size * 1.5); });
+      }), 0, 0);
 
       obstacles.forEach(ob => {
         if (ob.type === 'river') {
@@ -3009,26 +3074,10 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
           ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
           const waveShift = (rpgTicks * 0.8) % 30;
           for (let wy = ob.y + waveShift; wy < ob.y + ob.h; wy += 35) { ctx.fillRect(ob.x + 8, wy, 16, 2); ctx.fillRect(ob.x + 28, wy + 14, 18, 2); }
-        } else if (ob.type === 'tree') {
-          ctx.fillStyle = '#451a03'; ctx.fillRect(ob.x + ob.w / 2 - 4, ob.y + ob.h - 16, 8, 16);
-          ctx.fillStyle = '#064e3b'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y); ctx.lineTo(ob.x + ob.w, ob.y + 20); ctx.lineTo(ob.x, ob.y + 20); ctx.fill();
-          ctx.fillStyle = '#047857'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 12); ctx.lineTo(ob.x + ob.w + 4, ob.y + 32); ctx.lineTo(ob.x - 4, ob.y + 32); ctx.fill();
-          ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 24); ctx.lineTo(ob.x + ob.w + 6, ob.y + 44); ctx.lineTo(ob.x - 6, ob.y + 44); ctx.fill();
-        } else if (ob.type === 'rock') {
-          ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w / 2, ob.y + ob.h / 2, ob.w / 2, ob.h / 2, 0, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#64748b'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w / 2 - 2, ob.y + ob.h / 2 - 3, ob.w / 3, ob.h / 3, 0, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#15803d'; ctx.fillRect(ob.x + 4, ob.y + 4, 8, 5);
-        } else if (ob.type === 'ruin') {
-          ctx.fillStyle = '#52525b'; ctx.fillRect(ob.x, ob.y, ob.w, ob.h); ctx.strokeStyle = '#27272a'; ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
-        } else if (ob.type === 'statue') {
-          ctx.fillStyle = '#64748b'; ctx.fillRect(ob.x + 6, ob.y + 12, ob.w - 12, ob.h - 12);
         }
       });
 
-      if (bridge) {
-        ctx.fillStyle = '#92400e'; ctx.fillRect(bridge.x, bridge.y, bridge.w, bridge.h);
-        ctx.strokeStyle = '#451a03'; ctx.lineWidth = 2; ctx.strokeRect(bridge.x, bridge.y, bridge.w, bridge.h);
-      }
+      ctx.drawImage(staticLayer('rpgScenery', sctx => drawRpgScenery(sctx)), 0, 0);
 
       lootDrops.forEach(l => {
         if (l.lifetime < 90 && Math.floor(l.lifetime / 8) % 2 === 0) return;
@@ -3051,6 +3100,39 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
         }
         ctx.restore();
       });
+
+      drawRpgActors();
+    }
+
+    // Trees, rocks, ruins, statues and the bridge, painted once per wave into
+    // the rpgScenery layer.
+    function drawRpgScenery(ctx) {
+      obstacles.forEach(ob => {
+        if (ob.type === 'tree') {
+          ctx.fillStyle = '#451a03'; ctx.fillRect(ob.x + ob.w / 2 - 4, ob.y + ob.h - 16, 8, 16);
+          ctx.fillStyle = '#064e3b'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y); ctx.lineTo(ob.x + ob.w, ob.y + 20); ctx.lineTo(ob.x, ob.y + 20); ctx.fill();
+          ctx.fillStyle = '#047857'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 12); ctx.lineTo(ob.x + ob.w + 4, ob.y + 32); ctx.lineTo(ob.x - 4, ob.y + 32); ctx.fill();
+          ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.moveTo(ob.x + ob.w / 2, ob.y + 24); ctx.lineTo(ob.x + ob.w + 6, ob.y + 44); ctx.lineTo(ob.x - 6, ob.y + 44); ctx.fill();
+        } else if (ob.type === 'rock') {
+          ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w / 2, ob.y + ob.h / 2, ob.w / 2, ob.h / 2, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#64748b'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w / 2 - 2, ob.y + ob.h / 2 - 3, ob.w / 3, ob.h / 3, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#15803d'; ctx.fillRect(ob.x + 4, ob.y + 4, 8, 5);
+        } else if (ob.type === 'ruin') {
+          ctx.fillStyle = '#52525b'; ctx.fillRect(ob.x, ob.y, ob.w, ob.h); ctx.strokeStyle = '#27272a'; ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
+        } else if (ob.type === 'statue') {
+          ctx.fillStyle = '#64748b'; ctx.fillRect(ob.x + 6, ob.y + 12, ob.w - 12, ob.h - 12);
+        }
+      });
+
+      if (bridge) {
+        ctx.fillStyle = '#92400e'; ctx.fillRect(bridge.x, bridge.y, bridge.w, bridge.h);
+        ctx.strokeStyle = '#451a03'; ctx.lineWidth = 2; ctx.strokeRect(bridge.x, bridge.y, bridge.w, bridge.h);
+      }
+
+    }
+
+    // Everything that moves: loot, projectiles, hero and NPCs.
+    function drawRpgActors() {
 
       heroProjectiles.forEach(p => {
         ctx.save();
@@ -3393,6 +3475,7 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
     let dinoScore = 0, dinoLives = 3, dinoWave = 1, dinoStartTime = Date.now(), dinoTicks = 0;
 
     function generateDinoLevel() {
+      invalidateLayer('dinoBack');
       dinoPlatforms = [];
       const ground = { x: 0, y: height - 40, w: width, h: 40 };
       dinoPlatforms.push(ground);
@@ -3751,19 +3834,23 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
     }
 
     function drawDino() {
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
-      skyGrad.addColorStop(0, '#0f3d2e'); skyGrad.addColorStop(1, '#1a5c3a');
-      ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, width, height);
+      // Sky gradient, sun and platforms are identical every frame, and the
+      // gradient was being rebuilt from scratch each time.
+      ctx.drawImage(staticLayer('dinoBack', bctx => {
+        const skyGrad = bctx.createLinearGradient(0, 0, 0, height);
+        skyGrad.addColorStop(0, '#0f3d2e'); skyGrad.addColorStop(1, '#1a5c3a');
+        bctx.fillStyle = skyGrad; bctx.fillRect(0, 0, width, height);
 
-      ctx.fillStyle = 'rgba(255, 240, 150, 0.12)';
-      ctx.beginPath(); ctx.arc(width * 0.82, height * 0.22, 70, 0, Math.PI * 2); ctx.fill();
+        bctx.fillStyle = 'rgba(255, 240, 150, 0.12)';
+        bctx.beginPath(); bctx.arc(width * 0.82, height * 0.22, 70, 0, Math.PI * 2); bctx.fill();
 
-      dinoPlatforms.forEach((plat, idx) => {
-        ctx.fillStyle = idx === 0 ? '#3f2a14' : '#5c3a1e';
-        ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
-        ctx.fillStyle = '#2e7d32';
-        ctx.fillRect(plat.x, plat.y, plat.w, 6);
-      });
+        dinoPlatforms.forEach((plat, idx) => {
+          bctx.fillStyle = idx === 0 ? '#3f2a14' : '#5c3a1e';
+          bctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+          bctx.fillStyle = '#2e7d32';
+          bctx.fillRect(plat.x, plat.y, plat.w, 6);
+        });
+      }), 0, 0);
 
       dinoEnemies.forEach(en => {
         if (en.type === 'raptor') {
