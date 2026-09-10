@@ -516,17 +516,18 @@
       gap: 18px;
     }
 
+    /* No backdrop-filter here on purpose. The card background is already 88%
+       opaque, so the blur bought almost nothing visually, but nine of them
+       forced the compositor to re-blur the animating game canvas every frame. */
     .card {
       background: var(--card-bg);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       border-radius: 10px;
       padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.2s ease-in-out;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
     }
 
@@ -1107,13 +1108,13 @@
       <span class="drawer-subtitle" style="margin-top: 6px;">&gt; EXTENDED MEDIA</span>
       <div class="drawer-gallery">
         <div class="drawer-media-item">
-          <video autoplay muted loop playsinline preload="auto">
+          <video muted loop playsinline preload="none">
             <source src="OceanSwimming.mp4" type="video/mp4">
           </video>
           <div class="drawer-media-label">Ocean Swimming</div>
         </div>
         <div class="drawer-media-item">
-          <video autoplay muted loop playsinline preload="auto">
+          <video muted loop playsinline preload="none">
             <source src="SwimAnimWIP.mp4" type="video/mp4">
           </video>
           <div class="drawer-media-label">Animation WIP</div>
@@ -1190,7 +1191,7 @@
         </div>
 
         <div class="drawer-media-item">
-          <video autoplay muted loop playsinline preload="auto">
+          <video muted loop playsinline preload="none">
             <source src="TamedMount.mp4" type="video/mp4">
           </video>
           <div class="drawer-media-label">Tamed Mount</div>
@@ -1297,7 +1298,7 @@
         </div>
 
         <div class="drawer-media-item">
-          <video autoplay muted loop playsinline preload="auto">
+          <video muted loop playsinline preload="none">
             <source src="MobileControlsMounting.mp4" type="video/mp4">
           </video>
           <div class="drawer-media-label">Mounting Controls</div>
@@ -1470,7 +1471,7 @@
 
         <!-- Local Inventory Video -->
         <div class="drawer-media-item">
-          <video autoplay muted loop playsinline preload="auto">
+          <video muted loop playsinline preload="none">
             <source src="SideProjectInventoryItems.mp4" type="video/mp4">
           </video>
           <div class="drawer-media-label">Inventory System</div>
@@ -1561,8 +1562,23 @@
         btn.classList.toggle('active', isOpen);
         btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         btn.textContent = isOpen ? '[- Less Info]' : '[+ More Info]';
+        setDrawerVideos(drawer, isOpen);
       });
     });
+
+    // Drawer clips carry preload="none", so nothing downloads until someone
+    // actually opens the drawer. Closing it stops playback again rather than
+    // leaving hidden video decoding forever.
+    function setDrawerVideos(drawer, play) {
+      drawer.querySelectorAll('video').forEach(v => {
+        if (play) {
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        } else {
+          v.pause();
+        }
+      });
+    }
 
     // Lazy-loaded video embeds: each .yt-lazy element shows a thumbnail +
     // play button until clicked, at which point it's replaced with the real
@@ -4185,6 +4201,7 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
           drawer.classList.remove('open');
           // If you set inline maxHeight in JS for animations, clear it:
           drawer.style.maxHeight = null;
+          drawer.querySelectorAll('video').forEach(v => v.pause());
         }
       }
     });
