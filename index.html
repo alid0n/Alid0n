@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Addison Warner | Alid0n - Technical Artist &amp; Systems</title>
 
   <meta name="description" content="Addison Warner (Alid0n) — Technical Artist &amp; Unreal Engine Systems Specialist. Interactive portfolio with playable background games, marketplace assets, and modding work with 15M+ downloads.">
@@ -11,9 +11,14 @@
   <meta property="og:description" content="Interactive digital portfolio featuring playable background games, Unreal Engine marketplace assets, and modding work with 15M+ downloads.">
   <meta property="og:url" content="https://alid0n.com">
   <meta property="og:image" content="https://alid0n.com/preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Addison Warner — Technical Artist &amp; Unreal Engine Systems Specialist">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Addison Warner | Alid0n - Technical Artist &amp; Systems">
   <meta name="twitter:description" content="Interactive digital portfolio featuring playable background games &amp; previews of my work">
+  <meta name="twitter:image" content="https://alid0n.com/preview.png">
+  <meta name="twitter:image:alt" content="Addison Warner — Technical Artist &amp; Unreal Engine Systems Specialist">
   <meta name="theme-color" content="#07090e">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2307090e'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' fill='%2300ffaa' text-anchor='middle'%3E%3E%3C/text%3E%3C/svg%3E">
 
@@ -456,6 +461,44 @@
       line-height: 1.6;
     }
 
+    .site-footer {
+      border-top: 1px solid var(--card-border);
+      padding-top: 26px;
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 22px;
+    }
+
+    .footer-links a {
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .footer-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .footer-copy {
+      opacity: 0.65;
+    }
+
     .section-title {
       font-size: 1.25rem;
       font-weight: 700;
@@ -495,17 +538,26 @@
 
     .card-header-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 8px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
+    /* Let a long title wrap its own text instead of pushing the button
+       onto a line of its own. */
     .card h3 {
       font-size: 1.15rem;
       color: #fff;
       margin: 0;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .card-header-row .more-info-btn {
+      flex: 0 0 auto;
+      margin-top: 2px;
     }
 
     .more-info-btn {
@@ -553,16 +605,18 @@
     .card-with-video {
       grid-column: 1 / -1;
       flex-direction: row;
-      align-items: stretch;
+      align-items: center;
       gap: 24px;
       flex-wrap: wrap;
     }
 
+    /* Top-aligned, so a short description keeps its link directly beneath it
+       instead of leaving a hole in the middle of the card. */
     .card-with-video .card-info {
       flex: 1 1 260px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
       min-width: 220px;
     }
 
@@ -984,7 +1038,6 @@
         <a href="https://www.youtube.com/@AlidonDev" target="_blank" class="btn btn-secondary">Developer YouTube</a>
         <a href="https://www.youtube.com/@Alidon" target="_blank" class="btn btn-secondary">Community YouTube</a>
         <a href="mailto:alid0ndev@gmail.com" class="btn btn-secondary">Contact Me</a>
-        <!-- TODO: replace Resume.pdf with the actual filename/path of your resume once it's uploaded alongside this page -->
         <a href="AlidonResume.html" download class="btn btn-primary">Digital Resume</a>
         <a href="AddisonWarnerResume.pdf" download class="btn btn-primary">Printable Resume</a>
       </div>
@@ -1005,6 +1058,8 @@
           <span class="skill-tag" data-name="Bethesda Creation Kit" data-detail="Papyrus scripting, modular quest architecture, custom dungeons, vendors, and companion systems in Skyrim."><span class="skill-icon">+</span><span class="skill-name">Bethesda Creation Kit</span></span>
           <span class="skill-tag" data-name="Technical Documentation" data-detail="Implementation guides, visual Blueprint breakdowns, quick-start workflows, and setup docs for marketplace buyers."><span class="skill-icon">+</span><span class="skill-name">Technical Documentation</span></span>
           <span class="skill-tag" data-name="Video Editing &amp; Marketing" data-detail="Technical demo production, feature trailers, gameplay capture, product copywriting, and storefront asset design."><span class="skill-icon">+</span><span class="skill-name">Video Editing &amp; Marketing</span></span>
+          <span class="skill-tag" data-name="Web &amp; Full-Stack" data-detail="Next.js, React, and TypeScript front ends backed by Postgres, with server-side rendering, URL-driven application state, and production deployment on Vercel."><span class="skill-icon">+</span><span class="skill-name">Web &amp; Full-Stack</span></span>
+          <span class="skill-tag" data-name="Data Pipelines &amp; APIs" data-detail="Aggregating and reconciling third-party scientific APIs, Postgres caching layers to cut repeat load, and automated tests that verify data against its upstream sources."><span class="skill-icon">+</span><span class="skill-name">Data Pipelines &amp; APIs</span></span>
           <span class="skill-tag" data-name="Hardware &amp; Fabrication" data-detail="Single-board computing, custom cyberdecks, 3D printing prototyping, and vacuum-forming fabrication."><span class="skill-icon">+</span><span class="skill-name">Hardware &amp; Fabrication</span></span>
         </div>
     </header>
@@ -1344,9 +1399,6 @@
             </div>
             <p>Custom portable terminal engineered inside an Apache protective case, currently running Linux Pop!_OS. Built on the x86 LattePanda Sigma single-board computer, featuring custom 3D-printed internal chassis frames to house a dedicated battery hat, active cooling, trackball mouse, keyboard, and an onboard display. Includes exterior chassis breakouts that expose the USB, DC power, and even HDMI output for driving external monitors and projectors.</p>
           </div>
-          <div class="card-links">
-            <!-- Add any primary/secondary links here if desired -->
-          </div>
         </div>
         <div class="card-video-embed">
           <div class="video-frame-wrap">
@@ -1363,21 +1415,11 @@
             <li><strong>Peripherals:</strong> Integrated mechanical ortholinear keyboard, optical trackball mouse, and integrated display.</li>
             <li><strong>I/O Breakouts:</strong> Chassis-mounted flush ports for HDMI 2.1, dual USB, and barrel jack charging.</li>
           </ul>
-          <!-- Placeholder gallery showing how to add more photos or videos into the drawer -->
           <span class="drawer-subtitle" style="margin-top: 6px;">&gt; EXTENDED MEDIA &amp; CAD VIEWS</span>
           <div class="drawer-gallery">
             <div class="drawer-media-item">
               <img src="CyberdeckCAD.JPG" alt="CAD Design" loading="lazy">
             </div>
-            <!-- You can add more images or videos here, e.g.:
-            <div class="drawer-media-item">
-              <div class="video-frame-wrap">
-                <div class="yt-lazy" data-video-id="YOUR_ID" data-title="Cyberdeck Build Video">
-                  <img class="yt-thumb" src="https://img.youtube.com/vi/YOUR_ID/hqdefault.jpg" alt="Cyberdeck Build Video thumbnail" loading="lazy">
-                  <div class="yt-play-btn">&#9658;</div>
-                </div>
-              </div>
-            </div> -->
           </div>
         </div>
       </div>
@@ -1449,7 +1491,7 @@
       <p>Participated in Epic games Mega Stack-O-Jam game jam. Produced a simple game in 3 days solo and uploaded it to itch.io. Not very polished, but I only had 3 days!</p>
     </div>
     <div class="card-links">
-      <!-- Add any primary/secondary links here if desired -->
+      <a href="https://alid0n.itch.io/tossobot" target="_blank" rel="noopener" class="btn btn-secondary">Play on itch.io</a>
     </div>
   </div>
 
@@ -1488,7 +1530,25 @@
 
     </div>
 
+    <footer class="site-footer">
+      <span class="pixel-tag">&gt; END_OF_LINE</span>
+      <div class="footer-links">
+        <a href="https://www.fab.com/sellers/Alid0n" target="_blank" rel="noopener">FAB Marketplace</a>
+        <a href="https://www.youtube.com/@AlidonDev" target="_blank" rel="noopener">Developer YouTube</a>
+        <a href="https://www.youtube.com/@Alidon" target="_blank" rel="noopener">Community YouTube</a>
+        <a href="https://alid0n.itch.io/" target="_blank" rel="noopener">itch.io</a>
+        <a href="mailto:alid0ndev@gmail.com">alid0ndev@gmail.com</a>
+      </div>
+      <p class="footer-note">Addison Warner &mdash; Technical Artist &amp; Unreal Engine Systems Specialist</p>
+      <p class="footer-note footer-copy">&copy; <span id="footerYear">2026</span> Addison Warner &middot; alid0n.com</p>
+    </footer>
+
+  </div>
+
   <script>
+    // Keep the footer copyright year current without an edit every January
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+
     // Expandable 'More Info' drawer toggles
     document.querySelectorAll('.more-info-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
