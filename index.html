@@ -1298,7 +1298,43 @@
     <div class="section-title">OTHER PROJECTS</div>
     <div class="grid">
 
-      <!-- CARD 6: Custom Cyberdeck -->
+      <!-- CARD 6: Epoch Explorer -->
+      <div class="card card-with-video">
+        <div class="card-info">
+          <div>
+            <div class="card-header-row">
+              <h3>Epoch Explorer</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
+            <p>Full-stack web app for exploring prehistoric life. Pick a region on an interactive continental drift diagram and scrub to a point in geologic time, and it returns the fossil animals known from that place and era, complete with taxonomy, ecology, imagery, and a cited source list on every result. Built with Next.js and TypeScript, querying the Paleobiology Database live and caching enriched results in Postgres.</p>
+          </div>
+          <div class="card-links">
+            <a href="https://epoch-explorer-alid0n.vercel.app/?region=South+America&amp;year=113&amp;groups=Dinosauria&amp;taxon=Iguanodon" target="_blank" rel="noopener" class="btn btn-primary">Launch Epoch Explorer</a>
+          </div>
+        </div>
+
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <img src="EpochExplorer.jpg" alt="Epoch Explorer showing the continental drift diagram for South America in the Early Cretaceous" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DATA PIPELINE</span>
+            <ul class="drawer-details-list">
+              <li><strong>Live Fossil Data:</strong> Queries the Paleobiology Database for occurrences filtered by region, geologic interval, and taxonomic group.</li>
+              <li><strong>Enrichment:</strong> Each taxon is enriched from several public biodiversity databases for imagery, classification, ecology, and 3D models where they exist, with sources cited on every card.</li>
+              <li><strong>Caching Layer:</strong> Postgres-backed cache for occurrence lists and per-taxon media, keeping repeat searches fast and keeping load off the public APIs.</li>
+              <li><strong>Interactive Timeline:</strong> Scrubbable 500-million-year geologic timeline with era colour coding and markers for major extinction and origination events.</li>
+              <li><strong>Shareable State:</strong> Every search is encoded in the URL, so a specific region, era, and taxon can be linked to directly.</li>
+              <li><strong>Stack &amp; Testing:</strong> Next.js 14, React, and TypeScript deployed on Vercel, with a deterministic offline test suite plus a separate verification pass that checks the data files against the databases they cite.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 7: Custom Cyberdeck -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
@@ -1347,57 +1383,7 @@
       </div>
       </div>
 
-    </div>
-
-<!-- CARD 7: Game Jam -->
-<div class="card card-with-video">
-  <div class="card-info">
-    <div>
-      <div class="card-header-row">
-        <h3>Game Jam</h3>
-        <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
-      </div>
-      <p>Participated in Epic games Mega Stack-O-Jam game jam. Produced a simple game in 3 days solo and uploaded it to itch.io. Not very polished, but I only had 3 days!</p>
-    </div>
-    <div class="card-links">
-      <!-- Add any primary/secondary links here if desired -->
-    </div>
-  </div>
-
-  <div class="card-video-embed">
-    <div class="video-frame-wrap">
-      <img src="GameJamPromoPoster.JPG" alt="Stack-o-bot game Jam Promo" loading="lazy">
-    </div>
-  </div>
-
-  <div class="card-expanded-drawer">
-    <div class="card-drawer-inner">
-      <span class="drawer-subtitle">&gt; SKILLS UTILIZED</span>
-      <ul class="drawer-details-list">
-        <li><strong>Gameplay:</strong> Made a simple gameplay loop that was unique and fun.</li>
-        <li><strong>Animation:</strong> Created custom animations using Akeytsu and Unreal Engine's in-engine animation graphs.</li>
-        <li><strong>Level Design:</strong> Designed a simple level that clearly showed players the game objective and gave direction.</li>
-        <li><strong>AI:</strong> Created simple AI for enemy robots and a large boss enemy.</li>
-        <li><strong>Packaging &amp; shipping:</strong> Built lighting, packaged and published game to itch.io.</li>
-      </ul>
-
-      <span class="drawer-subtitle" style="margin-top: 6px;">&gt; EXTENDED MEDIA</span>
-      <div class="drawer-gallery">
-        <div class="drawer-media-item">
-          <div class="video-frame-wrap">
-            <div class="yt-lazy" data-video-id="TiWcZKEQUd4" data-title="'Toss-o-bot' Game Jam submission">
-              <img class="yt-thumb" src="https://img.youtube.com/vi/TiWcZKEQUd4/hqdefault.jpg" alt="Game Jam Submission thumbnail" loading="lazy">
-              <div class="yt-play-btn">&#9658;</div>
-            </div>
-          </div>
-          <div class="drawer-media-label">Game Jam Submission</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CARD 5: Countless Engine Experiments -->
+<!-- CARD 8: Countless Engine Experiments -->
 <div class="card card-with-video">
   <div class="card-info">
     <div>
@@ -1451,6 +1437,56 @@
     </div>
   </div>
 </div>
+
+<!-- CARD 9: Game Jam -->
+<div class="card card-with-video">
+  <div class="card-info">
+    <div>
+      <div class="card-header-row">
+        <h3>Game Jam</h3>
+        <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+      </div>
+      <p>Participated in Epic games Mega Stack-O-Jam game jam. Produced a simple game in 3 days solo and uploaded it to itch.io. Not very polished, but I only had 3 days!</p>
+    </div>
+    <div class="card-links">
+      <!-- Add any primary/secondary links here if desired -->
+    </div>
+  </div>
+
+  <div class="card-video-embed">
+    <div class="video-frame-wrap">
+      <img src="GameJamPromoPoster.JPG" alt="Stack-o-bot game Jam Promo" loading="lazy">
+    </div>
+  </div>
+
+  <div class="card-expanded-drawer">
+    <div class="card-drawer-inner">
+      <span class="drawer-subtitle">&gt; SKILLS UTILIZED</span>
+      <ul class="drawer-details-list">
+        <li><strong>Gameplay:</strong> Made a simple gameplay loop that was unique and fun.</li>
+        <li><strong>Animation:</strong> Created custom animations using Akeytsu and Unreal Engine's in-engine animation graphs.</li>
+        <li><strong>Level Design:</strong> Designed a simple level that clearly showed players the game objective and gave direction.</li>
+        <li><strong>AI:</strong> Created simple AI for enemy robots and a large boss enemy.</li>
+        <li><strong>Packaging &amp; shipping:</strong> Built lighting, packaged and published game to itch.io.</li>
+      </ul>
+
+      <span class="drawer-subtitle" style="margin-top: 6px;">&gt; EXTENDED MEDIA</span>
+      <div class="drawer-gallery">
+        <div class="drawer-media-item">
+          <div class="video-frame-wrap">
+            <div class="yt-lazy" data-video-id="TiWcZKEQUd4" data-title="'Toss-o-bot' Game Jam submission">
+              <img class="yt-thumb" src="https://img.youtube.com/vi/TiWcZKEQUd4/hqdefault.jpg" alt="Game Jam Submission thumbnail" loading="lazy">
+              <div class="yt-play-btn">&#9658;</div>
+            </div>
+          </div>
+          <div class="drawer-media-label">Game Jam Submission</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div>
 
   <script>
     // Expandable 'More Info' drawer toggles
