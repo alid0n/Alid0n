@@ -37,6 +37,28 @@
         --muted: #334155;
         --muted-dim: #64748b;
       }
+
+      /* The content runs past a single sheet, so control where it breaks:
+         never split an entry across pages, and never leave a section
+         heading stranded at the foot of one. */
+      .resume-sheet {
+        min-height: 0;
+      }
+
+      .entry {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .section-title {
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      .bullet-list li {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
     }
 
     * {
@@ -314,7 +336,7 @@
       <span class="contact-item">Digital Portfolio: <a href="https://alid0n.com" target="_blank">alid0n.com</a></span>
       <span class="contact-item">Fab Store: <a href="https://www.fab.com/sellers/alid0n" target="_blank">fab.com/sellers/alid0n</a></span>
       <span class="contact-item">Dev YouTube: <a href="https://www.youtube.com/@AlidonDev" target="_blank">@AlidonDev</a></span>
-	  <span class="contact-item">Community YouTube: <a href="https://www.youtube.com/@Alidon" target="_blank">@AlidonDev</a></span>
+      <span class="contact-item">Community YouTube: <a href="https://www.youtube.com/@Alidon" target="_blank">@Alidon</a></span>
     </div>
   </header>
 
@@ -333,6 +355,9 @@
 
       <div class="skill-cat">Scripting &amp; Modding</div>
       <div class="skill-list">Bethesda Creation Kit, Papyrus Scripting, Custom AI Behavior Trees, Quest Architecture, Teleportation Grids</div>
+
+      <div class="skill-cat">Web &amp; Data</div>
+      <div class="skill-list">Next.js, React, TypeScript, Postgres, Third-Party API Integration, Caching, Vercel Deployment</div>
 
       <div class="skill-cat">Media &amp; Documentation</div>
       <div class="skill-list">Technical Video Capture &amp; Editing, Product Trailers, Implementation Setup Documentation, Storefront Assets</div>
@@ -354,9 +379,9 @@
         </div>
       </div>
       <ul class="bullet-list">
-        <li>Engineered a plug-and-play Actor Component for procedural swimming, volume surface detection, and buoyancy physics.</li>
-        <li>Implemented dynamic animation state machine blending across treading water, diving, sprinting, and vertical surfacing.</li>
-        <li>Packaged comprehensive visual Blueprint documentation and demo levels to ensure zero-friction setup for clients.</li>
+        <li>Drop-in Actor Component handling water volume detection, buoyancy physics, and procedural swimming motion.</li>
+        <li>Animation state machine blending across treading water, diving, sprinting, and vertical surfacing.</li>
+        <li>Ships with Blueprint documentation and demo levels, so buyers can integrate it without support.</li>
       </ul>
     </div>
 
@@ -368,9 +393,9 @@
         </div>
       </div>
       <ul class="bullet-list">
-        <li>Architected an extensible creature AI framework featuring configurable behavior states (wild, passive, aggressive, follow, mount).</li>
-        <li>Constructed server-authoritative multiplayer network replication workflows for feeding prompts, taming bars, and state sync.</li>
-        <li>Standardized integration pathways for open-world survival gameplay loops without tight coupling to base character meshes.</li>
+        <li>Creature AI framework with configurable behavior states: wild, passive, aggressive, follow, and mount.</li>
+        <li>Server-authoritative replication for feeding prompts, taming progress, and state sync in multiplayer.</li>
+        <li>Attaches to any character actor, so it fits survival gameplay without changes to the base mesh.</li>
       </ul>
     </div>
 
@@ -382,8 +407,8 @@
         </div>
       </div>
       <ul class="bullet-list">
-        <li>Programmed a real-time flammability and fire propagation component optimized for low draw-call overhead in foliage-heavy maps.</li>
-        <li>Built progressive procedural charring materials with vertex shader burning parameters and proximity-based heat traces.</li>
+        <li>Real-time flammability and fire propagation component, kept to a low draw-call budget in foliage-heavy maps.</li>
+        <li>Progressive charring materials driven by vertex shader parameters and proximity heat traces.</li>
       </ul>
     </div>
 
@@ -395,8 +420,8 @@
         </div>
       </div>
       <ul class="bullet-list">
-        <li>Built on Unreal Engine's Enhanced Input framework to provide adaptive on-screen touch interfaces for cross-platform games.</li>
-        <li>Implemented dynamic floating thumbsticks, configurable action buttons, and touch gesture recognition with zero input lag.</li>
+        <li>On-screen touch interfaces for cross-platform games, built on Unreal Engine's Enhanced Input framework.</li>
+        <li>Floating thumbsticks, configurable action buttons, and touch gesture recognition.</li>
       </ul>
     </div>
   </section>
@@ -414,10 +439,10 @@
       </div>
       <div class="entry-sub">Verified Bethesda Creation Club Creator | PC, Xbox, PlayStation</div>
       <ul class="bullet-list">
-        <li>Created one of the most widely downloaded gameplay modification suites in Bethesda modding history.</li>
-        <li>Authored complex Papyrus scripts driving custom teleportation networks, dynamic activators, custom vendors, and spell frameworks.</li>
-        <li>Designed bespoke subterranean environments, weapon armories, and testing facilities supporting hundreds of concurrent gameplay hours.</li>
-        <li>Produced all promotional showcase videos, tutorials, update change logs, and established an active Discord support community.</li>
+        <li>Gameplay modification suite with over 15 million downloads across PC, Xbox, and PlayStation.</li>
+        <li>Papyrus scripting behind custom teleportation networks, dynamic activators, vendors, and spell frameworks.</li>
+        <li>Built the subterranean environments, weapon armories, and testing areas that hold hundreds of hours of play.</li>
+        <li>Produce the showcase videos, tutorials, and change logs, and run the Discord support community.</li>
       </ul>
     </div>
 
@@ -430,15 +455,29 @@
       </div>
       <div class="entry-sub">Solo Developer (Design, Animation, Programming, Build Shipping)</div>
       <ul class="bullet-list">
-        <li>Conceived, designed, animated, and packaged a complete game using Epic Games' Stack-O-Bot digital assets in 3 days using Unreal Engine and Akeytsu.</li>
-        <li>Authored custom locomotion graphs, state-driven enemy AI, multi-phase boss mechanics, and implemented a gameplay loop for itch.io release.</li>
+        <li>Designed, animated, and shipped a complete game in three days using Epic's Stack-O-Bot assets, Unreal Engine, and Akeytsu.</li>
+        <li>Custom locomotion graphs, state-driven enemy AI, a multi-phase boss, and a finished gameplay loop, released on itch.io.</li>
       </ul>
     </div>
   </section>
 
-  <!-- PROTOTYPING & HARDWARE PROJECTS -->
+  <!-- WEB, PROTOTYPING & HARDWARE PROJECTS -->
   <section>
-    <div class="section-title">Prototypes &amp; Hardware Engineering</div>
+    <div class="section-title">Web, Prototypes &amp; Hardware</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Epoch Explorer</span>
+          <span class="entry-sub"> | <a href="https://epoch-explorer-alid0n.vercel.app" target="_blank">epoch-explorer-alid0n.vercel.app</a></span>
+        </div>
+      </div>
+      <ul class="bullet-list">
+        <li>Full-stack web app: pick a region and a point in geologic time, get the fossil animals known from there, with sources cited on every result.</li>
+        <li>Next.js, React, and TypeScript on Vercel, querying the Paleobiology Database and caching enriched results in Postgres.</li>
+        <li>Deterministic offline test suite plus a separate pass that verifies the data files against the databases they cite.</li>
+      </ul>
+    </div>
 
     <div class="entry">
       <div class="entry-header">
@@ -448,8 +487,8 @@
         </div>
       </div>
       <ul class="bullet-list">
-        <li>Engineered a modular, independent per-hand spellcasting framework combat system.</li>
-        <li>Constructed a data-driven item architecture using UMG widgets for dynamic grid slots, equipment binding, and consumption logic.</li>
+        <li>Modular spellcasting framework with independent control of each hand.</li>
+        <li>Data-driven item architecture using UMG widgets for grid slots, equipment binding, and consumption logic.</li>
       </ul>
     </div>
 
@@ -461,8 +500,8 @@
         </div>
       </div>
       <ul class="bullet-list">
-        <li>Designed and fabricated a field-ready portable PC housed in a weather-resistant Apache 2800 chassis powered by an x86 LattePanda Sigma.</li>
-        <li>Created CAD-designed 3D-printed internal mount panels, integrated active cooling, battery expansion hats, and flush I/O breakouts.</li>
+        <li>Field-ready portable PC in a weather-resistant Apache 2800 chassis, running Linux on an x86 LattePanda Sigma.</li>
+        <li>CAD-designed 3D-printed mount panels, active cooling, battery expansion hats, and flush I/O breakouts.</li>
       </ul>
     </div>
   </section>
