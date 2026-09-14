@@ -1354,7 +1354,43 @@
     <div class="section-title">OTHER PROJECTS</div>
     <div class="grid">
 
-      <!-- CARD 6: Epoch Explorer -->
+      <!-- CARD 6: Chojio -->
+      <div class="card card-with-video">
+        <div class="card-info">
+          <div>
+            <div class="card-header-row">
+              <h3>Chojio</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
+            <p>Discord server toolkit that replaces the usual stack of four single-purpose bots. Panels, support tickets and self-assignable roles, all set up with slash commands inside Discord rather than on a dashboard you have to go and find. Live and free to add, with a paid tier at $4.99 per month per server.</p>
+          </div>
+          <div class="card-links">
+            <a href="https://chojio.com" target="_blank" rel="noopener" class="btn btn-primary">Visit Chojio</a>
+          </div>
+        </div>
+
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <img src="Chojio.jpg" alt="The Chojio landing page, a Discord server toolkit" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            <span class="drawer-subtitle">&gt; DESIGN &amp; SECURITY DECISIONS</span>
+            <ul class="drawer-details-list">
+              <li><strong>Slash-command first:</strong> Every setting is reachable from a slash command. The web dashboard is the faster surface for a long embed or a complicated form, never the only route to a setting.</li>
+              <li><strong>Buttons that outlive deploys:</strong> No in-memory component collectors, which is a real failure mode in other bots. Handlers are looked up by name at click time, so a panel posted months ago still works after a restart.</li>
+              <li><strong>Least privilege:</strong> Never asks for Administrator, and does not request Discord's Message Content intent, so it cannot read ordinary channel messages. A closed ticket produces a structured archive rather than a transcript of everything people typed.</li>
+              <li><strong>Permissions re-checked at click time:</strong> A role menu re-validates a role before assigning it and refuses if that role has gained something dangerous since the menu was built.</li>
+              <li><strong>Templates cannot make moderators:</strong> Server templates create roles, categories and channels, but moderation permissions are refused outright rather than hidden behind a confirmation dialog that only protects people who read them.</li>
+              <li><strong>Built versus planned:</strong> Panels, tickets and role menus are shipped. Forms, surveys, scheduled posts, a server builder and an audit log are labelled as not yet built rather than implied.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 7: Epoch Explorer -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
@@ -1390,7 +1426,7 @@
         </div>
       </div>
 
-      <!-- CARD 7: Custom Cyberdeck -->
+      <!-- CARD 8: Custom Cyberdeck -->
       <div class="card card-with-video">
         <div class="card-info">
           <div>
@@ -1426,7 +1462,7 @@
       </div>
       </div>
 
-<!-- CARD 8: Countless Engine Experiments -->
+<!-- CARD 9: Countless Engine Experiments -->
 <div class="card card-with-video">
   <div class="card-info">
     <div>
@@ -1481,7 +1517,7 @@
   </div>
 </div>
 
-<!-- CARD 9: Game Jam -->
+<!-- CARD 10: Game Jam -->
 <div class="card card-with-video">
   <div class="card-info">
     <div>
