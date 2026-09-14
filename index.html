@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Addison Warner | Alid0n - Technical Artist &amp; Systems</title>
+  <title>Alid0n - Technical Artist &amp; Unreal Engine Systems Specialist</title>
 
-  <meta name="description" content="Addison Warner (Alid0n) — Technical Artist &amp; Unreal Engine Systems Specialist. Interactive portfolio with playable background games, marketplace assets, and modding work with 15M+ downloads.">
+  <meta name="description" content="Alid0n — Technical Artist &amp; Unreal Engine Systems Specialist. Interactive portfolio with playable background games, marketplace assets, and modding work with 15M+ downloads.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Addison Warner | Alid0n - Technical Artist &amp; Systems">
+  <meta property="og:title" content="Alid0n - Technical Artist &amp; Unreal Engine Systems Specialist">
   <meta property="og:description" content="Interactive digital portfolio featuring playable background games, Unreal Engine marketplace assets, and modding work with 15M+ downloads.">
   <meta property="og:url" content="https://alid0n.com">
   <meta property="og:image" content="https://alid0n.com/preview.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Addison Warner — Technical Artist &amp; Unreal Engine Systems Specialist">
+  <meta property="og:image:alt" content="Alid0n — Technical Artist &amp; Unreal Engine Systems Specialist">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Addison Warner | Alid0n - Technical Artist &amp; Systems">
+  <meta name="twitter:title" content="Alid0n - Technical Artist &amp; Unreal Engine Systems Specialist">
   <meta name="twitter:description" content="Interactive digital portfolio featuring playable background games &amp; previews of my work">
   <meta name="twitter:image" content="https://alid0n.com/preview.png">
-  <meta name="twitter:image:alt" content="Addison Warner — Technical Artist &amp; Unreal Engine Systems Specialist">
+  <meta name="twitter:image:alt" content="Alid0n — Technical Artist &amp; Unreal Engine Systems Specialist">
   <meta name="theme-color" content="#07090e">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2307090e'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' fill='%2300ffaa' text-anchor='middle'%3E%3E%3C/text%3E%3C/svg%3E">
 
@@ -1016,7 +1016,7 @@
         </select>
       </div>
 
-      <h1>Addison Warner</h1>
+      <h1 id="siteName">Alid0n</h1>
       <p class="subtitle">Technical Artist &amp; Unreal Engine Systems Specialist</p>
       
       <div class="status-bar">
@@ -1034,14 +1034,57 @@
         </span>
       </div>
 
-      <div class="social-bar" style="justify-content: flex-start; margin-top: 20px;">
+      <div class="social-bar" id="socialBar" style="justify-content: flex-start; margin-top: 20px;">
         <a href="https://www.fab.com/sellers/Alid0n" target="_blank" class="btn btn-primary">FAB Marketplace Profile</a>
         <a href="https://www.youtube.com/@AlidonDev" target="_blank" class="btn btn-secondary">Developer YouTube</a>
         <a href="https://www.youtube.com/@Alidon" target="_blank" class="btn btn-secondary">Community YouTube</a>
         <a href="mailto:alid0ndev@gmail.com" class="btn btn-secondary">Contact Me</a>
-        <a href="AlidonResume.html" target="_blank" rel="noopener" class="btn btn-primary">Digital Resume</a>
-        <a href="AddisonWarnerResume.pdf" download class="btn btn-primary">Printable Resume</a>
       </div>
+
+      <script>
+        /* This portfolio answers on two domains. The markup above is the
+           pseudonymous one, which is what alid0n.com and anything else gets:
+           the handle, and no resume links. The named domain swaps in the real
+           name and adds the resume buttons.
+
+           This runs inline, immediately after the nodes it edits, so the
+           named domain never paints the handle first and then correct itself.
+
+           It is a presentation rule, not concealment. The name is still in
+           this file, in the public repository, and inside the resume files,
+           which stay reachable by direct URL on either domain. */
+        (function () {
+          var NAMED_HOSTS = ['addisonwarner.com'];
+          var FULL_NAME = 'Addison Warner';
+          var ROLE = 'Technical Artist & Unreal Engine Systems Specialist';
+
+          var host = location.hostname.replace(/^www\./, '').toLowerCase();
+          window.__usesRealName = NAMED_HOSTS.indexOf(host) !== -1;
+          if (!window.__usesRealName) return;
+
+          document.documentElement.setAttribute('data-identity', 'named');
+
+          var heading = document.getElementById('siteName');
+          if (heading) heading.textContent = FULL_NAME;
+          document.title = FULL_NAME + ' - ' + ROLE;
+
+          var bar = document.getElementById('socialBar');
+          if (bar) {
+            bar.insertAdjacentHTML('beforeend',
+              '<a href="AlidonResume.html" target="_blank" rel="noopener" class="btn btn-primary">Digital Resume</a>' +
+              '<a href="AddisonWarnerResume.pdf" download class="btn btn-primary">Printable Resume</a>');
+          }
+
+          document.addEventListener('DOMContentLoaded', function () {
+            var footerName = document.getElementById('footerName');
+            var footerOwner = document.getElementById('footerOwner');
+            var footerDomain = document.getElementById('footerDomain');
+            if (footerName) footerName.textContent = FULL_NAME;
+            if (footerOwner) footerOwner.textContent = FULL_NAME;
+            if (footerDomain) footerDomain.textContent = host;
+          });
+        })();
+      </script>
 
       <div class="skills-row-wrap">
         <span class="pixel-tag">&gt; SKILLS</span>
@@ -1576,8 +1619,8 @@
         <a href="https://alid0n.itch.io/" target="_blank" rel="noopener">itch.io</a>
         <a href="mailto:alid0ndev@gmail.com">alid0ndev@gmail.com</a>
       </div>
-      <p class="footer-note">Addison Warner &mdash; Technical Artist &amp; Unreal Engine Systems Specialist</p>
-      <p class="footer-note footer-copy">&copy; <span id="footerYear">2026</span> Addison Warner &middot; alid0n.com</p>
+      <p class="footer-note"><span id="footerName">Alid0n</span> &mdash; Technical Artist &amp; Unreal Engine Systems Specialist</p>
+      <p class="footer-note footer-copy">&copy; <span id="footerYear">2026</span> <span id="footerOwner">Alid0n</span> &middot; <span id="footerDomain">alid0n.com</span></p>
     </footer>
 
   </div>
