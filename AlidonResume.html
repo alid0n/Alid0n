@@ -314,6 +314,36 @@
       border-radius: 3px;
       border: 1px solid var(--card-border);
     }
+
+    /* Paper-only tightening, and it has to live here rather than in the
+       @media print block above, which is declared before the base rules and
+       so loses to them on equal specificity. Nothing is removed: the leading
+       and the gaps close up so a twelfth entry does not cost a third sheet.
+       The on-screen resume keeps its original spacing. */
+    @media print {
+      body {
+        line-height: 1.34;
+      }
+
+      .resume-sheet {
+        gap: 7px;
+        padding: 0.34in 0.6in;
+      }
+
+      .entry {
+        padding: 4px 9px;
+        margin-bottom: 4px;
+      }
+
+      ul.bullet-list {
+        margin-top: 2px;
+        gap: 1px;
+      }
+
+      section {
+        margin: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -361,6 +391,9 @@
 
       <div class="skill-cat">Bots &amp; Platform APIs</div>
       <div class="skill-list">Discord API, Slash Commands, Interaction Handlers, Webhooks, Permission Scoping, Subscription Billing</div>
+
+      <div class="skill-cat">Android</div>
+      <div class="skill-list">Kotlin, Jetpack Compose, Launcher &amp; Widget APIs, Foldable Layouts, Runtime Permissions, Play Console Release &amp; Data Safety</div>
 
       <div class="skill-cat">Desktop Applications</div>
       <div class="skill-list">Windows Tray Apps, Global Hotkeys, Screen Capture, FFmpeg Encoding Pipelines, Portable Distribution, Offline Licence Validation</div>
@@ -469,7 +502,7 @@
 
   <!-- WEB, PROTOTYPING & HARDWARE PROJECTS -->
   <section>
-    <div class="section-title">Web, Prototypes &amp; Hardware</div>
+    <div class="section-title">Applications, Prototypes &amp; Hardware</div>
 
     <div class="entry">
       <div class="entry-header">
@@ -482,6 +515,23 @@
         <li>Full-stack web app: pick a region and a point in geologic time, get the fossil animals known from there, with sources cited on every result.</li>
         <li>Next.js, React, and TypeScript on Vercel, querying the Paleobiology Database and caching enriched results in Postgres.</li>
         <li>Deterministic offline test suite plus a separate pass that verifies the data files against the databases they cite.</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div>
+          <span class="entry-title">Orbital Launcher</span>
+          <span class="entry-sub"> | <a href="https://orbitallauncher.com" target="_blank">orbitallauncher.com</a></span>
+        </div>
+        <span class="entry-date">Closed testing on Google Play</span>
+      </div>
+      <div class="entry-sub">Android home-screen replacement, Kotlin and Jetpack Compose, Android 8.0 and later</div>
+      <ul class="bullet-list">
+        <li>Replaces the launcher: apps ride a turnable orbit along the bottom of the screen, over pages of freely placed widgets, shortcuts and folders.</li>
+        <li>Nineteen first-party widgets plus any installed Android widget, an assistant bar that files reminders, notes, messages and calendar entries, and eight themes.</li>
+        <li>Foldable-aware layouts, where the open screen can mirror the folded one, spread two pages side by side, or hold its own theme, dock and settings.</li>
+        <li>No account, server, analytics, crash reporter or ad network; permissions are requested by the feature that needs them and decline paths stay functional.</li>
       </ul>
     </div>
 
