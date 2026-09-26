@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alid0n - Technical Artist &amp; Unreal Engine Systems Specialist</title>
+  <title>Alid0n - Apps, Tools &amp; Unreal Engine Systems</title>
 
-  <meta name="description" content="Alid0n — Technical Artist &amp; Unreal Engine Systems Specialist. Interactive portfolio with playable background games, marketplace assets, and modding work with 15M+ downloads.">
+  <meta name="description" content="Alid0n — indie developer. Orbital Launcher, Capshot, Chojio, Epoch Explorer and more, plus Unreal Engine marketplace systems and modding work with 15M+ downloads, on a site with playable background games.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Alid0n - Technical Artist &amp; Unreal Engine Systems Specialist">
-  <meta property="og:description" content="Interactive digital portfolio featuring playable background games, Unreal Engine marketplace assets, and modding work with 15M+ downloads.">
+  <meta property="og:title" content="Alid0n - Apps, Tools &amp; Unreal Engine Systems">
+  <meta property="og:description" content="Apps and tools you can use today, including Orbital Launcher, Capshot, Chojio and Epoch Explorer, plus Unreal Engine systems and modding work with 15M+ downloads.">
   <meta property="og:url" content="https://alid0n.com">
   <meta property="og:image" content="https://alid0n.com/preview.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Alid0n — Technical Artist &amp; Unreal Engine Systems Specialist">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Alid0n - Technical Artist &amp; Unreal Engine Systems Specialist">
-  <meta name="twitter:description" content="Interactive digital portfolio featuring playable background games &amp; previews of my work">
+  <meta name="twitter:title" content="Alid0n - Apps, Tools &amp; Unreal Engine Systems">
+  <meta name="twitter:description" content="Apps, tools and game systems, on a site with playable background games">
   <meta name="twitter:image" content="https://alid0n.com/preview.png">
   <meta name="twitter:image:alt" content="Alid0n — Technical Artist &amp; Unreal Engine Systems Specialist">
   <meta name="theme-color" content="#07090e">
@@ -508,6 +508,188 @@
       gap: 8px;
       color: #fff;
       text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    /* ---- Apps & tools: the launch pad ----------------------------------
+       Six tiles that answer "what is it, can I use it, where" at a glance.
+       Each tile links out to the project's own site and down to its card. */
+    .section-title[id], .card[id] { scroll-margin-top: 24px; }
+
+    .section-lede {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: -8px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+
+    .jump-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .jump-nav a {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      padding: 8px 10px;
+      border-radius: 5px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+
+    .jump-nav a:hover {
+      background: var(--accent);
+      color: #05100c;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .launch-pad {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 14px;
+    }
+
+    .launch-tile {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    }
+
+    .launch-tile:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px var(--accent-glow);
+    }
+
+    .launch-tile-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .launch-tile h3 {
+      font-size: 1.1rem;
+      color: #fff;
+      margin: 0;
+    }
+
+    .launch-tile .platform {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+    }
+
+    .launch-tile p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.45;
+      flex-grow: 1;
+    }
+
+    .launch-tile .card-links { margin-top: 2px; }
+
+    .status-chip {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      line-height: 1;
+      padding: 5px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      border: 1px solid currentColor;
+    }
+
+    .status-live { color: #22e39a; background: rgba(34, 227, 154, 0.1); }
+    .status-testing { color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+    .status-soon { color: #a5b4fc; background: rgba(165, 180, 252, 0.1); }
+
+    body.theme-boring .status-chip { color: #fff; background: transparent; }
+
+    /* The "this has its own site" line, shared by tiles and cards. */
+    .live-url {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .live-url::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 50%;
+      background: #22e39a;
+      box-shadow: 0 0 8px #22e39a;
+      animation: livePulse 1.6s ease-in-out infinite;
+    }
+
+    a.live-url:hover { text-decoration: underline; }
+
+    .live-url.is-soon { color: var(--muted); }
+    .live-url.is-soon::before { background: #a5b4fc; box-shadow: none; animation: none; }
+
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .live-url::before { animation: none; }
+    }
+
+    .card-info .live-url { margin-bottom: 14px; }
+
+    .btn[aria-disabled="true"] {
+      opacity: 0.55;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    /* Stand-in art for projects without a screenshot yet. */
+    .pixel-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 4px),
+        radial-gradient(circle at 50% 40%, var(--accent-glow), transparent 65%),
+        #05070c;
+      font-family: 'Press Start 2P', monospace;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .pixel-placeholder .ph-title {
+      font-size: clamp(14px, 3vw, 22px);
+      color: #fff;
+      text-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .pixel-placeholder .ph-sub {
+      font-size: 8px;
+      color: var(--accent);
+      letter-spacing: 1px;
     }
 
     .grid {
@@ -1017,7 +1199,7 @@
       </div>
 
       <h1 id="siteName">Alid0n</h1>
-      <p class="subtitle">Technical Artist &amp; Unreal Engine Systems Specialist</p>
+      <p class="subtitle">Indie developer building apps, tools &amp; Unreal Engine systems</p>
       
       <div class="status-bar">
         <span class="badge">
@@ -1040,6 +1222,14 @@
         <a href="https://www.youtube.com/@Alidon" target="_blank" class="btn btn-secondary">Community YouTube</a>
         <a href="mailto:alid0ndev@gmail.com" class="btn btn-secondary">Contact Me</a>
       </div>
+
+      <nav class="jump-nav" aria-label="Jump to section">
+        <span class="pixel-tag">&gt; JUMP TO:</span>
+        <a href="#apps">Apps &amp; Tools</a>
+        <a href="#unreal">Unreal Systems</a>
+        <a href="#featured">Skyrim Modding</a>
+        <a href="#more">More Projects</a>
+      </nav>
 
       <script>
         /* This portfolio answers on two domains. The markup above is the
@@ -1113,7 +1303,321 @@
       [ PLAY THE BACKGROUND: USE LEFT/RIGHT ARROWS TO MOVE • SPACEBAR TO SHOOT ]
     </div>
 
-    <div class="section-title">ENGINE SYSTEMS &amp; MARKETPLACE ASSETS</div>
+    <div class="section-title" id="apps">APPS &amp; TOOLS</div>
+    <p class="section-lede">Things you can use today. Each one with a live site has its link right on the card.</p>
+    <div class="launch-pad">
+        <div class="launch-tile">
+          <div class="launch-tile-top">
+            <h3>Orbital Launcher</h3>
+            <span class="status-chip status-testing">In testing</span>
+          </div>
+          <span class="platform">Android home screen</span>
+          <p>A home screen built around a dock you turn with your thumb.</p>
+          <a class="live-url" href="https://orbitallauncher.com" target="_blank" rel="noopener">orbitallauncher.com</a>
+          <div class="card-links">
+            <a href="https://orbitallauncher.com" target="_blank" rel="noopener" class="btn btn-primary">Visit site</a>
+            <a href="#orbital" class="btn btn-secondary">Details</a>
+          </div>
+        </div>
+        <div class="launch-tile">
+          <div class="launch-tile-top">
+            <h3>Capshot</h3>
+            <span class="status-chip status-live">Live</span>
+          </div>
+          <span class="platform">Windows screen recorder</span>
+          <p>Drag a box around any part of the screen and record just that.</p>
+          <a class="live-url" href="https://capshot.me" target="_blank" rel="noopener">capshot.me</a>
+          <div class="card-links">
+            <a href="https://capshot.me" target="_blank" rel="noopener" class="btn btn-primary">Get Capshot</a>
+            <a href="#capshot" class="btn btn-secondary">Details</a>
+          </div>
+        </div>
+        <div class="launch-tile">
+          <div class="launch-tile-top">
+            <h3>Chojio</h3>
+            <span class="status-chip status-live">Live</span>
+          </div>
+          <span class="platform">Discord bot</span>
+          <p>Panels, tickets and role menus for your server, set up with slash commands.</p>
+          <a class="live-url" href="https://chojio.com" target="_blank" rel="noopener">chojio.com</a>
+          <div class="card-links">
+            <a href="https://chojio.com" target="_blank" rel="noopener" class="btn btn-primary">Add Chojio</a>
+            <a href="#chojio" class="btn btn-secondary">Details</a>
+          </div>
+        </div>
+        <div class="launch-tile">
+          <div class="launch-tile-top">
+            <h3>Epoch Explorer</h3>
+            <span class="status-chip status-live">Live</span>
+          </div>
+          <span class="platform">Web app</span>
+          <p>Pick a place and a moment in deep time, and meet the animals that lived there.</p>
+          <a class="live-url" href="https://epochexplorer.earth" target="_blank" rel="noopener">epochexplorer.earth</a>
+          <div class="card-links">
+            <a href="https://epochexplorer.earth" target="_blank" rel="noopener" class="btn btn-primary">Launch app</a>
+            <a href="#epoch" class="btn btn-secondary">Details</a>
+          </div>
+        </div>
+        <div class="launch-tile">
+          <div class="launch-tile-top">
+            <h3>Frame</h3>
+            <span class="status-chip status-soon">Coming soon</span>
+          </div>
+          <span class="platform">Android photo gallery</span>
+          <p>A clean, fast gallery for the photos already on your phone.</p>
+          <span class="live-url is-soon">Coming to Google Play</span>
+          <div class="card-links">
+            <span class="btn btn-secondary" aria-disabled="true">Coming soon</span>
+            <a href="#frame" class="btn btn-secondary">Details</a>
+          </div>
+        </div>
+        <div class="launch-tile">
+          <div class="launch-tile-top">
+            <h3>SpaceFinder</h3>
+            <span class="status-chip status-soon">Coming soon</span>
+          </div>
+          <span class="platform">Windows disk-space tool</span>
+          <p>See where your drive space went, and get it back.</p>
+          <span class="live-url is-soon">Download coming soon</span>
+          <div class="card-links">
+            <span class="btn btn-secondary" aria-disabled="true">Coming soon</span>
+            <a href="#spacefinder" class="btn btn-secondary">Details</a>
+          </div>
+        </div>
+    </div>
+
+    <div class="section-title">UNDER THE HOOD</div>
+    <div class="grid">
+
+      <!-- CARD 7: Orbital Launcher -->
+      <div class="card card-with-video" id="orbital">
+        <div class="card-info">
+          <div>
+            <div class="card-header-row">
+              <h3>Orbital Launcher</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
+            <p>Android home-screen replacement built around a dock you turn with your thumb. Apps ride an ellipse along the bottom of the screen rather than a grid at the top, with pages, widgets and an assistant bar placed wherever you want them. Nothing phones home: no account, no server, no analytics, no crash reporter. Free on Google Play, with Orbital Premium as an optional upgrade, and in testing now.</p>
+          </div>
+          <a class="live-url" href="https://orbitallauncher.com" target="_blank" rel="noopener">orbitallauncher.com</a>
+          <div class="card-links">
+            <a href="https://orbitallauncher.com" target="_blank" rel="noopener" class="btn btn-primary">Visit Orbital Launcher</a>
+          </div>
+        </div>
+
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <img src="OrbitalLauncher.jpg" alt="The Orbital Launcher site, showing the orbit dock of app icons" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; PRODUCT DECISIONS</span>
+            <ul class="drawer-details-list">
+              <li><strong>The orbit dock:</strong> One orbit or three, anchored to the bottom or either side, or a plain flat row for anyone the wheel is not for. It can turn slowly by itself, wind back to where it started, and stay within reach from inside other apps.</li>
+              <li><strong>Nineteen widgets:</strong> Clock, calendar, week, up next, weather, now playing, news, feeds, people, notes, battery, torch, calculator, folders, app shortcuts and an app scroller, alongside any Android widget already installed.</li>
+              <li><strong>Assistant bar:</strong> Type an errand and it carries it out, covering reminders, notes, messages, emails, calls, calendar entries, app launches and searches. A Claude, ChatGPT or Gemini key is optional and used only for phrasing it cannot parse itself.</li>
+              <li><strong>Built for foldables:</strong> The open screen can share the folded one's layout, spread two pages side by side, or keep a layout of its own with its own theme, dock and settings.</li>
+              <li><strong>Permissions on demand:</strong> Nothing is requested at install. Each feature asks the first time it is used, and whatever is declined simply goes quiet rather than blocking the app.</li>
+              <li><strong>No telemetry at all:</strong> No account, no sign-in, no server of its own, no analytics library, no crash reporter, no ad network. The five kinds of request that can leave the phone are each listed with what they contain.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 9: Capshot -->
+      <div class="card card-with-video" id="capshot">
+        <div class="card-info">
+          <div>
+            <div class="card-header-row">
+              <h3>Capshot</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
+            <p>Screen recorder that lives in the Windows tray. Click the icon, drag a rectangle around any part of any monitor, and it records just that region until you press a hotkey you chose yourself. Portable, with no installer and ffmpeg bundled. Free to use, unlocked by a one-time $11.49 payment rather than a subscription.</p>
+          </div>
+          <a class="live-url" href="https://capshot.me" target="_blank" rel="noopener">capshot.me</a>
+          <div class="card-links">
+            <a href="https://capshot.me" target="_blank" rel="noopener" class="btn btn-primary">Visit Capshot</a>
+          </div>
+        </div>
+
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <img src="Capshot.jpg" alt="The Capshot landing page, a region screen recorder for Windows" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            <span class="drawer-subtitle">&gt; BUILD &amp; PRODUCT DECISIONS</span>
+            <ul class="drawer-details-list">
+              <li><strong>Region capture:</strong> Drag a box on any monitor. The screen dims, a live size readout follows the cursor, and Escape backs out without recording.</li>
+              <li><strong>System-wide hotkeys:</strong> Start and stop are bound to keys the user picks and work outside the app's own window, so a recording can be stopped without hunting for a button.</li>
+              <li><strong>Formats and capture:</strong> MP4, MOV, WebM, GIF and animated WebP, with device audio and pause and resume part-way through a take.</li>
+              <li><strong>Free tier is a tool, not a trial:</strong> No account and no countdown to expiry. The limits are stated plainly instead: 45 seconds a clip, 15 for GIFs, up to 1080p, and a small watermark.</li>
+              <li><strong>Offline licensing:</strong> One payment yields a key pasted into Settings. The app verifies it once and then keeps working without calling home.</li>
+              <li><strong>Platform support stated up front:</strong> Windows ships today; macOS and Linux are marked in progress. ChromeOS is a web version because an installed app there cannot see the rest of the screen, and would record a black rectangle. Said on the page rather than discovered after a download.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 8: Chojio -->
+      <div class="card card-with-video" id="chojio">
+        <div class="card-info">
+          <div>
+            <div class="card-header-row">
+              <h3>Chojio</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
+            <p>Discord server toolkit that replaces the usual stack of four single-purpose bots. Panels, support tickets and self-assignable roles, all set up with slash commands inside Discord rather than on a dashboard you have to go and find. Live and free to add, with a paid tier at $4.99 per month per server.</p>
+          </div>
+          <a class="live-url" href="https://chojio.com" target="_blank" rel="noopener">chojio.com</a>
+          <div class="card-links">
+            <a href="https://chojio.com" target="_blank" rel="noopener" class="btn btn-primary">Visit Chojio</a>
+          </div>
+        </div>
+
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <img src="Chojio.jpg" alt="The Chojio landing page, a Discord server toolkit" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            <span class="drawer-subtitle">&gt; DESIGN &amp; SECURITY DECISIONS</span>
+            <ul class="drawer-details-list">
+              <li><strong>Slash-command first:</strong> Every setting is reachable from a slash command. The web dashboard is the faster surface for a long embed or a complicated form, never the only route to a setting.</li>
+              <li><strong>Buttons that outlive deploys:</strong> No in-memory component collectors, which is a real failure mode in other bots. Handlers are looked up by name at click time, so a panel posted months ago still works after a restart.</li>
+              <li><strong>Least privilege:</strong> Never asks for Administrator, and does not request Discord's Message Content intent, so it cannot read ordinary channel messages. A closed ticket produces a structured archive rather than a transcript of everything people typed.</li>
+              <li><strong>Permissions re-checked at click time:</strong> A role menu re-validates a role before assigning it and refuses if that role has gained something dangerous since the menu was built.</li>
+              <li><strong>Templates cannot make moderators:</strong> Server templates create roles, categories and channels, but moderation permissions are refused outright rather than hidden behind a confirmation dialog that only protects people who read them.</li>
+              <li><strong>Built versus planned:</strong> Panels, tickets and role menus are shipped. Forms, surveys, scheduled posts, a server builder and an audit log are labelled as not yet built rather than implied.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 6: Epoch Explorer -->
+      <div class="card card-with-video" id="epoch">
+        <div class="card-info">
+          <div>
+            <div class="card-header-row">
+              <h3>Epoch Explorer</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
+            <p>Full-stack web app for exploring prehistoric life. Pick a region on an interactive continental drift diagram and scrub to a point in geologic time, and it returns the fossil animals known from that place and era, complete with taxonomy, ecology, imagery, and a cited source list on every result. Built with Next.js and TypeScript, querying the Paleobiology Database live and caching enriched results in Postgres.</p>
+          </div>
+          <a class="live-url" href="https://epochexplorer.earth" target="_blank" rel="noopener">epochexplorer.earth</a>
+          <div class="card-links">
+            <a href="https://epochexplorer.earth/?region=South+America&amp;year=113&amp;groups=Dinosauria&amp;taxon=Iguanodon" target="_blank" rel="noopener" class="btn btn-primary">Launch Epoch Explorer</a>
+          </div>
+        </div>
+
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <img src="EpochExplorer.jpg" alt="Epoch Explorer showing the continental drift diagram for South America in the Early Cretaceous" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DATA PIPELINE</span>
+            <ul class="drawer-details-list">
+              <li><strong>Live Fossil Data:</strong> Queries the Paleobiology Database for occurrences filtered by region, geologic interval, and taxonomic group.</li>
+              <li><strong>Enrichment:</strong> Each taxon is enriched from several public biodiversity databases for imagery, classification, ecology, and 3D models where they exist, with sources cited on every card.</li>
+              <li><strong>Caching Layer:</strong> Postgres-backed cache for occurrence lists and per-taxon media, keeping repeat searches fast and keeping load off the public APIs.</li>
+              <li><strong>Interactive Timeline:</strong> Scrubbable 500-million-year geologic timeline with era colour coding and markers for major extinction and origination events.</li>
+              <li><strong>Shareable State:</strong> Every search is encoded in the URL, so a specific region, era, and taxon can be linked to directly.</li>
+              <li><strong>Stack &amp; Testing:</strong> Next.js 14, React, and TypeScript deployed on Vercel, with a deterministic offline test suite plus a separate verification pass that checks the data files against the databases they cite.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frame -->
+      <div class="card card-with-video" id="frame">
+        <div class="card-info">
+          <div>
+            <div class="card-header-row">
+              <h3>Frame</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
+            <p>A clean, fast photo gallery for Android. Frame shows the photos and videos already on your phone, with no account, no cloud and no clutter, and puts favourites, moving, sharing and deleting a tap away.</p>
+          </div>
+          <span class="live-url is-soon">Coming to Google Play</span>
+          <div class="card-links">
+            <span class="btn btn-secondary" aria-disabled="true">Coming soon</span>
+          </div>
+        </div>
+
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <div class="pixel-placeholder" role="img" aria-label="Frame, coming soon">
+              <span class="ph-title">FRAME</span>
+              <span class="ph-sub">&gt; LOADING NEXT LEVEL_</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            <span class="drawer-subtitle">&gt; DESIGN DECISIONS</span>
+            <ul class="drawer-details-list">
+              <li><strong>Your device, your photos:</strong> Frame reads the phone's own media library, so every photo it shows is one you already have, and every change happens on the device.</li>
+              <li><strong>Everything a gallery should do:</strong> Browse, favourite, move, share and delete, built on Android's media APIs rather than a cloud service.</li>
+              <li><strong>Screenshot tidying:</strong> Screenshots can be given a shelf life, with a clear preview of what will be cleared before anything is removed.</li>
+              <li><strong>Built with:</strong> Kotlin and Jetpack Compose, sharing its foundations with Orbital Launcher.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- SpaceFinder -->
+      <div class="card card-with-video" id="spacefinder">
+        <div class="card-info">
+          <div>
+            <div class="card-header-row">
+              <h3>SpaceFinder</h3>
+              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
+            </div>
+            <p>Find out where your Windows drive space went, and get it back. SpaceFinder ranks installed programs, folders and files by size, spots duplicates and developer clutter, and shows what has grown since your last scan, with uninstall, recycle and move-to-another-drive in the same window.</p>
+          </div>
+          <span class="live-url is-soon">Download coming soon</span>
+          <div class="card-links">
+            <span class="btn btn-secondary" aria-disabled="true">Coming soon</span>
+          </div>
+        </div>
+
+        <div class="card-video-embed">
+          <div class="video-frame-wrap">
+            <div class="pixel-placeholder" role="img" aria-label="SpaceFinder, coming soon">
+              <span class="ph-title">SPACEFINDER</span>
+              <span class="ph-sub">&gt; SCANNING DRIVE C:_</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-expanded-drawer">
+          <div class="card-drawer-inner">
+            <span class="drawer-subtitle">&gt; FEATURES</span>
+            <ul class="drawer-details-list">
+              <li><strong>Quick wins:</strong> The biggest safe savings on your drive, gathered on one tab.</li>
+              <li><strong>What grew:</strong> Saved scans are compared, so you can see exactly which folders have been filling up.</li>
+              <li><strong>Programs by size:</strong> Desktop, Microsoft Store and Epic apps side by side, with when each was last used and a one-click uninstall.</li>
+              <li><strong>Duplicates and developer clutter:</strong> Finds repeated files, build caches and emulator images that quietly take up gigabytes.</li>
+              <li><strong>Careful by design:</strong> Deletions go to the Recycle Bin, and Windows and program folders are protected from removal.</li>
+              <li><strong>Low-space alert:</strong> An optional tray icon warns you before the drive fills up.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-title" id="unreal">ENGINE SYSTEMS &amp; MARKETPLACE ASSETS</div>
     <div class="grid">
       
 <!-- CARD 1: Advanced Swim Component -->
@@ -1354,7 +1858,7 @@
 
     </div>
 
-    <div class="section-title">FEATURED PROJECT</div>
+    <div class="section-title" id="featured">FEATURED PROJECT</div>
     <div class="grid">
 
       <!-- CARD 5: Skyrim Mod -->
@@ -1395,152 +1899,8 @@
 
     </div>
 
-    <div class="section-title">OTHER PROJECTS</div>
+    <div class="section-title" id="more">MORE PROJECTS</div>
     <div class="grid">
-
-      <!-- CARD 6: Epoch Explorer -->
-      <div class="card card-with-video">
-        <div class="card-info">
-          <div>
-            <div class="card-header-row">
-              <h3>Epoch Explorer</h3>
-              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
-            </div>
-            <p>Full-stack web app for exploring prehistoric life. Pick a region on an interactive continental drift diagram and scrub to a point in geologic time, and it returns the fossil animals known from that place and era, complete with taxonomy, ecology, imagery, and a cited source list on every result. Built with Next.js and TypeScript, querying the Paleobiology Database live and caching enriched results in Postgres.</p>
-          </div>
-          <div class="card-links">
-            <a href="https://epochexplorer.earth/?region=South+America&amp;year=113&amp;groups=Dinosauria&amp;taxon=Iguanodon" target="_blank" rel="noopener" class="btn btn-primary">Launch Epoch Explorer</a>
-          </div>
-        </div>
-
-        <div class="card-video-embed">
-          <div class="video-frame-wrap">
-            <img src="EpochExplorer.jpg" alt="Epoch Explorer showing the continental drift diagram for South America in the Early Cretaceous" loading="lazy" />
-          </div>
-        </div>
-
-        <div class="card-expanded-drawer">
-          <div class="card-drawer-inner">
-            <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; DATA PIPELINE</span>
-            <ul class="drawer-details-list">
-              <li><strong>Live Fossil Data:</strong> Queries the Paleobiology Database for occurrences filtered by region, geologic interval, and taxonomic group.</li>
-              <li><strong>Enrichment:</strong> Each taxon is enriched from several public biodiversity databases for imagery, classification, ecology, and 3D models where they exist, with sources cited on every card.</li>
-              <li><strong>Caching Layer:</strong> Postgres-backed cache for occurrence lists and per-taxon media, keeping repeat searches fast and keeping load off the public APIs.</li>
-              <li><strong>Interactive Timeline:</strong> Scrubbable 500-million-year geologic timeline with era colour coding and markers for major extinction and origination events.</li>
-              <li><strong>Shareable State:</strong> Every search is encoded in the URL, so a specific region, era, and taxon can be linked to directly.</li>
-              <li><strong>Stack &amp; Testing:</strong> Next.js 14, React, and TypeScript deployed on Vercel, with a deterministic offline test suite plus a separate verification pass that checks the data files against the databases they cite.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- CARD 7: Orbital Launcher -->
-      <div class="card card-with-video">
-        <div class="card-info">
-          <div>
-            <div class="card-header-row">
-              <h3>Orbital Launcher</h3>
-              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
-            </div>
-            <p>Android home-screen replacement built around a dock you turn with your thumb. Apps ride an ellipse along the bottom of the screen rather than a grid at the top, with pages, widgets and an assistant bar placed wherever you want them. Nothing phones home: no account, no server, no analytics, no crash reporter. In closed testing on Google Play, headed for a paid release.</p>
-          </div>
-          <div class="card-links">
-            <a href="https://orbitallauncher.com" target="_blank" rel="noopener" class="btn btn-primary">Visit Orbital Launcher</a>
-          </div>
-        </div>
-
-        <div class="card-video-embed">
-          <div class="video-frame-wrap">
-            <img src="OrbitalLauncher.jpg" alt="The Orbital Launcher site, showing the orbit dock of app icons" loading="lazy" />
-          </div>
-        </div>
-
-        <div class="card-expanded-drawer">
-          <div class="card-drawer-inner">
-            <span class="drawer-subtitle">&gt; ARCHITECTURE &amp; PRODUCT DECISIONS</span>
-            <ul class="drawer-details-list">
-              <li><strong>The orbit dock:</strong> One orbit or three, anchored to the bottom or either side, or a plain flat row for anyone the wheel is not for. It can turn slowly by itself, wind back to where it started, and stay within reach from inside other apps.</li>
-              <li><strong>Nineteen widgets:</strong> Clock, calendar, week, up next, weather, now playing, news, feeds, people, notes, battery, torch, calculator, folders, app shortcuts and an app scroller, alongside any Android widget already installed.</li>
-              <li><strong>Assistant bar:</strong> Type an errand and it carries it out, covering reminders, notes, messages, emails, calls, calendar entries, app launches and searches. A Claude, ChatGPT or Gemini key is optional and used only for phrasing it cannot parse itself.</li>
-              <li><strong>Built for foldables:</strong> The open screen can share the folded one's layout, spread two pages side by side, or keep a layout of its own with its own theme, dock and settings.</li>
-              <li><strong>Permissions on demand:</strong> Nothing is requested at install. Each feature asks the first time it is used, and whatever is declined simply goes quiet rather than blocking the app.</li>
-              <li><strong>No telemetry at all:</strong> No account, no sign-in, no server of its own, no analytics library, no crash reporter, no ad network. The five kinds of request that can leave the phone are each listed with what they contain.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- CARD 8: Chojio -->
-      <div class="card card-with-video">
-        <div class="card-info">
-          <div>
-            <div class="card-header-row">
-              <h3>Chojio</h3>
-              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
-            </div>
-            <p>Discord server toolkit that replaces the usual stack of four single-purpose bots. Panels, support tickets and self-assignable roles, all set up with slash commands inside Discord rather than on a dashboard you have to go and find. Live and free to add, with a paid tier at $4.99 per month per server.</p>
-          </div>
-          <div class="card-links">
-            <a href="https://chojio.com" target="_blank" rel="noopener" class="btn btn-primary">Visit Chojio</a>
-          </div>
-        </div>
-
-        <div class="card-video-embed">
-          <div class="video-frame-wrap">
-            <img src="Chojio.jpg" alt="The Chojio landing page, a Discord server toolkit" loading="lazy" />
-          </div>
-        </div>
-
-        <div class="card-expanded-drawer">
-          <div class="card-drawer-inner">
-            <span class="drawer-subtitle">&gt; DESIGN &amp; SECURITY DECISIONS</span>
-            <ul class="drawer-details-list">
-              <li><strong>Slash-command first:</strong> Every setting is reachable from a slash command. The web dashboard is the faster surface for a long embed or a complicated form, never the only route to a setting.</li>
-              <li><strong>Buttons that outlive deploys:</strong> No in-memory component collectors, which is a real failure mode in other bots. Handlers are looked up by name at click time, so a panel posted months ago still works after a restart.</li>
-              <li><strong>Least privilege:</strong> Never asks for Administrator, and does not request Discord's Message Content intent, so it cannot read ordinary channel messages. A closed ticket produces a structured archive rather than a transcript of everything people typed.</li>
-              <li><strong>Permissions re-checked at click time:</strong> A role menu re-validates a role before assigning it and refuses if that role has gained something dangerous since the menu was built.</li>
-              <li><strong>Templates cannot make moderators:</strong> Server templates create roles, categories and channels, but moderation permissions are refused outright rather than hidden behind a confirmation dialog that only protects people who read them.</li>
-              <li><strong>Built versus planned:</strong> Panels, tickets and role menus are shipped. Forms, surveys, scheduled posts, a server builder and an audit log are labelled as not yet built rather than implied.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- CARD 9: Capshot -->
-      <div class="card card-with-video">
-        <div class="card-info">
-          <div>
-            <div class="card-header-row">
-              <h3>Capshot</h3>
-              <button class="more-info-btn" aria-expanded="false">[+ More Info]</button>
-            </div>
-            <p>Screen recorder that lives in the Windows tray. Click the icon, drag a rectangle around any part of any monitor, and it records just that region until you press a hotkey you chose yourself. Portable, with no installer and ffmpeg bundled. Free to use, unlocked by a one-time $11.49 payment rather than a subscription.</p>
-          </div>
-          <div class="card-links">
-            <a href="https://capshot.me" target="_blank" rel="noopener" class="btn btn-primary">Visit Capshot</a>
-          </div>
-        </div>
-
-        <div class="card-video-embed">
-          <div class="video-frame-wrap">
-            <img src="Capshot.jpg" alt="The Capshot landing page, a region screen recorder for Windows" loading="lazy" />
-          </div>
-        </div>
-
-        <div class="card-expanded-drawer">
-          <div class="card-drawer-inner">
-            <span class="drawer-subtitle">&gt; BUILD &amp; PRODUCT DECISIONS</span>
-            <ul class="drawer-details-list">
-              <li><strong>Region capture:</strong> Drag a box on any monitor. The screen dims, a live size readout follows the cursor, and Escape backs out without recording.</li>
-              <li><strong>System-wide hotkeys:</strong> Start and stop are bound to keys the user picks and work outside the app's own window, so a recording can be stopped without hunting for a button.</li>
-              <li><strong>Formats and capture:</strong> MP4, MOV, WebM, GIF and animated WebP, with device audio and pause and resume part-way through a take.</li>
-              <li><strong>Free tier is a tool, not a trial:</strong> No account and no countdown to expiry. The limits are stated plainly instead: 45 seconds a clip, 15 for GIFs, up to 1080p, and a small watermark.</li>
-              <li><strong>Offline licensing:</strong> One payment yields a key pasted into Settings. The app verifies it once and then keeps working without calling home.</li>
-              <li><strong>Platform support stated up front:</strong> Windows ships today; macOS and Linux are marked in progress. ChromeOS is a web version because an installed app there cannot see the rest of the screen, and would record a black rectangle. Said on the page rather than discovered after a download.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
 
       <!-- CARD 10: Custom Cyberdeck -->
       <div class="card card-with-video">
@@ -1692,7 +2052,7 @@
         <a href="https://alid0n.itch.io/" target="_blank" rel="noopener">itch.io</a>
         <a href="mailto:alid0ndev@gmail.com">alid0ndev@gmail.com</a>
       </div>
-      <p class="footer-note"><span id="footerName">Alid0n</span> &mdash; Technical Artist &amp; Unreal Engine Systems Specialist</p>
+      <p class="footer-note"><span id="footerName">Alid0n</span> &mdash; Apps, tools &amp; Unreal Engine systems</p>
       <p class="footer-note footer-copy">&copy; <span id="footerYear">2026</span> <span id="footerOwner">Alid0n</span> &middot; <span id="footerDomain">alid0n.com</span></p>
     </footer>
 
