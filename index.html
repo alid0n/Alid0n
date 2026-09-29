@@ -327,6 +327,106 @@
       margin-top: 18px;
     }
 
+    /* The large header that folds the skills away. */
+    .skills-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--accent);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .skills-header:hover,
+    .skills-header[aria-expanded="true"] {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .skills-header:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .skills-header-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 15px;
+      letter-spacing: 1px;
+    }
+
+    .skills-header-count {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    /* A plus that turns into a minus. */
+    .skills-header-chevron {
+      margin-left: auto;
+      position: relative;
+      width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+    }
+
+    .skills-header-chevron::before,
+    .skills-header-chevron::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 14px;
+      height: 2px;
+      background: currentColor;
+      transition: transform 0.3s ease;
+    }
+
+    .skills-header-chevron::after {
+      transform: rotate(90deg);
+    }
+
+    .skills-header[aria-expanded="true"] .skills-header-chevron::after {
+      transform: rotate(0deg);
+    }
+
+    /* Animates open by growing its single grid row from nothing to the content's height. */
+    .skills-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s ease;
+    }
+
+    .skills-panel.is-open {
+      grid-template-rows: 1fr;
+    }
+
+    .skills-panel-inner {
+      overflow: hidden;
+      min-height: 0;
+      padding-top: 0;
+      transition: padding-top 0.35s ease;
+    }
+
+    .skills-panel.is-open .skills-panel-inner {
+      padding-top: 12px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .skills-panel,
+      .skills-panel-inner,
+      .skills-header-chevron::before,
+      .skills-header-chevron::after {
+        transition: none;
+      }
+    }
+
     .skills-toggle-all {
       background: none;
       border: none;
@@ -1277,7 +1377,15 @@
       </script>
 
       <div class="skills-row-wrap">
-        <span class="pixel-tag">&gt; SKILLS</span>
+        <!-- The skills sit folded behind this header. Opening it shows the
+             buttons; each button then expands on its own click. -->
+        <button type="button" class="skills-header" id="skillsHeader" aria-expanded="false" aria-controls="skillsPanel">
+          <span class="skills-header-label">&gt; SKILLS</span>
+          <span class="skills-header-count" id="skillsCount"></span>
+          <span class="skills-header-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="skills-panel" id="skillsPanel" inert>
+          <div class="skills-panel-inner">
         <button type="button" id="skillsToggleAll" class="skills-toggle-all">+ Expand All Skills</button>
 <div class="skills-row">
           <span class="skill-tag" data-name="Unreal Engine 5" data-detail="Actor components, blueprints, gameplay systems, file architecture, Input, state machines, AI, VFX, level design, digital content pipelines."><span class="skill-icon">+</span><span class="skill-name">Unreal Engine 5</span></span>
@@ -1297,6 +1405,9 @@
           <span class="skill-tag" data-name="Android &amp; Mobile" data-detail="Kotlin and Jetpack Compose, launcher and widget APIs, foldable layouts, runtime permissions, and Play Console release and Data Safety work."><span class="skill-icon">+</span><span class="skill-name">Android &amp; Mobile</span></span>
           <span class="skill-tag" data-name="Hardware &amp; Fabrication" data-detail="Single-board computing, custom cyberdecks, 3D printing prototyping, and vacuum-forming fabrication."><span class="skill-icon">+</span><span class="skill-name">Hardware &amp; Fabrication</span></span>
         </div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <div class="game-hint" id="gameHint">
@@ -1316,7 +1427,7 @@
           <a class="live-url" href="https://orbitallauncher.com" target="_blank" rel="noopener">orbitallauncher.com</a>
           <div class="card-links">
             <a href="https://orbitallauncher.com" target="_blank" rel="noopener" class="btn btn-primary">Visit site</a>
-            <a href="#orbital" class="btn btn-secondary">Details</a>
+            <a href="apps/orbital-launcher/" class="btn btn-secondary">Details</a>
           </div>
         </div>
         <div class="launch-tile">
@@ -1329,7 +1440,7 @@
           <a class="live-url" href="https://capshot.me" target="_blank" rel="noopener">capshot.me</a>
           <div class="card-links">
             <a href="https://capshot.me" target="_blank" rel="noopener" class="btn btn-primary">Get Capshot</a>
-            <a href="#capshot" class="btn btn-secondary">Details</a>
+            <a href="apps/capshot/" class="btn btn-secondary">Details</a>
           </div>
         </div>
         <div class="launch-tile">
@@ -1342,7 +1453,7 @@
           <a class="live-url" href="https://chojio.com" target="_blank" rel="noopener">chojio.com</a>
           <div class="card-links">
             <a href="https://chojio.com" target="_blank" rel="noopener" class="btn btn-primary">Add Chojio</a>
-            <a href="#chojio" class="btn btn-secondary">Details</a>
+            <a href="apps/chojio/" class="btn btn-secondary">Details</a>
           </div>
         </div>
         <div class="launch-tile">
@@ -1355,7 +1466,7 @@
           <a class="live-url" href="https://epochexplorer.earth" target="_blank" rel="noopener">epochexplorer.earth</a>
           <div class="card-links">
             <a href="https://epochexplorer.earth" target="_blank" rel="noopener" class="btn btn-primary">Launch app</a>
-            <a href="#epoch" class="btn btn-secondary">Details</a>
+            <a href="apps/epoch-explorer/" class="btn btn-secondary">Details</a>
           </div>
         </div>
         <div class="launch-tile">
@@ -1368,7 +1479,7 @@
           <span class="live-url is-soon">Coming to Google Play</span>
           <div class="card-links">
             <span class="btn btn-secondary" aria-disabled="true">Coming soon</span>
-            <a href="#frame" class="btn btn-secondary">Details</a>
+            <a href="apps/frame/" class="btn btn-secondary">Details</a>
           </div>
         </div>
         <div class="launch-tile">
@@ -1381,7 +1492,7 @@
           <a class="live-url" href="https://github.com/alid0n/spacefinder-releases" target="_blank" rel="noopener">Free for Windows 10 &amp; 11</a>
           <div class="card-links">
             <a href="https://github.com/alid0n/spacefinder-releases/releases/latest/download/SpaceFinder.exe" class="btn btn-primary">Download</a>
-            <a href="#spacefinder" class="btn btn-secondary">Details</a>
+            <a href="apps/spacefinder/" class="btn btn-secondary">Details</a>
           </div>
         </div>
         <div class="launch-tile">
@@ -1394,7 +1505,7 @@
           <span class="live-url">Free for Android 8+</span>
           <div class="card-links">
             <a href="downloads/WallpaperSaver.apk" download class="btn btn-primary">Download</a>
-            <a href="#wallpapersaver" class="btn btn-secondary">Details</a>
+            <a href="apps/wallpaper-saver/" class="btn btn-secondary">Details</a>
           </div>
         </div>
     </div>
@@ -1415,6 +1526,7 @@
           <a class="live-url" href="https://orbitallauncher.com" target="_blank" rel="noopener">orbitallauncher.com</a>
           <div class="card-links">
             <a href="https://orbitallauncher.com" target="_blank" rel="noopener" class="btn btn-primary">Visit Orbital Launcher</a>
+            <a href="apps/orbital-launcher/" class="btn btn-secondary">App page</a>
           </div>
         </div>
 
@@ -1452,6 +1564,7 @@
           <a class="live-url" href="https://capshot.me" target="_blank" rel="noopener">capshot.me</a>
           <div class="card-links">
             <a href="https://capshot.me" target="_blank" rel="noopener" class="btn btn-primary">Visit Capshot</a>
+            <a href="apps/capshot/" class="btn btn-secondary">App page</a>
           </div>
         </div>
 
@@ -1489,6 +1602,7 @@
           <a class="live-url" href="https://chojio.com" target="_blank" rel="noopener">chojio.com</a>
           <div class="card-links">
             <a href="https://chojio.com" target="_blank" rel="noopener" class="btn btn-primary">Visit Chojio</a>
+            <a href="apps/chojio/" class="btn btn-secondary">App page</a>
           </div>
         </div>
 
@@ -1526,6 +1640,7 @@
           <a class="live-url" href="https://epochexplorer.earth" target="_blank" rel="noopener">epochexplorer.earth</a>
           <div class="card-links">
             <a href="https://epochexplorer.earth/?region=South+America&amp;year=113&amp;groups=Dinosauria&amp;taxon=Iguanodon" target="_blank" rel="noopener" class="btn btn-primary">Launch Epoch Explorer</a>
+            <a href="apps/epoch-explorer/" class="btn btn-secondary">App page</a>
           </div>
         </div>
 
@@ -1563,6 +1678,7 @@
           <span class="live-url is-soon">Coming to Google Play</span>
           <div class="card-links">
             <span class="btn btn-secondary" aria-disabled="true">Coming soon</span>
+            <a href="apps/frame/" class="btn btn-secondary">App page</a>
           </div>
         </div>
 
@@ -1601,6 +1717,7 @@
           <a class="live-url" href="https://github.com/alid0n/spacefinder-releases" target="_blank" rel="noopener">github.com/alid0n/spacefinder-releases</a>
           <div class="card-links">
             <a href="https://github.com/alid0n/spacefinder-releases/releases/latest/download/SpaceFinder.exe" class="btn btn-primary">Download for Windows</a>
+            <a href="apps/spacefinder/" class="btn btn-secondary">App page</a>
           </div>
         </div>
 
@@ -1639,6 +1756,7 @@
           <span class="live-url">Android 8 and later &middot; 33 KB</span>
           <div class="card-links">
             <a href="downloads/WallpaperSaver.apk" download class="btn btn-primary">Download for Android</a>
+            <a href="apps/wallpaper-saver/" class="btn btn-secondary">App page</a>
           </div>
         </div>
 
@@ -2203,6 +2321,21 @@ document.querySelectorAll('.yt-lazy').forEach(el => {
         setTimeout(finish, 400);
       });
     });
+
+    // The skills header folds the whole set away. Closed, the panel is inert,
+    // so its buttons are neither clickable nor reachable by Tab while hidden.
+    const skillsHeader = document.getElementById('skillsHeader');
+    const skillsPanel = document.getElementById('skillsPanel');
+    if (skillsHeader && skillsPanel) {
+      const count = document.getElementById('skillsCount');
+      if (count) count.textContent = skillsPanel.querySelectorAll('.skill-tag').length + ' skills';
+      skillsHeader.addEventListener('click', () => {
+        const open = skillsHeader.getAttribute('aria-expanded') !== 'true';
+        skillsHeader.setAttribute('aria-expanded', String(open));
+        skillsPanel.classList.toggle('is-open', open);
+        skillsPanel.inert = !open;
+      });
+    }
 
     // Expand/minimize-all control: toggles every skill tag to match
     // whichever state most of them aren't currently in, by re-using each
